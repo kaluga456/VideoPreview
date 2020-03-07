@@ -1,0 +1,233 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="generic">
+      <UniqueIdentifier>{cb3a9378-9f5b-4a21-9b22-9cc7e34f1696}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="core">
+      <UniqueIdentifier>{18ce4a6d-73a5-4d08-94f4-c39c21014dbf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="gui">
+      <UniqueIdentifier>{601d6de1-ab2b-402b-be5a-7941044073a8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{e146f65f-7b7a-4305-9ff2-90c9e03dff82}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+    <Text Include="TODO.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="FileListView.h">
+      <Filter>gui</Filter>
+    </ClInclude>
+    <ClInclude Include="MainFrm.h">
+      <Filter>gui</Filter>
+    </ClInclude>
+    <ClInclude Include="VideoPreview.h">
+      <Filter>gui</Filter>
+    </ClInclude>
+    <ClInclude Include="VideoPreviewDoc.h">
+      <Filter>gui</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="app_thread.h">
+      <Filter>generic</Filter>
+    </ClInclude>
+    <ClInclude Include="app_error.h">
+      <Filter>generic</Filter>
+    </ClInclude>
+    <ClInclude Include="OutputProfile.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="FontView.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="SourceFileTypes.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="ProcessingItem.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="DialogSettings.h">
+      <Filter>gui</Filter>
+    </ClInclude>
+    <ClInclude Include="ProfilePane.h">
+      <Filter>gui</Filter>
+    </ClInclude>
+    <ClInclude Include="Options.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="ProcessingThread.h">
+      <Filter>core</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="FileListView.cpp">
+      <Filter>gui</Filter>
+    </ClCompile>
+    <ClCompile Include="MainFrm.cpp">
+      <Filter>gui</Filter>
+    </ClCompile>
+    <ClCompile Include="VideoPreview.cpp">
+      <Filter>gui</Filter>
+    </ClCompile>
+    <ClCompile Include="VideoPreviewDoc.cpp">
+      <Filter>gui</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="OutputProfile.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="FontView.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="SourceFileTypes.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="ProcessingItem.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="DialogSettings.cpp">
+      <Filter>gui</Filter>
+    </ClCompile>
+    <ClCompile Include="ProfilePane.cpp">
+      <Filter>gui</Filter>
+    </ClCompile>
+    <ClCompile Include="Options.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="ProcessingThread.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="VideoPreview.rc">
+      <Filter>res</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\file_view.ico">
+      <Filter>res</Filter>
+    </Image>
+    <Image Include="res\file_view_hc.ico">
+      <Filter>res</Filter>
+    </Image>
+    <Image Include="res\class_view.ico">
+      <Filter>res</Filter>
+    </Image>
+    <Image Include="res\class_view_hc.ico">
+      <Filter>res</Filter>
+    </Image>
+    <Image Include="res\fileview.bmp">
+      <Filter>res</Filter>
+    </Image>
+    <Image Include="res\fileview_hc.bmp">
+      <Filter>res</Filter>
+    </Image>
+    <Image Include="res\classview.bmp">
+      <Filter>res</Filter>
+    </Image>
+    <Image Include="res\classview_hc.bmp">
+      <Filter>res</Filter>
+    </Image>
+    <Image Include="res\explorer.bmp">
+      <Filter>res</Filter>
+    </Image>
+    <Image Include="res\explorer_hc.bmp">
+      <Filter>res</Filter>
+    </Image>
+    <Image Include="res\sort.bmp">
+      <Filter>res</Filter>
+    </Image>
+    <Image Include="res\sort_hc.bmp">
+      <Filter>res</Filter>
+    </Image>
+    <Image Include="res\menuimages.bmp">
+      <Filter>res</Filter>
+    </Image>
+    <Image Include="res\menuimages_hc.bmp">
+      <Filter>res</Filter>
+    </Image>
+    <Image Include="res\output_wnd.ico">
+      <Filter>res</Filter>
+    </Image>
+    <Image Include="res\output_wnd_hc.ico">
+      <Filter>res</Filter>
+    </Image>
+    <Image Include="res\properties_wnd.ico">
+      <Filter>res</Filter>
+    </Image>
+    <Image Include="res\properties_wnd_hc.ico">
+      <Filter>res</Filter>
+    </Image>
+    <Image Include="res\properties.bmp">
+      <Filter>res</Filter>
+    </Image>
+    <Image Include="res\properties_hc.bmp">
+      <Filter>res</Filter>
+    </Image>
+    <Image Include="res\nav_large.bmp">
+      <Filter>res</Filter>
+    </Image>
+    <Image Include="res\nav_large_hc.bmp">
+      <Filter>res</Filter>
+    </Image>
+    <Image Include="res\pages.bmp">
+      <Filter>res</Filter>
+    </Image>
+    <Image Include="res\pages_hc.bmp">
+      <Filter>res</Filter>
+    </Image>
+    <Image Include="res\pages_small.bmp">
+      <Filter>res</Filter>
+    </Image>
+    <Image Include="res\pages_small_hc.bmp">
+      <Filter>res</Filter>
+    </Image>
+    <Image Include="res\info.bmp">
+      <Filter>res</Filter>
+    </Image>
+    <Image Include="UserImages.bmp">
+      <Filter>res</Filter>
+    </Image>
+    <Image Include="res\VideoPreviewDoc.ico">
+      <Filter>res</Filter>
+    </Image>
+    <Image Include="res\VideoPreview.ico">
+      <Filter>res</Filter>
+    </Image>
+    <Image Include="res\Toolbar.bmp">
+      <Filter>res</Filter>
+    </Image>
+    <Image Include="res\Toolbar256.bmp">
+      <Filter>res</Filter>
+    </Image>
+    <Image Include="gui_model.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\VideoPreview.rc2">
+      <Filter>res</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="C:\Program Files (x86)\Windows Kits\8.0\Lib\win8\um\x86\xmllite.lib">
+      <Filter>lib</Filter>
+    </Library>
+  </ItemGroup>
+</Project>
