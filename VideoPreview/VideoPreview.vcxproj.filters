@@ -19,7 +19,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="ReadMe.txt" />
     <Text Include="TODO.txt" />
   </ItemGroup>
   <ItemGroup>
@@ -74,6 +73,9 @@
     <ClInclude Include="ProcessingThread.h">
       <Filter>core</Filter>
     </ClInclude>
+    <ClInclude Include="DialogAbout.h">
+      <Filter>gui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FileListView.cpp">
@@ -114,6 +116,9 @@
     </ClCompile>
     <ClCompile Include="ProcessingThread.cpp">
       <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="DialogAbout.cpp">
+      <Filter>gui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

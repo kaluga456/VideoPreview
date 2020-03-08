@@ -4,6 +4,7 @@
 #include "SourceFileTypes.h"
 #include "OutputProfile.h"
 #include "VideoPreview.h"
+#include "DialogAbout.h"
 #include "DialogSettings.h"
 #include "ProfilePane.h"
 #include "MainFrm.h"
@@ -29,12 +30,19 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWndEx)
     ON_COMMAND(ID_FILE_STOPPROCESSING, &CMainFrame::OnStopProcessing)
     ON_COMMAND(ID_FILE_REMOVEALL, &CMainFrame::OnRemopeAll)       
     ON_COMMAND(ID_FILE_OPTIONS, &CMainFrame::OnOptions)
+    ON_COMMAND(ID_APP_ABOUT, &CMainFrame::OnAppAbout) //TEST:
     ON_COMMAND(ID_EDIT_TEST, &CMainFrame::OnEditTest) //TEST
 
     //update UI
  
 
 END_MESSAGE_MAP()
+
+void CMainFrame::OnAppAbout()
+{
+	CAboutDlg aboutDlg;
+	aboutDlg.DoModal();
+}
 
 //TODO:
 static UINT SBIndicators[] =
@@ -142,8 +150,15 @@ void CMainFrame::OnDestroy()
 {
     //TEST:
     ProfilePane.GetOutputProfile(&DefaultProfile);
-}
 
+    CFrameWndEx::OnDestroy();
+}
+BOOL CMainFrame::OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult)
+{
+     //TODO:
+    int a = 0;
+    return CFrameWndEx::OnNotify(wParam, lParam, pResult);
+}
 BOOL CMainFrame::PreCreateWindow(CREATESTRUCT& cs)
 {
 	if( !CFrameWndEx::PreCreateWindow(cs) )

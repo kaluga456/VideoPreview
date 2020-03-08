@@ -26,10 +26,11 @@ public:
 
     //data
     int State;
-    std::wstring SourceFileName;
-    std::wstring ResultString; //for PIS_READY - empty, for PIS_DONE - output file name, for PIS_FAILED - error description 
+    CString SourceFileName;
+    CString ResultString; //for PIS_READY - empty, for PIS_DONE - output file name, for PIS_FAILED - error description 
 };
 
+//TODO: CAutoPtr 
 typedef boost::shared_ptr<CProcessingItem> PProcessingItem;
 
 class CProcessingItemLess
@@ -37,7 +38,7 @@ class CProcessingItemLess
 public:
     bool operator()(const PProcessingItem& left, const PProcessingItem& right) const
     {
-        const int result = ::_tcsicmp(left->SourceFileName.c_str(), right->SourceFileName.c_str());
+        const int result = ::_tcsicmp(left->SourceFileName, right->SourceFileName);
         return result < 0;
     }
 };

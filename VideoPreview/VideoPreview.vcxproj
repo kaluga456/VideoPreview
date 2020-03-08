@@ -98,12 +98,12 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Text Include="ReadMe.txt" />
     <Text Include="TODO.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="app_error.h" />
     <ClInclude Include="app_thread.h" />
+    <ClInclude Include="DialogAbout.h" />
     <ClInclude Include="DialogSettings.h" />
     <ClInclude Include="FileListView.h" />
     <ClInclude Include="FontView.h" />
@@ -121,6 +121,7 @@
     <ClInclude Include="VideoPreviewDoc.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="DialogAbout.cpp" />
     <ClCompile Include="DialogSettings.cpp" />
     <ClCompile Include="FileListView.cpp" />
     <ClCompile Include="FontView.cpp" />

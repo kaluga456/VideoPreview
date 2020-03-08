@@ -30,11 +30,14 @@ protected:
     afx_msg void OnRemopeAll();
 	afx_msg void OnOptions();
     afx_msg void OnEditTest(); //TEST:
+
+    afx_msg void OnAppAbout();
 	DECLARE_MESSAGE_MAP()
 
 	CMainFrame();
 	DECLARE_DYNCREATE(CMainFrame)
-public:
+
+    BOOL OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult);
 
 };
 

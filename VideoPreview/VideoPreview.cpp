@@ -98,13 +98,12 @@ BOOL CMainApp::InitInstance()
 
 	// Register the application's document templates.  Document templates
 	//  serve as the connection between documents, frame windows and views
-	CSingleDocTemplate* pDocTemplate;
-	pDocTemplate = new CSingleDocTemplate(
+	CSingleDocTemplate* pDocTemplate = new CSingleDocTemplate(
 		IDR_MAINFRAME,
 		RUNTIME_CLASS(CVideoPreviewDoc),
 		RUNTIME_CLASS(CMainFrame),       // main SDI frame window
 		RUNTIME_CLASS(CFileListView));
-	if (!pDocTemplate)
+	if(!pDocTemplate)
 		return FALSE;
 	AddDocTemplate(pDocTemplate);
 
@@ -114,7 +113,7 @@ BOOL CMainApp::InitInstance()
 
 	// Dispatch commands specified on the command line.  Will return FALSE if
 	// app was launched with /RegServer, /Register, /Unregserver or /Unregister.
-	if (!ProcessShellCommand(cmdInfo))
+	if(!ProcessShellCommand(cmdInfo))
 		return FALSE;
 
 	// The one and only window has been initialized, so show and update it
@@ -133,33 +132,11 @@ int CMainApp::ExitInstance()
 // CMainApp message handlers
 
 
-// CAboutDlg dialog used for App About
-class CAboutDlg : public CDialogEx
-{
-public:
-	CAboutDlg();
-	enum { IDD = IDD_ABOUTBOX };
 
-protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-	DECLARE_MESSAGE_MAP()
-};
-CAboutDlg::CAboutDlg() : CDialogEx(CAboutDlg::IDD)
-{
-}
-void CAboutDlg::DoDataExchange(CDataExchange* pDX)
-{
-	CDialogEx::DoDataExchange(pDX);
-}
-
-BEGIN_MESSAGE_MAP(CAboutDlg, CDialogEx)
-END_MESSAGE_MAP()
 
 // App command to run the dialog
 void CMainApp::OnAppAbout()
 {
-	CAboutDlg aboutDlg;
-	aboutDlg.DoModal();
 }
 
 // CMainApp customization load/save methods

@@ -4,15 +4,12 @@
 	#error "include 'stdafx.h' before including this file for PCH"
 #endif
 
-#include "resource.h"       // main symbols
-
 class CMainApp : public CWinAppEx
 {
 public:
     BOOL  m_bHiColorIcons;
 
 	CMainApp();
-
 
 	virtual BOOL InitInstance();
     int ExitInstance();
