@@ -101,6 +101,7 @@
     <Text Include="TODO.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="About.h" />
     <ClInclude Include="app_error.h" />
     <ClInclude Include="app_thread.h" />
     <ClInclude Include="DialogAbout.h" />
@@ -144,6 +145,7 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="gui_model.png" />
+    <Image Include="res\bitmap1.bmp" />
     <Image Include="res\classview.bmp" />
     <Image Include="res\classview_hc.bmp" />
     <Image Include="res\class_view.ico" />

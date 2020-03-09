@@ -7,8 +7,6 @@
 class CMainApp : public CWinAppEx
 {
 public:
-    BOOL  m_bHiColorIcons;
-
 	CMainApp();
 
 	virtual BOOL InitInstance();

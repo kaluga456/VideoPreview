@@ -60,8 +60,8 @@ protected:
 
 	int CBProfileHeight;
 	CFont m_fntPropList;
-	CComboBox CBProfile;
-	CProfileToolBar TBProfile;
+	//CComboBox CBProfile; //TODO: need this?
+	//CProfileToolBar TBProfile; //TODO: need this?
 	CMFCPropertyGridCtrl PGProfile;
 
     //property controls

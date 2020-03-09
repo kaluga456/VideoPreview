@@ -93,9 +93,11 @@ void CProfilePane::AdjustLayout()
 	CRect rectClient;
 	GetClientRect(rectClient);
 
-	int cyTlb = TBProfile.CalcFixedLayout(FALSE, TRUE).cy;
-	CBProfile.SetWindowPos(NULL, rectClient.left, rectClient.top, rectClient.Width(), CBProfileHeight, SWP_NOACTIVATE | SWP_NOZORDER);
-	TBProfile.SetWindowPos(NULL, rectClient.left, rectClient.top + CBProfileHeight, rectClient.Width(), cyTlb, SWP_NOACTIVATE | SWP_NOZORDER);
+    //TODO: need TBProfile?
+	//int cyTlb = TBProfile.CalcFixedLayout(FALSE, TRUE).cy;
+    int cyTlb = 0;
+	//CBProfile.SetWindowPos(NULL, rectClient.left, rectClient.top, rectClient.Width(), CBProfileHeight, SWP_NOACTIVATE | SWP_NOZORDER);
+	//TBProfile.SetWindowPos(NULL, rectClient.left, rectClient.top + CBProfileHeight, rectClient.Width(), cyTlb, SWP_NOACTIVATE | SWP_NOZORDER);
 	PGProfile.SetWindowPos(NULL, rectClient.left, rectClient.top + CBProfileHeight + cyTlb, rectClient.Width(), rectClient.Height() -(CBProfileHeight+cyTlb), SWP_NOACTIVATE | SWP_NOZORDER);
 }
 int CProfilePane::OnCreate(LPCREATESTRUCT lpCreateStruct)
@@ -107,22 +109,22 @@ int CProfilePane::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	rectDummy.SetRectEmpty();
 
 	//Create combo:
-	const DWORD dwViewStyle = WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST | WS_BORDER | CBS_SORT | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
-	if(!CBProfile.Create(dwViewStyle, rectDummy, this, 1))
-	{
-		TRACE0("Failed to create Properties Combo \n");
-		return -1;      // fail to create
-	}
+	//const DWORD dwViewStyle = WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST | WS_BORDER | CBS_SORT | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
+	//if(!CBProfile.Create(dwViewStyle, rectDummy, this, 1))
+	//{
+	//	TRACE0("Failed to create Properties Combo \n");
+	//	return -1;      // fail to create
+	//}
 
-    //TODO: init profiles
-	CBProfile.AddString(_T("<Current>"));
-	CBProfile.AddString(_T("Profile 1"));
-    CBProfile.AddString(_T("Profile 2"));
-	CBProfile.SetCurSel(0);
+ //   //TODO: init profiles
+	//CBProfile.AddString(_T("<Current>"));
+	//CBProfile.AddString(_T("Profile 1"));
+ //   CBProfile.AddString(_T("Profile 2"));
+	//CBProfile.SetCurSel(0);
 
-	CRect rectCombo;
-	CBProfile.GetClientRect(&rectCombo);
-	CBProfileHeight = rectCombo.Height();
+	//CRect rectCombo;
+	//CBProfile.GetClientRect(&rectCombo);
+	//CBProfileHeight = rectCombo.Height();
 
 	if(!PGProfile.Create(WS_VISIBLE | WS_CHILD, rectDummy, this, 2))
 	{
@@ -132,17 +134,17 @@ int CProfilePane::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 	InitPropList();
 
-	TBProfile.Create(this, AFX_DEFAULT_TOOLBAR_STYLE, IDR_PROPERTIES);
-	TBProfile.LoadToolBar(IDR_PROPERTIES, 0, 0, TRUE /* Is locked */);
-	TBProfile.CleanUpLockedImages();
-	TBProfile.LoadBitmap(theApp.m_bHiColorIcons ? IDB_PROPERTIES_HC : IDR_PROPERTIES, 0, 0, TRUE /* Locked */);
+	//TBProfile.Create(this, AFX_DEFAULT_TOOLBAR_STYLE, IDR_PROPERTIES);
+	//TBProfile.LoadToolBar(IDR_PROPERTIES, 0, 0, TRUE /* Is locked */);
+	//TBProfile.CleanUpLockedImages();
+	//TBProfile.LoadBitmap(IDB_PROPERTIES_HC, 0, 0, TRUE /* Locked */);
 
-	TBProfile.SetPaneStyle(TBProfile.GetPaneStyle() | CBRS_TOOLTIPS | CBRS_FLYBY);
-	TBProfile.SetPaneStyle(TBProfile.GetPaneStyle() & ~(CBRS_GRIPPER | CBRS_SIZE_DYNAMIC | CBRS_BORDER_TOP | CBRS_BORDER_BOTTOM | CBRS_BORDER_LEFT | CBRS_BORDER_RIGHT));
-	TBProfile.SetOwner(this);
+	//TBProfile.SetPaneStyle(TBProfile.GetPaneStyle() | CBRS_TOOLTIPS | CBRS_FLYBY);
+	//TBProfile.SetPaneStyle(TBProfile.GetPaneStyle() & ~(CBRS_GRIPPER | CBRS_SIZE_DYNAMIC | CBRS_BORDER_TOP | CBRS_BORDER_BOTTOM | CBRS_BORDER_LEFT | CBRS_BORDER_RIGHT));
+	//TBProfile.SetOwner(this);
 
-	//All commands will be routed via this control, not via the parent frame:
-	TBProfile.SetRouteCommandsViaFrame(FALSE);
+	////All commands will be routed via this control, not via the parent frame:
+	//TBProfile.SetRouteCommandsViaFrame(FALSE);
 
 	AdjustLayout();
 	return 0;
@@ -322,7 +324,7 @@ void CProfilePane::SetPropListFont()
 	m_fntPropList.CreateFontIndirect(&lf);
 
 	//PGProfile.SetFont(&m_fntPropList);
-	CBProfile.SetFont(&m_fntPropList);
+	//CBProfile.SetFont(&m_fntPropList);
 }
 void CProfilePane::SetVSDotNetLook(BOOL bSet)
 {

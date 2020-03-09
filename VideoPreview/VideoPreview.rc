@@ -98,8 +98,8 @@ IDI_PROPERTIES_WND_HC   ICON                    "res\\properties_wnd_hc.ico"
 // Bitmap
 //
 
-IDR_MAINFRAME           BITMAP                  "res\\Toolbar.bmp"
-IDR_MAINFRAME_256       BITMAP                  "res\\Toolbar256.bmp"
+IDR_MAINFRAME           BITMAP                  "D:\\projects\\VideoPreview\\VideoPreview\\res\\Toolbar.bmp"
+IDR_MAINFRAME_256       BITMAP                  "D:\\projects\\VideoPreview\\VideoPreview\\res\\Toolbar256.bmp"
 IDR_SORT                BITMAP                  "res\\sort.bmp"
 IDB_SORT_24             BITMAP                  "res\\sort_hc.bmp"
 IDB_FILE_VIEW           BITMAP                  "res\\fileview.bmp"
@@ -119,6 +119,7 @@ IDB_PAGES_HC            BITMAP                  "res\\pages_hc.bmp"
 IDB_PAGES_SMALL         BITMAP                  "res\\pages_small.bmp"
 IDB_PAGES_SMALL_HC      BITMAP                  "res\\pages_small_hc.bmp"
 IDB_INFO                BITMAP                  "res\\info.bmp"
+IDB_MAIN_TOOLBAR        BITMAP                  "res\\Toolbar256.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -142,25 +143,24 @@ BEGIN
     BUTTON      ID_VIEW_LIST
     BUTTON      ID_VIEW_DETAILS
     BUTTON      ID_APP_ABOUT
+    BUTTON      ID_PROFILE_DELETE
 END
 
 IDR_MAINFRAME_256 TOOLBAR 16, 15
 BEGIN
-    BUTTON      ID_FILE_NEW
-    BUTTON      ID_FILE_OPEN
-    BUTTON      ID_FILE_SAVE
+    BUTTON      ID_FILE_ADDFILES
+    BUTTON      ID_FILE_ADDFOLDER
     SEPARATOR
-    BUTTON      ID_EDIT_CUT
-    BUTTON      ID_EDIT_COPY
-    BUTTON      ID_EDIT_PASTE
+    BUTTON      ID_FILE_REMOVECOMPLETED
+    BUTTON      ID_FILE_REMOVEALL
     SEPARATOR
-    BUTTON      ID_FILE_PRINT
+    BUTTON      ID_FILE_STARTPROCESSING
+    BUTTON      ID_FILE_STOPPROCESSING
     SEPARATOR
-    BUTTON      ID_VIEW_LARGEICON
-    BUTTON      ID_VIEW_SMALLICON
-    BUTTON      ID_VIEW_LIST
-    BUTTON      ID_VIEW_DETAILS
-    BUTTON      ID_APP_ABOUT
+    BUTTON      ID_PROFILE_SAVE
+    BUTTON      ID_PROFILE_DELETE
+    BUTTON      ID_PROFILE_PREVIEW
+    BUTTON      ID_PROFILE_COMBO
 END
 
 IDR_SORT TOOLBAR 16, 15
@@ -208,15 +208,21 @@ BEGIN
         MENUITEM "Add Files...\tInsert",        ID_FILE_ADDFILES
         MENUITEM "Add Folder...\tCtrl+Insert",  ID_FILE_ADDFOLDER
         MENUITEM SEPARATOR
+        MENUITEM "Remove Completed\tShift+Delete", ID_REMOVE_COMPLETED
+        MENUITEM "Remove All\tCtrl+Delete",     ID_FILE_REMOVEALL
+        MENUITEM SEPARATOR
         MENUITEM "Start Processing",            ID_FILE_STARTPROCESSING
         MENUITEM "Stop Processing",             ID_FILE_STOPPROCESSING
-        MENUITEM SEPARATOR
-        MENUITEM "Remove Completed\tShift+Delete", ID_FILE_REMOVECOMPLETED
-        MENUITEM "Remope All\tCtrl+Delete",     ID_FILE_REMOVEALL
         MENUITEM SEPARATOR
         MENUITEM "Options...\tCtrl+O",          ID_FILE_OPTIONS
         MENUITEM SEPARATOR
         MENUITEM "Exit",                        ID_APP_EXIT
+    END
+    POPUP "Profile"
+    BEGIN
+        MENUITEM "Save...\tCtrl+S",             ID_PROFILE_SAVE
+        MENUITEM "Delete\tCtrl+D",              ID_PROFILE_DELETE
+        MENUITEM "Preview...\tCtrl+P",          ID_PROFILE_PREVIEW
     END
     POPUP "Help"
     BEGIN
@@ -266,6 +272,11 @@ BEGIN
     VK_INSERT,      ID_FILE_ADDFILES,       VIRTKEY, NOINVERT
     VK_INSERT,      ID_FILE_ADDFOLDER,      VIRTKEY, CONTROL, NOINVERT
     "O",            ID_FILE_OPTIONS,        VIRTKEY, CONTROL, NOINVERT
+    VK_DELETE,      ID_FILE_REMOVECOMPLETED, VIRTKEY, SHIFT, NOINVERT
+    VK_DELETE,      ID_FILE_REMOVEALL,      VIRTKEY, CONTROL, NOINVERT
+    "S",            ID_PROFILE_SAVE,        VIRTKEY, CONTROL, NOINVERT
+    "D",            ID_PROFILE_DELETE,      VIRTKEY, CONTROL, NOINVERT
+    "P",            ID_PROFILE_PREVIEW,     VIRTKEY, CONTROL, NOINVERT
 END
 
 
@@ -274,15 +285,14 @@ END
 // Dialog
 //
 
-IDD_ABOUTBOX DIALOGEX 0, 0, 170, 62
+IDD_ABOUTBOX DIALOGEX 0, 0, 231, 57
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "About VideoPreview"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
-    ICON            IDR_MAINFRAME,IDC_STATIC,14,14,21,20
-    LTEXT           "VideoPreview, Version 1.0",IDC_STATIC,42,14,114,8,SS_NOPREFIX
-    LTEXT           "Copyright (C) 2020",IDC_STATIC,42,26,114,8
-    DEFPUSHBUTTON   "OK",IDOK,113,41,50,14,WS_GROUP
+    LTEXT           "Version 1.0 Build: ",IDC_STATIC_VERSION,7,7,114,8,SS_NOPREFIX
+    LTEXT           "https://github.com/kaluga456/VideoPreview",IDC_STATIC_APP_URL,7,19,217,8
+    DEFPUSHBUTTON   "OK",IDOK,90,36,50,14,BS_CENTER | WS_GROUP
 END
 
 IDD_CHANGE_OUTPUT_PROFILE_NAME DIALOGEX 0, 0, 166, 90
@@ -380,9 +390,9 @@ BEGIN
     IDD_ABOUTBOX, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 163
+        RIGHTMARGIN, 224
         TOPMARGIN, 7
-        BOTTOMMARGIN, 55
+        BOTTOMMARGIN, 50
     END
 
     IDD_OPTIONS, DIALOG
@@ -566,6 +576,23 @@ BEGIN
     IDS_CAPTION_TEXT        "This is a caption bar where a message can be presented to the user."
     IDS_CAPTION_IMAGE_TIP   "Important"
     IDS_CAPTION_IMAGE_TEXT  "Here is an informational message for the user."
+END
+
+STRINGTABLE
+BEGIN
+    ID_FILE_ADDFILES        "Add Video Files\nAdd Files"
+    ID_FILE_ADDFOLDER       "Add Folder\nAdd Folder"
+    ID_FILE_STARTPROCESSING "Start Processing\nStart"
+    ID_FILE_STOPPROCESSING  "Stop Processing\nStop"
+    ID_FILE_REMOVECOMPLETED "Remove Completed Source Files From List\nRemove Completed"
+END
+
+STRINGTABLE
+BEGIN
+    ID_FILE_REMOVEALL       "Remove All Source Files From List\nRemove All"
+    ID_PROFILE_SAVE         "Save Selected Profile\nSave"
+    ID_PROFILE_PREVIEW      "Preview Selected Profile\nPreview Profile"
+    ID_PROFILE_DELETE       "Delete Selected Profile\nDelete"
 END
 
 #endif    // English (United States) resources

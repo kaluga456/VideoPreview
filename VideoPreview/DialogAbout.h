@@ -7,7 +7,12 @@ public:
 	CAboutDlg();
 	enum { IDD = IDD_ABOUTBOX };
 
-protected:
+private:
+    HFONT URLFont;
+    HCURSOR URLCursor;
+
+    BOOL OnInitDialog();
+    void OnDestroy();
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 	DECLARE_MESSAGE_MAP()
 };

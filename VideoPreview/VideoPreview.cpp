@@ -28,8 +28,6 @@ END_MESSAGE_MAP()
 // CMainApp construction
 CMainApp::CMainApp()
 {
-	m_bHiColorIcons = TRUE;
-
 	// support Restart Manager
 	m_dwRestartManagerSupportFlags = AFX_RESTART_MANAGER_SUPPORT_ALL_ASPECTS;
 #ifdef _MANAGED

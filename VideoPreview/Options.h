@@ -10,6 +10,7 @@ public:
     int ColumnWidth3;
     int SortedColumn;
     int SortOrder;
+    int ProfilePaneWidth;
 
     //source files
     int UseExplorerContextMenu;

@@ -83,6 +83,7 @@
 #define IDC_RBTN_ACTION_ON_ERROR_PROMT  317
 #define IDC_CBTN_SAVE_FILE_LIST         318
 #define IDC_LIST_SOURCE_FILE_TYPES      319
+#define IDB_MAIN_TOOLBAR                319
 #define IDC_BTN_ADD_SOURCE_FILE_TYPE    320
 #define IDC_EDIT_SOURCE_FILE_TYPE       321
 #define IDC_BTN_REMOVE_SOURCE_FILE_TYPE 322
@@ -90,8 +91,10 @@
 #define IDC_CBTN_USE_SOURCE_FILE_LOCATION 324
 #define IDC_CBTN_OVERWRITE_OUTPUT_FILES 325
 #define IDC_BTN_DEFAULT_SOURCE_FILE_TYPE 326
-#define ID_VIEW_PROPERTIESWND           328
 #define IDD_OPTIONS                     329
+#define ID_VIEW_PROPERTIESWND           330
+#define IDC_STATIC_VERSION              1000
+#define IDC_STATIC_APP_URL              1001
 #define ID_EDIT_TEST                    32771
 #define ID_FILE_ADDFILES                32774
 #define ID_FILE_ADDFOLDER               32775
@@ -101,14 +104,22 @@
 #define ID_FILE_REMOPEALL               32779
 #define ID_FILE_OPTIONS                 32780
 #define ID_FILE_REMOVEALL               32785
+#define ID_PROFILE_SAVE                 32788
+#define ID_PROFILE_PREVIEW              32789
+#define ID_PROFILE_SAVECURRENT          32790
+#define ID_PROFILE_PREVIEW32791         32791
+#define ID_PROFILE_DELETE               32792
+#define ID_PROFILE_COMBO                32793
+#define ID_PROFILE_DELETE32794          32794
+#define ID_REMOVE_COMPLETED             32801
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        314
-#define _APS_NEXT_COMMAND_VALUE         32786
-#define _APS_NEXT_CONTROL_VALUE         1000
-#define _APS_NEXT_SYMED_VALUE           330
+#define _APS_NEXT_RESOURCE_VALUE        320
+#define _APS_NEXT_COMMAND_VALUE         32802
+#define _APS_NEXT_CONTROL_VALUE         1002
+#define _APS_NEXT_SYMED_VALUE           331
 #endif
 #endif

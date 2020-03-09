@@ -73,6 +73,7 @@ const int DEFAULT_SAVE_FILE_LIST_ON_EXIT = true;
 const int DEFAULT_FILE_LIST_COLUMN_WIDTH = 100;
 const int DEFAULT_FILE_LIST_SORTED_COLUMN = 0;
 const int DEFAULT_FILE_LIST_SORT_ORDER = 0; //TODO: check
+const int DEFAULT_PROFILE_PANE_WIDTH = 200; //TODO: check
 
 COptions::COptions()
 {
@@ -140,6 +141,7 @@ bool COptions::Read()
     ColumnWidth3 = theApp.GetSectionInt(_T("Layout"), _T("ColumnWidth3"), DEFAULT_FILE_LIST_COLUMN_WIDTH);
     SortedColumn = theApp.GetSectionInt(_T("Layout"), _T("SortedColumn"), DEFAULT_FILE_LIST_SORTED_COLUMN);
     SortOrder = theApp.GetSectionInt(_T("Layout"), _T("SortOrder"), DEFAULT_FILE_LIST_SORT_ORDER);
+    ProfilePaneWidth = theApp.GetSectionInt(_T("Layout"), _T("ProfilePaneWidth"), DEFAULT_PROFILE_PANE_WIDTH);
 
     //output profiles
     //TODO: read <default> as mandatory always-saved profile
@@ -221,6 +223,7 @@ bool COptions::Write()
     theApp.WriteSectionInt(_T("Layout"), _T("ColumnWidth3"), ColumnWidth3);
     theApp.WriteSectionInt(_T("Layout"), _T("SortedColumn"), SortedColumn);
     theApp.WriteSectionInt(_T("Layout"), _T("SortOrder"), SortOrder);
+    theApp.WriteSectionInt(_T("Layout"), _T("ProfilePaneWidth"), ProfilePaneWidth);
 
     //NOTE: if file_name is not NULL, then it is export settings call
     //if(NULL == file_name && 0 == SettingsFileName[0]) return false; //settings file name is invalid

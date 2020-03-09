@@ -16,28 +16,18 @@ protected: // create from serialization only
 	CFileListView();
 	DECLARE_DYNCREATE(CFileListView)
 
-// Attributes
 public:
+    virtual ~CFileListView();
+
 	CVideoPreviewDoc* GetDocument() const;
-
-// Operations
-public:
-
-// Overrides
-public:
 	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
-protected:
-	virtual void OnInitialUpdate(); // called first time after construct
+	
 
-// Implementation
-public:
-	virtual ~CFileListView();
+	
 #ifdef _DEBUG
 	virtual void AssertValid() const;
 	virtual void Dump(CDumpContext& dc) const;
 #endif
-
-protected:
 
 // Generated message map functions
 protected:
@@ -47,6 +37,7 @@ protected:
 	afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
 	DECLARE_MESSAGE_MAP()
 
+    virtual void OnInitialUpdate(); // called first time after construct
     virtual BOOL OnChildNotify(UINT message, WPARAM wParam, LPARAM lParam, LRESULT* pResult);
 
     void OnColumnClick(int column_index);
