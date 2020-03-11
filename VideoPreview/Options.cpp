@@ -275,6 +275,8 @@ bool COptions::Write()
 
     ////output profiles
     theApp.WriteObject(_T("DefaultProfile"), DefaultProfile);
+    theApp.WriteProfiles();
+
     //node = root_node->InsertEndChild(settings.NewElement("OutputProfiles"));
     //element = node->ToElement();
     //element->SetAttribute("SelectedProfile", GetSelectedOutputProfileName());

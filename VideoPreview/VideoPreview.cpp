@@ -83,6 +83,7 @@ BOOL CMainApp::InitInstance()
 	//LoadStdProfileSettings(4);  // Load standard INI file options (including MRU)
 
     Options.Read();
+    ReadProfiles();
 
 	InitContextMenuManager();
 	InitShellManager();
@@ -123,14 +124,55 @@ BOOL CMainApp::InitInstance()
 int CMainApp::ExitInstance()
 {
     Options.Write();
+    
     return CWinAppEx::ExitInstance();
 }
+void CMainApp::ReadProfiles()
+{
+    //TODO:
+    HKEY root_reg_key = GetAppRegistryKey();
+    if(NULL == root_reg_key) 
+        return;
 
+    CRegKey app_reg;
+    if(ERROR_SUCCESS != app_reg.Open(root_reg_key, _T("Profiles")))
+        return;
+    
+    DWORD profile_name_size = 0;
+    TCHAR profile_name[MAX_OUTPUT_PROFILE_NAME_SIZE + 1];
+    for(int key_index = 0; ; ++key_index)
+    {
+        profile_name_size = MAX_OUTPUT_PROFILE_NAME_SIZE + 1;
+        LONG result = app_reg.EnumKey(key_index, profile_name, &profile_name_size);
+        if(result != ERROR_SUCCESS) break;
 
-// CMainApp message handlers
+        if(*profile_name == 0)
+        {
+            ASSERT(FALSE);
+            continue;
+        }
 
+        //CString profile_key_name =  CString(profile_name);
+        POutputProfile profile(new COutputProfile);
+        theApp.GetSectionObject(_T("Profiles"), profile_name, *(profile.get()));
+        OutputProfiles[profile_name] = profile;
+    }
 
+}
+void CMainApp::WriteProfiles()
+{
+    //TODO:
 
+    //TEST:
+    COutputProfile test_profile;
+    test_profile.SetDefault();
+    CString profile_key_name = _T("TestProfile");
+    theApp.WriteSectionObject(_T("Profiles"), profile_key_name, test_profile);
+}
+void CMainApp::DeleteProfile()
+{
+    //TODO:
+}
 
 // App command to run the dialog
 void CMainApp::OnAppAbout()
@@ -153,11 +195,13 @@ void CMainApp::PreLoadState()
 
 void CMainApp::LoadCustomState()
 {
-    Options.Read();
+    //TODO: need here?
+    //Options.Read();
 }
 
 void CMainApp::SaveCustomState()
 {
-    Options.Write();
+    //TODO: need here?
+    //Options.Write();
 }
 

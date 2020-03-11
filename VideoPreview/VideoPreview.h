@@ -15,6 +15,11 @@ public:
 	virtual void LoadCustomState();
 	virtual void SaveCustomState();
 
+    //profiles
+    void ReadProfiles();
+    void WriteProfiles();
+    void DeleteProfile();
+
 	afx_msg void OnAppAbout();
 	DECLARE_MESSAGE_MAP()
 };

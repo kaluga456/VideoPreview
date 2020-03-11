@@ -35,6 +35,7 @@ protected:
     afx_msg void OnProfileSave();
     afx_msg void OnProfileDelete();
     afx_msg void OnProfilePreview();
+    afx_msg void OnProfileCombo();
     afx_msg void OnEditTest(); //TEST:
     afx_msg void OnResetToolbar();
     afx_msg LRESULT OnResetToolbar(WPARAM wp,LPARAM lp);

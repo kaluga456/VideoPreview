@@ -36,8 +36,10 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWndEx)
     ON_COMMAND(ID_PROFILE_DELETE, &CMainFrame::OnProfileDelete)
     ON_COMMAND(ID_PROFILE_PREVIEW, &CMainFrame::OnProfilePreview)
     ON_COMMAND(ID_APP_ABOUT, &CMainFrame::OnAppAbout)
-
     ON_COMMAND(ID_EDIT_TEST, &CMainFrame::OnEditTest) //TEST
+
+    //other
+    ON_CBN_SELCHANGE(ID_PROFILE_COMBO, OnProfileCombo)
 
     //TODO: update UI
     ON_UPDATE_COMMAND_UI(ID_FILE_REMOVECOMPLETED, OnUpdateUI)
@@ -252,8 +254,8 @@ void CMainFrame::OnViewPropertiesWindow()
 {
 	// Show or activate the pane, depending on current state.  The
 	// pane can only be closed via the [x] button on the pane frame.
-	ProfilePane.ShowPane(TRUE, FALSE, TRUE);
-	ProfilePane.SetFocus();
+	//ProfilePane.ShowPane(TRUE, FALSE, TRUE);
+	//ProfilePane.SetFocus();
 }
 void CMainFrame::OnAddFiles()
 {
@@ -283,15 +285,6 @@ void CMainFrame::OnOptions()
     CDialogSettings dialog(this);
     dialog.DoModal();
 }
-void CMainFrame::OnEditTest()
-{
-    //COutputProfile profile;
-    //profile.SetDefault();
-    //ProfilePane.SetOutputProfile(&profile);
-
-    UpdateDialogControls(this, FALSE);
-    //MessageBox(L"OnEditTest", L"DEBUG", MB_OK | MB_ICONINFORMATION);
-}
 void CMainFrame::OnProfileSave()
 {
     //TODO:
@@ -303,8 +296,24 @@ void CMainFrame::OnProfileDelete()
 void CMainFrame::OnProfilePreview()
 {
     //TODO:
+    int i = 0;
 }
+void CMainFrame::OnProfileCombo()
+{
+    //TODO:
+    const int index = CBProfile->GetCurSel();
 
+
+}
+void CMainFrame::OnEditTest()
+{
+    //TEST:
+    //COutputProfile profile;
+    //profile.SetDefault();
+    //ProfilePane.SetOutputProfile(&profile);
+    //UpdateDialogControls(this, FALSE);
+    //MessageBox(L"OnEditTest", L"DEBUG", MB_OK | MB_ICONINFORMATION);
+}
 void CMainFrame::OnUpdateUI(CCmdUI* pCmdUI)
 {
     //CWnd::UpdateDialogControls() ?
