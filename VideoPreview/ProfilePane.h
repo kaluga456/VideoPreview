@@ -13,7 +13,7 @@ public:
 class CPGPCombo : public CMFCPropertyGridProperty
 {
 public:
-    CPGPCombo(const CString& strName, const COleVariant& varValue, LPCTSTR lpszDescr = NULL);
+    CPGPCombo(const CString& strName, const COleVariant& varValue, LPCTSTR lpszDescr = NULL, DWORD_PTR dwData = 0);
 
     void AddItem(CString key, int value);
     int GetItem() const;
@@ -55,7 +55,7 @@ protected:
 	afx_msg void OnUpdateProperties2(CCmdUI* pCmdUI);
 	afx_msg void OnSetFocus(CWnd* pOldWnd);
 	afx_msg void OnSettingChange(UINT uFlags, LPCTSTR lpszSection);
-
+    afx_msg LRESULT OnProfilePropertyChanged(WPARAM wp, LPARAM lp);
 	DECLARE_MESSAGE_MAP()
 
 	int CBProfileHeight;

@@ -48,7 +48,6 @@ protected:
 	DECLARE_DYNCREATE(CMainFrame)
 
     BOOL OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult);
-
 };
 
 

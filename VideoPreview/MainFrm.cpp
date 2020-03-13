@@ -22,7 +22,7 @@ IMPLEMENT_DYNCREATE(CMainFrame, CFrameWndEx)
 BEGIN_MESSAGE_MAP(CMainFrame, CFrameWndEx)
 	ON_WM_CREATE()
     ON_WM_DESTROY()
-    ON_REGISTERED_MESSAGE(AFX_WM_RESETTOOLBAR, &CMainFrame::OnResetToolbar)
+    ON_REGISTERED_MESSAGE(AFX_WM_RESETTOOLBAR, OnResetToolbar)
 
     //commands    
     ON_COMMAND(ID_FILE_ADDFILES, &CMainFrame::OnAddFiles)
@@ -174,10 +174,16 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
     CBProfile = GetProfileCombo();
 
     //TODO: init profile list
-	CBProfile->AddItem(_T("<Current>"));
-	CBProfile->AddItem(_T("Profile 1"));
-    CBProfile->AddItem(_T("Profile 2"));
-	CBProfile->SelectItem(0);
+    CBProfile->AddSortedItem(_T("<Default>"), reinterpret_cast<DWORD_PTR>(&DefaultProfile));
+    for(COutputProfiles::const_iterator profile_i = OutputProfiles.begin(); profile_i != OutputProfiles.end(); ++profile_i)
+    {
+        POutputProfile profile = profile_i->second;
+        CBProfile->AddSortedItem(profile_i->first, reinterpret_cast<DWORD_PTR>(profile.get()));
+    }
+
+    //TODO:
+	if(FALSE == CBProfile->SelectItem(Options.SelectedProfile))
+        CBProfile->SelectItem(0);
 
     return 0;
 }
@@ -190,6 +196,9 @@ void CMainFrame::OnDestroy()
     CRect rect;
     ProfilePane.GetClientRect(&rect);
     Options.ProfilePaneWidth = rect.Width();
+
+    LPCTSTR selected_profile = CBProfile->GetItem();
+    Options.SelectedProfile = selected_profile ? selected_profile : _T("");
 
     CFrameWndEx::OnDestroy();
 }
@@ -291,7 +300,20 @@ void CMainFrame::OnProfileSave()
 }
 void CMainFrame::OnProfileDelete()
 {
-    //TODO:
+    //default profile
+    const COutputProfile* selected_profile = reinterpret_cast<const COutputProfile*>(CBProfile->GetItemData());
+    ASSERT(selected_profile);
+    if(selected_profile == &DefaultProfile) return;
+
+    CString selected_profile_name = CBProfile->GetItem();
+    CString msg = _T("Do you want to delete profile\r\n\"") + CString(selected_profile_name) + _T("\" ?");
+    const int result = AfxMessageBox(msg, MB_OKCANCEL | MB_ICONEXCLAMATION | MB_DEFBUTTON1);
+    if(result != IDOK) return;
+
+    CBProfile->DeleteItem(selected_profile_name);
+    theApp.DeleteProfile(selected_profile_name);
+    COutputProfiles::iterator profile_i = OutputProfiles.find(selected_profile_name);
+    if(profile_i != OutputProfiles.end()) OutputProfiles.erase(profile_i);   
 }
 void CMainFrame::OnProfilePreview()
 {
@@ -300,10 +322,12 @@ void CMainFrame::OnProfilePreview()
 }
 void CMainFrame::OnProfileCombo()
 {
-    //TODO:
-    const int index = CBProfile->GetCurSel();
+    const COutputProfile* selected_profile = reinterpret_cast<const COutputProfile*>(CBProfile->GetItemData());
+    ASSERT(selected_profile);
 
+    //TODO: disable delete profile command
 
+    ProfilePane.SetOutputProfile(selected_profile);
 }
 void CMainFrame::OnEditTest()
 {
@@ -327,6 +351,13 @@ void CMainFrame::OnUpdateUI(CCmdUI* pCmdUI)
     {
         CListCtrl& list_ctrl = file_list_view->GetListCtrl();
         const int items_count = list_ctrl.GetItemCount();
+        break;
+    }
+    case ID_PROFILE_DELETE:
+    {
+        const COutputProfile* selected_profile = reinterpret_cast<const COutputProfile*>(CBProfile->GetItemData());
+        ASSERT(selected_profile);
+        pCmdUI->Enable(selected_profile != &DefaultProfile);
         break;
     }
     case ID_PROFILE_COMBO:

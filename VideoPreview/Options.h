@@ -32,6 +32,8 @@ public:
     };
     int ActionOnError;
 
+    CString SelectedProfile;
+
     //ctor/dtor
     COptions();
 

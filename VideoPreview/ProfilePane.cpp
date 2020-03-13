@@ -12,10 +12,77 @@ static char THIS_FILE[]=__FILE__;
 #define new DEBUG_NEW
 #endif
 
+//profile property ids
+enum
+{
+    ID_PROP_BACKGROUND_COLOR,
+    ID_PROP_WRITE_HEADER,
+    ID_PROP_HEADER_TEXT,
+
+    ID_PROP_HEADER_FONT,
+    ID_PROP_HEADER_FONT_COLOR,
+
+    ID_PROP_FRAME_COLUMNS,
+    ID_PROP_FRAME_ROWS,
+
+    //TODO:
+    ID_PROP_USE_TIME_INTERVAL,
+    ID_PROP_FRAME_TIME_INTERVAL,
+
+    ID_PROP_OUTPUT_SIZE_METHOD,
+    ID_PROP_OUTPUT_IMAGE_SIZE,
+
+    //TODO:
+    ID_PROP_BORDER_PADDING,
+    ID_PROP_FRAME_PADDING,
+
+    ID_PROP_TIMESTAMP_TYPE,
+    ID_PROP_TIMESTAMP_FONT,
+    ID_PROP_TIMESTAMP_FONT_COLOR,
+
+    ID_PROP_OUTPUT_FILE_NAME,
+    ID_PROP_OUTPUT_FILE_FORMAT,
+
+    PROFILE_PROP_COUNT
+};
+
+//TODO:
+//profile property descriptions
+LPCTSTR PROPERTY_DESCR[] =
+{
+    _T("TODO"), //ID_PROP_BACKGROUND_COLOR,
+    _T("TODO"), //ID_PROP_WRITE_HEADER,
+    _T("TODO"), //ID_PROP_HEADER_TEXT,
+
+    _T("TODO"), //ID_PROP_HEADER_FONT,
+    _T("TODO"), //ID_PROP_HEADER_FONT_COLOR,
+
+    _T("TODO"), //ID_PROP_FRAME_COLUMNS,
+    _T("TODO"), //ID_PROP_FRAME_ROWS,
+
+    //TODO:
+    _T("TODO"), //USE_TIME_INTERVAL,
+    _T("TODO"), //FRAME_TIME_INTERVAL,
+
+    _T("TODO"), //ID_PROP_OUTPUT_SIZE_METHOD,
+    _T("TODO"), //ID_PROP_OUTPUT_IMAGE_SIZE,
+
+    //TODO:
+    _T("TODO"), //ID_PROP_BORDER_PADDING,
+    _T("TODO"), //ID_PROP_FRAME_PADDING,
+
+    _T("TODO"), //ID_PROP_TIMESTAMP_TYPE,
+    _T("TODO"), //ID_PROP_TIMESTAMP_FONT,
+    _T("TODO"), //ID_PROP_TIMESTAMP_FONT_COLOR,
+
+    _T("TODO"), //ID_PROP_OUTPUT_FILE_NAME,
+    _T("TODO"), //ID_PROP_OUTPUT_FILE_FORMAT,
+};
+static_assert(sizeof(PROPERTY_DESCR) / sizeof(LPCTSTR) == PROFILE_PROP_COUNT, "Invalid PROPERTY_DESCR size");
 /////////////////////////////////////////////////////////////////////////////
 //CPGPCombo
-CPGPCombo::CPGPCombo(const CString& strName, const COleVariant& varValue, LPCTSTR lpszDescr /*= NULL*/) : 
-    CMFCPropertyGridProperty(strName, varValue, lpszDescr) 
+CPGPCombo::CPGPCombo(const CString& strName, const COleVariant& varValue, LPCTSTR lpszDescr /*= NULL*/, DWORD_PTR dwData /*= 0*/) : 
+    CMFCPropertyGridProperty(strName, varValue, lpszDescr, dwData) 
 {
     AllowEdit(FALSE);
 }
@@ -81,13 +148,14 @@ BEGIN_MESSAGE_MAP(CProfilePane, CDockablePane)
 	ON_UPDATE_COMMAND_UI(ID_PROPERTIES2, OnUpdateProperties2)
 	ON_WM_SETFOCUS()
 	ON_WM_SETTINGCHANGE()
+    ON_REGISTERED_MESSAGE(AFX_WM_PROPERTY_CHANGED, OnProfilePropertyChanged)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
 //CProfilePane message handlers
 void CProfilePane::AdjustLayout()
 {
-	if(GetSafeHwnd () == NULL || (AfxGetMainWnd() != NULL && AfxGetMainWnd()->IsIconic()))
+	if(GetSafeHwnd() == NULL || (AfxGetMainWnd() != NULL && AfxGetMainWnd()->IsIconic()))
 		return;
 
 	CRect rectClient;
@@ -205,34 +273,36 @@ void CProfilePane::InitPropList()
 	PGProfile.MarkModifiedProperties();
     PGProfile.SetGroupNameFullWidth(TRUE, FALSE);
 
-    //unused
+    //sample font
     LOGFONT sample_logfont;
 	CFont* sample_font = CFont::FromHandle((HFONT)::GetStockObject(DEFAULT_GUI_FONT));
 	sample_font->GetLogFont(&sample_logfont);
 	lstrcpy(sample_logfont.lfFaceName, _T("Arial"));
 
     //main
-    pgpBackgroundColor = new CMFCPropertyGridColorProperty(_T("Background Color"), RGB(0, 0, 0), NULL, _T("TODO"));
+    pgpBackgroundColor = new CMFCPropertyGridColorProperty(_T("Background Color"), RGB(0, 0, 0), NULL, _T("TODO"), ID_PROP_BACKGROUND_COLOR);
     pgpBackgroundColor->EnableOtherButton(_T("Other..."));
     PGProfile.AddProperty(pgpBackgroundColor);
-    pgpWriteHeader = new CMFCPropertyGridProperty(_T("Write Header"), (_variant_t)false, _T("TODO"));
+    pgpWriteHeader = new CMFCPropertyGridProperty(_T("Write Header"), (_variant_t)false, _T("TODO"), ID_PROP_WRITE_HEADER);
     PGProfile.AddProperty(pgpWriteHeader);
    
     //header
     //TODO: header text
     //TODO: text color also can be defined in font dialog
     CMFCPropertyGridProperty* pgp_header = new CMFCPropertyGridProperty(_T("Header"));
-    pgpHeaderFont = new CPGPFont(_T("Font"), sample_logfont, CF_EFFECTS | CF_SCREENFONTS, _T("TODO"));
-    pgpHeaderFontColor = new CMFCPropertyGridColorProperty(_T("Font Color"), RGB(0, 0, 0), NULL, _T("TODO"));
+    pgpHeaderFont = new CPGPFont(_T("Font"), sample_logfont, CF_EFFECTS | CF_SCREENFONTS, _T("TODO"), ID_PROP_HEADER_FONT);
+    pgpHeaderFontColor = new CMFCPropertyGridColorProperty(_T("Font Color"), RGB(0, 0, 0), NULL, _T("TODO"), ID_PROP_HEADER_FONT_COLOR);
     pgpHeaderFontColor->EnableOtherButton(_T("Other..."));
     pgp_header->AddSubItem(pgpHeaderFont);
     pgp_header->AddSubItem(pgpHeaderFontColor);
     PGProfile.AddProperty(pgp_header);
+    //TODO:
+    //ID_PROP_HEADER_TEXT
 
     //frames grid
     CMFCPropertyGridProperty* pgp_frames_grid = new CMFCPropertyGridProperty(_T("Frames Grid"));
-    pgpFramesGridColumns = new CMFCPropertyGridProperty(_T("Columns"), (_variant_t) 4l, _T("TODO"));
-	pgpFramesGridRows = new CMFCPropertyGridProperty(_T("Rows"), (_variant_t) 4l, _T("TODO"));  
+    pgpFramesGridColumns = new CMFCPropertyGridProperty(_T("Columns"), (_variant_t) 4l, _T("TODO"), ID_PROP_FRAME_COLUMNS);
+	pgpFramesGridRows = new CMFCPropertyGridProperty(_T("Rows"), (_variant_t) 4l, _T("TODO"), ID_PROP_FRAME_ROWS);  
 	pgpFramesGridColumns->EnableSpinControl(TRUE, 1, 10);
     pgpFramesGridRows->EnableSpinControl(TRUE, 1, 10);
 	pgp_frames_grid->AddSubItem(pgpFramesGridColumns);
@@ -242,10 +312,29 @@ void CProfilePane::InitPropList()
     pgpFramesGridRows->AllowEdit(FALSE);
     pgp_frames_grid->AllowEdit(FALSE); 
     //TODO: "write frame for each time interval" option
+    //ID_PROP_USE_TIME_INTERVAL
+    //ID_PROP_FRAME_TIME_INTERVAL
+
+    //output sizes
+    CMFCPropertyGridProperty* pgp_output_image_size = new CMFCPropertyGridProperty(_T("Output Image Size"));
+    pgpOutputSizeMethod = new CPGPCombo(_T("Size Value Meaning"), _T("Output image width"), _T("TODO"), ID_PROP_OUTPUT_SIZE_METHOD);
+    pgpOutputSizeMethod->AddItem(_T("Use Original Frame Witdh"), OUTPUT_IMAGE_WIDTH_BY_ORIGINAL_FRAME_WIDTH);
+    pgpOutputSizeMethod->AddItem(_T("Image width"), OUTPUT_IMAGE_WIDTH_AS_IS);
+    pgpOutputSizeMethod->AddItem(_T("Frame Witdh"), OUTPUT_IMAGE_WIDTH_BY_FRAME_WIDTH);
+    pgpOutputSizeMethod->AddItem(_T("Frame Height"), OUTPUT_IMAGE_WIDTH_BY_FRAME_HEIGHT);
+    pgpOutputSizeMethod->AllowEdit(FALSE);
+    pgpOutputSize = new CMFCPropertyGridProperty(_T("Size Value"), (_variant_t) 1000, _T("TODO"), ID_PROP_OUTPUT_IMAGE_SIZE);
+    pgp_output_image_size->AddSubItem(pgpOutputSizeMethod);
+    pgp_output_image_size->AddSubItem(pgpOutputSize);
+    //pgpOutputSize->Enable(FALSE); //TODO:
+    PGProfile.AddProperty(pgp_output_image_size);
+    //TODO:
+    //ID_PROP_BORDER_PADDING
+    //ID_PROP_FRAME_PADDING
 
     //timestamp
     CMFCPropertyGridProperty* pgp_timestamp = new CMFCPropertyGridProperty(_T("Timestamp"));
-    pgpTimestampType = new CPGPCombo(_T("Type"), _T(""), _T("TODO"));
+    pgpTimestampType = new CPGPCombo(_T("Type"), _T(""), _T("TODO"), ID_PROP_TIMESTAMP_TYPE);
     pgpTimestampType->AddItem(_T("Disabled"), TIMESTAMP_TYPE_DISABLED);
     pgpTimestampType->AddItem(_T("Top-Left"), TIMESTAMP_TYPE_TOP_LEFT);
     pgpTimestampType->AddItem(_T("Top-Center"), TIMESTAMP_TYPE_TOP_CENTER);
@@ -254,33 +343,18 @@ void CProfilePane::InitPropList()
     pgpTimestampType->AddItem(_T("Bottom-Center"), TIMESTAMP_TYPE_BOTTOM_CENTER);
     pgpTimestampType->AddItem(_T("Bottom-Right"), TIMESTAMP_TYPE_BOTTOM_RIGHT);
     pgpTimestampType->AllowEdit(FALSE);
-
-    pgpTimestampFont = new CPGPFont(_T("Font"), sample_logfont, CF_EFFECTS | CF_SCREENFONTS, _T("TODO"));
-    pgpTimestampFontColor = new CMFCPropertyGridColorProperty(_T("Font Color"), RGB(0, 0, 0), NULL, _T("TODO"));
+    pgpTimestampFont = new CPGPFont(_T("Font"), sample_logfont, CF_EFFECTS | CF_SCREENFONTS, _T("TODO"), ID_PROP_TIMESTAMP_FONT);
+    pgpTimestampFontColor = new CMFCPropertyGridColorProperty(_T("Font Color"), RGB(0, 0, 0), NULL, _T("TODO"), ID_PROP_TIMESTAMP_FONT_COLOR);
     pgpTimestampFontColor->EnableOtherButton(_T("Other..."));
     pgp_timestamp->AddSubItem(pgpTimestampType);
     pgp_timestamp->AddSubItem(pgpTimestampFont);
     pgp_timestamp->AddSubItem(pgpTimestampFontColor);
     PGProfile.AddProperty(pgp_timestamp);
 
-    //output sizes
-    CMFCPropertyGridProperty* pgp_output_image_size = new CMFCPropertyGridProperty(_T("Output Image Size"));
-    pgpOutputSizeMethod = new CPGPCombo(_T("Size Value Meaning"), _T("Output image width"), _T("TODO"));
-    pgpOutputSizeMethod->AddItem(_T("Use Original Frame Witdh"), OUTPUT_IMAGE_WIDTH_BY_ORIGINAL_FRAME_WIDTH);
-    pgpOutputSizeMethod->AddItem(_T("Image width"), OUTPUT_IMAGE_WIDTH_AS_IS);
-    pgpOutputSizeMethod->AddItem(_T("Frame Witdh"), OUTPUT_IMAGE_WIDTH_BY_FRAME_WIDTH);
-    pgpOutputSizeMethod->AddItem(_T("Frame Height"), OUTPUT_IMAGE_WIDTH_BY_FRAME_HEIGHT);
-    pgpOutputSizeMethod->AllowEdit(FALSE);
-    pgpOutputSize = new CMFCPropertyGridProperty(_T("Size Value"), (_variant_t) 1000, _T("TODO"));
-    pgp_output_image_size->AddSubItem(pgpOutputSizeMethod);
-    pgp_output_image_size->AddSubItem(pgpOutputSize);
-    pgpOutputSize->Enable(FALSE); //TODO:
-    PGProfile.AddProperty(pgp_output_image_size);
-
     //output file
     CMFCPropertyGridProperty* pgp_output_file = new CMFCPropertyGridProperty(_T("Output File"));
-    pgpOutputFileName = new CMFCPropertyGridProperty(_T("Name"), _T("%n"), _T("TODO"));
-    pgpOutputFileFormat = new CPGPCombo(_T("Format"), _T("JPG"), _T("TODO"));    
+    pgpOutputFileName = new CMFCPropertyGridProperty(_T("Name"), _T("%n"), PROPERTY_DESCR[ID_PROP_OUTPUT_FILE_NAME], ID_PROP_OUTPUT_FILE_NAME);
+    pgpOutputFileFormat = new CPGPCombo(_T("Format"), _T("JPG"), PROPERTY_DESCR[ID_PROP_OUTPUT_FILE_FORMAT], ID_PROP_OUTPUT_FILE_FORMAT);    
     pgpOutputFileFormat->AddItem(_T("BMP"), OUTPUT_FILE_FORMAT_BMP);
     pgpOutputFileFormat->AddItem(_T("JPG"), OUTPUT_FILE_FORMAT_JPG);
     pgpOutputFileFormat->AddItem(_T("PNG"), OUTPUT_FILE_FORMAT_PNG);
@@ -349,11 +423,15 @@ void CProfilePane::SetOutputProfile(const COutputProfile* profile)
 
     pgpOutputSizeMethod->SetItem(profile->OutputSizeMethod);
     pgpOutputSize->SetValue(_variant_t(int(profile->OutputImageSize)));
+    pgpOutputSize->Enable(profile->OutputSizeMethod != OUTPUT_IMAGE_WIDTH_BY_ORIGINAL_FRAME_WIDTH);
 
     pgpTimestampType->SetItem(profile->TimestampType);
     profile->TimestampFont.Get(lf);
     pgpTimestampFont->SetFont(lf);
     pgpTimestampFontColor->SetColor(profile->TimestampFont.Color);
+    const BOOL enable = (profile->TimestampType != TIMESTAMP_TYPE_DISABLED);
+    pgpTimestampFont->Enable(enable);
+    pgpTimestampFontColor->Enable(enable);
 
     pgpOutputFileName->SetValue(COleVariant(profile->OutputFileName));
     pgpOutputFileFormat->SetItem(profile->OutputFileFormat);
@@ -375,7 +453,7 @@ void CProfilePane::GetOutputProfile(COutputProfile* profile)
 
     profile->OutputSizeMethod = pgpOutputSizeMethod->GetItem();
     profile->OutputImageSize = pgpOutputSize->GetValue().intVal;
-
+    
     profile->TimestampType = pgpTimestampType->GetItem();
     LPLOGFONT timestamp_logfont = pgpTimestampFont->GetLogFont();
     COLORREF timestamp_font_clor = pgpTimestampFontColor->GetColor();
@@ -388,4 +466,54 @@ void CProfilePane::GetOutputProfile(COutputProfile* profile)
     ASSERT(0 <= output_format && output_format <= OUTPUT_FILE_FORMAT_COUNT);
     if(output_format < 0 && OUTPUT_FILE_FORMAT_COUNT < output_format) output_format = OUTPUT_FILE_FORMAT_JPG;
     profile->OutputFileFormat = output_format;
+}
+LRESULT CProfilePane::OnProfilePropertyChanged(WPARAM wp, LPARAM lp)
+{
+    //TODO:
+    CMFCPropertyGridProperty* property = reinterpret_cast<CMFCPropertyGridProperty*>(lp);
+    const DWORD_PTR property_id = property->GetData();
+    switch(property_id)
+    {
+    case ID_PROP_BACKGROUND_COLOR: break;
+    case ID_PROP_WRITE_HEADER: break;
+    case ID_PROP_HEADER_TEXT: break;
+
+    case ID_PROP_HEADER_FONT: break;
+    case ID_PROP_HEADER_FONT_COLOR: break;
+
+    case ID_PROP_FRAME_COLUMNS: break;
+    case ID_PROP_FRAME_ROWS: break;
+
+    //TODO:
+    case ID_PROP_USE_TIME_INTERVAL: break;
+    case ID_PROP_FRAME_TIME_INTERVAL: break;
+
+    case ID_PROP_OUTPUT_SIZE_METHOD: 
+    {
+        const BOOL enable = (OUTPUT_IMAGE_WIDTH_BY_ORIGINAL_FRAME_WIDTH != pgpOutputSizeMethod->GetItem());
+        pgpOutputSize->Enable(enable);
+        break;
+    }
+    case ID_PROP_OUTPUT_IMAGE_SIZE: break;
+
+    //TODO:
+    case ID_PROP_BORDER_PADDING: break;
+    case ID_PROP_FRAME_PADDING: break;
+
+    case ID_PROP_TIMESTAMP_TYPE: 
+    {
+        const BOOL enable = (TIMESTAMP_TYPE_DISABLED != pgpTimestampType->GetItem());
+        pgpTimestampFont->Enable(enable);
+        pgpTimestampFontColor->Enable(enable);
+        break;
+    }
+    case ID_PROP_TIMESTAMP_FONT: break;
+
+    case ID_PROP_OUTPUT_FILE_NAME: break;
+    case ID_PROP_OUTPUT_FILE_FORMAT: break;
+    default:
+        ASSERT(0);
+    }
+
+    return 0;
 }

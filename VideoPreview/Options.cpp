@@ -147,7 +147,7 @@ bool COptions::Read()
     //TODO: read <default> as mandatory always-saved profile
     if(FALSE == theApp.GetObject(_T("DefaultProfile"), DefaultProfile))
         DefaultProfile.SetDefault();
-    CString selected_output_profile_name = theApp.GetSectionString(_T("OutputProfiles"), _T("SelectedProfile"));
+    SelectedProfile = theApp.GetString(_T("SelectedProfile"));
     //TODO: CObject::Serialize
     //OutputProfiles.clear();
     //for(element = tinyxml2::XMLConstHandle(output_profiles_node.FirstChildElement(_T("Profile"))).ToElement(); element != NULL; element = tinyxml2::XMLConstHandle(element->NextSiblingElement("Profile")).ToElement())
@@ -275,7 +275,10 @@ bool COptions::Write()
 
     ////output profiles
     theApp.WriteObject(_T("DefaultProfile"), DefaultProfile);
-    theApp.WriteProfiles();
+    theApp.WriteString(_T("SelectedProfile"), SelectedProfile);
+
+    //TEST:
+    //theApp.WriteProfile();
 
     //node = root_node->InsertEndChild(settings.NewElement("OutputProfiles"));
     //element = node->ToElement();

@@ -17,8 +17,8 @@ public:
 
     //profiles
     void ReadProfiles();
-    void WriteProfiles();
-    void DeleteProfile();
+    void WriteProfile(LPCTSTR profile_name);
+    void DeleteProfile(LPCTSTR profile_name);
 
 	afx_msg void OnAppAbout();
 	DECLARE_MESSAGE_MAP()
