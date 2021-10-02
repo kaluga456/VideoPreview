@@ -55,7 +55,7 @@ LPCTSTR const DEFAULT_OP_FONT_FACE = _T("Tahoma");
 //background and header deafults
 const int DEFAULT_OP_BACKGROUND_COLOR = COLORREF(RGB(0x00, 0x00, 0x00));
 const int DEFAULT_OP_WRITE_HEADER = TRUE;
-LPCTSTR const DEFAULT_OP_HEADER_TEXT = _T("<default header text>");  //TOOD:
+LPCTSTR const DEFAULT_OP_HEADER_TEXT = _T("<default header text>");  //TODO:
 
 //frames count deafults
 const int DEFAULT_OP_FRAME_COLUMNS = 4;
@@ -111,18 +111,18 @@ public:
     int FrameTimeInterval; //seconds
 
     //output image width
-    int OutputSizeMethod; //predefined
+    int OutputSizeMethod; //enum
     int OutputImageSize; //pixels
     int BorderPadding; //pixels
     int FramePadding; //pixels
 
     //timestamp
-    int TimestampType; //predefined
+    int TimestampType; //enum
     CFontData TimestampFont;
    
     //ouput file
     CString OutputFileName; //format string
-    int OutputFileFormat; //predefined
+    int OutputFileFormat; //enum
 
     //operations
     void operator=(const COutputProfile& objectSrc); 

@@ -1,10 +1,11 @@
 #include "stdafx.h"
 #pragma hdrstop
+#include "app_thread.h"
 #include "Resource.h"
 #include "OutputProfile.h"
+#include "ProcessingThread.h"
 #include "VideoPreview.h"
 #include "ProfilePane.h"
-#include "MainFrm.h"
 
 #ifdef _DEBUG
 #undef THIS_FILE

@@ -2,11 +2,13 @@
 #include "afxwinappex.h"
 #include "afxdialogex.h"
 #pragma hdrstop
+#include "app_thread.h"
 #include "Resource.h"
 #include "SourceFileTypes.h"
 #include "OutputProfile.h"
 #include "ProcessingItem.h"
 #include "Options.h"
+#include "ProcessingThread.h"
 #include "VideoPreview.h"
 #include "VideoPreviewDoc.h"
 #include "ProfilePane.h"

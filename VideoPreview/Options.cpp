@@ -186,7 +186,10 @@ bool COptions::Read()
     //        SelectedOutputProfile = output_profile.get();
     //}
 
-    ////processing items
+    //processing items
+    CProcessingItemListSerial pils(&ProcessingItemList);
+    theApp.GetObject(_T("Items"), pils);
+
     //tinyxml2::XMLConstHandle processing_items_node = root_element.FirstChildElement("ProcessingItems");
     //element = processing_items_node.ToElement();
     //if(NULL == file_name && SaveProcessingItems != FALSE)
@@ -273,7 +276,7 @@ bool COptions::Write()
     //element->SetAttribute("OverwriteFiles", OverwriteOutputFiles);
     //element->SetAttribute("ActionOnError", ActionOnError);
 
-    ////output profiles
+    //output profiles
     theApp.WriteObject(_T("DefaultProfile"), DefaultProfile);
     theApp.WriteString(_T("SelectedProfile"), SelectedProfile);
 
@@ -316,7 +319,11 @@ bool COptions::Write()
     //    element->SetAttribute("OutputFileFormat", output_profile->OutputFileFormat);
     //}
 
-    ////processing items
+    //TODO:
+    //processing items
+    CProcessingItemListSerial pils(&ProcessingItemList);
+    theApp.WriteObject(_T("Items"), pils);
+
     //node = root_node->InsertEndChild(settings.NewElement("ProcessingItems"));
     //element = node->ToElement();
     //element->SetAttribute("SaveProcessingItems", SaveProcessingItems);

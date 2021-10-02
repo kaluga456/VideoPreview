@@ -48,7 +48,7 @@ void CProcessingThread::NotifyResult(WPARAM message_type, LPCTSTR error_descript
     //TODO:
     //if(error_description != NULL)
     //    message_data = _strdup(error_description);
-    //NotifyMessageTarget(message_type, reinterpret_cast<LPARAM>(message_data));
+    NotifyMessageTarget(message_type, reinterpret_cast<LPARAM>(message_data));
 }
 DWORD CProcessingThread::Run()
 {
@@ -58,7 +58,7 @@ DWORD CProcessingThread::Run()
     //TEST: shallow procedure
     ::srand(::GetTickCount());
     NotifyMessageTarget(PTM_PROGRESS, 0);
-    for(int i = 0; i < 10; ++i)
+    for(int i = 1; i < 11; ++i)
     {
         //check terminate signal
         if(true == TerminateSignal)
@@ -76,7 +76,7 @@ DWORD CProcessingThread::Run()
 
         //process
         NotifyMessageTarget(PTM_PROGRESS, i*10);
-        ::Sleep(1000);
+        ::Sleep(300);
     }
     NotifyResult(PTM_DONE, _T("<output file name>"));
 #else //SHALLOW_PROCESSING

@@ -16,19 +16,6 @@ protected: // create from serialization only
 	CFileListView();
 	DECLARE_DYNCREATE(CFileListView)
 
-public:
-    virtual ~CFileListView();
-
-	CVideoPreviewDoc* GetDocument() const;
-	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
-	
-
-	
-#ifdef _DEBUG
-	virtual void AssertValid() const;
-	virtual void Dump(CDumpContext& dc) const;
-#endif
-
 // Generated message map functions
 protected:
     afx_msg void OnDestroy();
@@ -42,6 +29,25 @@ protected:
 
     void OnColumnClick(int column_index);
     void Sort();
+
+public:
+    virtual ~CFileListView();
+
+	CVideoPreviewDoc* GetDocument() const;
+	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
+	
+#ifdef _DEBUG
+	virtual void AssertValid() const;
+	virtual void Dump(CDumpContext& dc) const;
+#endif
+
+    //items
+    void UpdateItems();
+    void UpdateItem(PProcessingItem item);
+    void AddItem(PProcessingItem item);
+    void RemoveItem(PProcessingItem item);
+    void RemoveCompletedItems(PProcessingItem item);
+    PProcessingItem GetUnprocessedItem();
 };
 
 #ifndef _DEBUG  // debug version in FileListView.cpp

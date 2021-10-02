@@ -22,6 +22,9 @@ public:
     DWORD Start(HWND message_target, const COutputProfile* output_profile, LPCTSTR source_file_name);
     void Stop();
 
+    //TODO:
+    bool IsActive() const {return !TerminateSignal;}
+
 private:
     friend class app::thread<CProcessingThread>;
     app::thread<CProcessingThread> Thread;

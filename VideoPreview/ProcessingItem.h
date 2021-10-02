@@ -13,7 +13,7 @@ enum
 };
 
 //processing item - one per each source file
-class CProcessingItem
+class CProcessingItem : public CObject
 {
 public:
     //ctor/dtor
@@ -29,18 +29,20 @@ public:
     CString SourceFileName;
     CString ResultString; //for PIS_READY - empty, for PIS_DONE - output file name, for PIS_FAILED - error description 
 };
-
-//TODO: CAutoPtr 
 typedef boost::shared_ptr<CProcessingItem> PProcessingItem;
+typedef std::map<CProcessingItem*, PProcessingItem> CProcessingItemList;
 
-class CProcessingItemLess
+class CProcessingItemListSerial : public CObject
 {
-public:
-    bool operator()(const PProcessingItem& left, const PProcessingItem& right) const
-    {
-        const int result = ::_tcsicmp(left->SourceFileName, right->SourceFileName);
-        return result < 0;
-    }
-};
+     DECLARE_SERIAL(CProcessingItemListSerial)
 
-typedef std::set<PProcessingItem, CProcessingItemLess> CProcessingItemList;
+private:
+    CProcessingItemList* ProcessingItemList;
+
+    CProcessingItemListSerial() : ProcessingItemList(NULL) {}
+
+public:  
+    explicit CProcessingItemListSerial(CProcessingItemList* item_list) : ProcessingItemList(item_list) {}
+
+    void Serialize(CArchive& archive);
+};

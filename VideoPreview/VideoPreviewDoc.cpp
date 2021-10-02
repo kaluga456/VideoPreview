@@ -7,7 +7,6 @@
 #endif
 
 #include "VideoPreviewDoc.h"
-
 #include <propkey.h>
 
 #ifdef _DEBUG
@@ -15,7 +14,6 @@
 #endif
 
 // CVideoPreviewDoc
-
 IMPLEMENT_DYNCREATE(CVideoPreviewDoc, CDocument)
 
 BEGIN_MESSAGE_MAP(CVideoPreviewDoc, CDocument)
@@ -23,7 +21,6 @@ END_MESSAGE_MAP()
 
 
 // CVideoPreviewDoc construction/destruction
-
 CVideoPreviewDoc::CVideoPreviewDoc()
 {
 	// TODO: add one-time construction code here
@@ -45,11 +42,7 @@ BOOL CVideoPreviewDoc::OnNewDocument()
 	return TRUE;
 }
 
-
-
-
 // CVideoPreviewDoc serialization
-
 void CVideoPreviewDoc::Serialize(CArchive& ar)
 {
 	if (ar.IsStoring())
@@ -117,7 +110,6 @@ void CVideoPreviewDoc::SetSearchContent(const CString& value)
 #endif // SHARED_HANDLERS
 
 // CVideoPreviewDoc diagnostics
-
 #ifdef _DEBUG
 void CVideoPreviewDoc::AssertValid() const
 {
@@ -129,6 +121,5 @@ void CVideoPreviewDoc::Dump(CDumpContext& dc) const
 	CDocument::Dump(dc);
 }
 #endif //_DEBUG
-
 
 // CVideoPreviewDoc commands
