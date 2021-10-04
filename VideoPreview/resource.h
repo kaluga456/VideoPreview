@@ -4,6 +4,7 @@
 //
 #define IDD_ABOUTBOX                    100
 #define IDR_POPUP_EDIT                  119
+#define IDR_POPUP_MENU                  119
 #define IDS_STATUS_PANE1                122
 #define IDS_STATUS_PANE2                123
 #define IDS_TOOLBAR_STANDARD            124
@@ -39,7 +40,6 @@
 #define IDB_EXPLORER_24                 170
 #define IDR_SORT                        171
 #define IDB_SORT_24                     172
-#define IDR_POPUP_SORT                  173
 #define IDB_FILE_VIEW                   175
 #define IDB_FILE_VIEW_24                176
 #define IDB_CLASS_VIEW                  177
@@ -112,13 +112,30 @@
 #define ID_PROFILE_COMBO                32793
 #define ID_PROFILE_DELETE32794          32794
 #define ID_REMOVE_COMPLETED             32801
+#define ID_FILE_REMOVE_ALL              32802
+#define ID_FILE_REMOVE_COMPLETED        32803
+#define ID_FILE_REMOVEFAILED            32804
+#define ID_EDIT_OPENVIDEO               32805
+#define ID_EDIT_RESET                   32806
+#define ID_FILE_OPENVIDEO               32808
+#define ID_FILE_OPEN_VIDEO              32809
+#define ID_FILE_OPEN_PREVIEW            32810
+#define ID_FILE_PROCESS                 32811
+#define ID_FILE_PROCESS_ITEM            32812
+#define ID_FILE_RESET_ITEM              32813
+#define ID_FILE_REMOVE_ITEM             32814
+#define ID_POPUP_REMOVE_ITEM            32815
+#define ID_POPUP_RESET_ITEM             32816
+#define ID_POPUP_PROCESS_ITEM           32817
+#define ID_POPUP_OPEN_PREVIEW           32818
+#define ID_POPUP_OPEN_VIDEO             32819
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        320
-#define _APS_NEXT_COMMAND_VALUE         32802
+#define _APS_NEXT_RESOURCE_VALUE        322
+#define _APS_NEXT_COMMAND_VALUE         32820
 #define _APS_NEXT_CONTROL_VALUE         1002
 #define _APS_NEXT_SYMED_VALUE           331
 #endif

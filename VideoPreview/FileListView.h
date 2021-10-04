@@ -12,6 +12,11 @@ enum
 
 class CFileListView : public CListView
 {
+private:
+    CMenu PopupMenu;
+    CProcessingItem* FindItem(const CPoint& point); 
+    void AddItem(const CProcessingItem* item);
+
 protected: // create from serialization only
 	CFileListView();
 	DECLARE_DYNCREATE(CFileListView)
@@ -19,16 +24,10 @@ protected: // create from serialization only
 // Generated message map functions
 protected:
     afx_msg void OnDestroy();
-	afx_msg void OnFilePrintPreview();
-	afx_msg void OnRButtonUp(UINT nFlags, CPoint point);
 	afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
 	DECLARE_MESSAGE_MAP()
 
     virtual void OnInitialUpdate(); // called first time after construct
-    virtual BOOL OnChildNotify(UINT message, WPARAM wParam, LPARAM lParam, LRESULT* pResult);
-
-    void OnColumnClick(int column_index);
-    void Sort();
 
 public:
     virtual ~CFileListView();
@@ -41,13 +40,19 @@ public:
 	virtual void Dump(CDumpContext& dc) const;
 #endif
 
+    //events
+    void OnColumnClick(int column_index);
+
     //items
-    void UpdateItems();
-    void UpdateItem(PProcessingItem item);
-    void AddItem(PProcessingItem item);
-    void RemoveItem(PProcessingItem item);
-    void RemoveCompletedItems(PProcessingItem item);
+    int FindItem(const CProcessingItem* item);
+    CProcessingItem* FindItem(int item_index);
+    CProcessingItem* GetFocusedItem(int* index = NULL);
     PProcessingItem GetUnprocessedItem();
+    void RemoveItem(const CProcessingItem* item);
+    void UpdateItem(const CProcessingItem* item);
+    void UpdateItem(const CProcessingItem* item, int item_index);
+    void UpdateItems();
+    void Sort();
 };
 
 #ifndef _DEBUG  // debug version in FileListView.cpp

@@ -23,7 +23,7 @@ static CString GetItemStateText(int item_state)
 {
     switch(item_state)
     {
-    case PIS_READY: return _T("Ready to process");                
+    case PIS_READY: return _T("Waiting");                
     case PIS_DONE: return _T("Done");                 
     case PIS_FAILED: return _T("Failed");                
     }
@@ -34,7 +34,6 @@ static CString GetItemStateText(int item_state)
         result.Format(_T("%u%%"), item_state);
         return result;
     }
-
     return _T("Unknown");
 }
 
@@ -66,37 +65,34 @@ IMPLEMENT_DYNCREATE(CFileListView, CListView)
 BEGIN_MESSAGE_MAP(CFileListView, CListView)
     ON_WM_DESTROY()
 	ON_WM_CONTEXTMENU()
-	ON_WM_RBUTTONUP()
 END_MESSAGE_MAP()
 
 // CFileListView construction/destruction
 CFileListView::CFileListView()
 {
-	// TODO: add construction code here
-
 }
 CFileListView::~CFileListView()
 {
 }
 BOOL CFileListView::PreCreateWindow(CREATESTRUCT& cs)
 {
-	// TODO: Modify the Window class or styles here by modifying
-	//  the CREATESTRUCT cs
-
+	// TODO: Modify the Window class or styles here by modifying the CREATESTRUCT cs
 	return CListView::PreCreateWindow(cs);
 }
 void CFileListView::OnInitialUpdate()
 {
 	CListView::OnInitialUpdate();
 
-	// TODO: You may populate your ListView with items by directly accessing
-	//  its list control through a call to GetListCtrl().
-    CListCtrl& listCtrl = GetListCtrl();
+    PopupMenu.LoadMenu(IDR_POPUP_MENU);
 
-    //TODO: style LVS_REPORT | LVS_SHOWSELALWAYS | LVS_SHAREIMAGELISTS ?
+    //set view styles
+    CListCtrl& listCtrl = GetListCtrl();
+    const LONG style = ::GetWindowLong(m_hWnd, GWL_STYLE);
+    ::SetWindowLong(m_hWnd, GWL_STYLE, style | LVS_SHOWSELALWAYS);
     listCtrl.SetExtendedStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
     listCtrl.SetView(LV_VIEW_DETAILS);
 
+    //init columns
     int i = 0;
     i = listCtrl.InsertColumn(FLV_COLUMN_SOURCE_FILE, _T("Source File"), LVCFMT_LEFT, 100);
     i = listCtrl.InsertColumn(FLV_COLUMN_STATE, _T("State"), LVCFMT_LEFT, 100);
@@ -132,46 +128,33 @@ void CFileListView::OnDestroy()
 
     CListView::OnDestroy();
 }
-void CFileListView::OnRButtonUp(UINT /* nFlags */, CPoint point)
-{
-	ClientToScreen(&point);
-	OnContextMenu(this, point);
-}
 void CFileListView::OnContextMenu(CWnd* /* pWnd */, CPoint point)
 {
 #ifndef SHARED_HANDLERS
-	theApp.GetContextMenuManager()->ShowPopupMenu(IDR_POPUP_EDIT, point.x, point.y, this, TRUE);
+    CPoint client_pt = point;
+    ScreenToClient(&client_pt);
+
+    //disable context menu on header control
+    CHeaderCtrl* headerCtrl = GetListCtrl().GetHeaderCtrl();
+    _HD_HITTESTINFO hti;
+    ::ZeroMemory(&hti, sizeof(hti));
+    hti.pt = client_pt;
+    headerCtrl->HitTest(&hti);
+    if(hti.flags & HHT_ONHEADER) //header control click
+        return;
+
+    CMenu* pm = PopupMenu.GetSubMenu(0);
+    const BOOL result = pm->TrackPopupMenu(TPM_LEFTALIGN |TPM_RIGHTBUTTON /*| TPM_RETURNCMD*/, point.x, point.y, GetParent());
 #endif
 }
-BOOL CFileListView::OnChildNotify(UINT message, WPARAM wParam, LPARAM lParam, LRESULT* pResult)
+CProcessingItem* CFileListView::FindItem(const CPoint& point)
 {
-    //TODO:
-    //message is WM_NOTIFY;
-    //control id?
-    if(message != WM_NOTIFY) return FALSE;
-
-    LPNMHDR nmhdr = reinterpret_cast<LPNMHDR>(lParam);
-    if(NM_RCLICK == nmhdr->code)
-    {
-        LPNMITEMACTIVATE event_data = reinterpret_cast<LPNMITEMACTIVATE>(nmhdr);
-
-        //TODO:
-        //ShowContextMenu(event_data->ptAction);
-    }
-    else if(NM_DBLCLK == nmhdr->code)
-    {
-        //TODO:
-        
-    }
-    else if(LVN_COLUMNCLICK == nmhdr->code) 
-    {
-        LPNMLISTVIEW nmlv = reinterpret_cast<LPNMLISTVIEW>(lParam);
-        OnColumnClick(nmlv->iSubItem);
-    }
-    else 
-        return FALSE;
-
-    return TRUE;
+    LVHITTESTINFO lvhti;
+    ::ZeroMemory(&lvhti, sizeof(lvhti));
+    lvhti.pt = point;
+    GetListCtrl().HitTest(&lvhti);
+    if(lvhti.iItem < 0) return NULL;
+    return FindItem(lvhti.iItem);
 }
 void CFileListView::Sort()
 {
@@ -196,32 +179,26 @@ void CFileListView::UpdateItems()
     CListCtrl& list_ctrl = GetListCtrl();
     list_ctrl.DeleteAllItems();
     for(CProcessingItemList::const_iterator i = ProcessingItemList.begin(); i != ProcessingItemList.end(); ++i)
-        AddItem(i->second);
+        AddItem(i->second.get());
+
+    Sort();
 }
-void CFileListView::UpdateItem(PProcessingItem item)
+void CFileListView::UpdateItem(const CProcessingItem* item)
 {
-    ASSERT(item.get());
-    const LPARAM data = reinterpret_cast<LPARAM>(item.get());
-    if(NULL == data) 
-        return;
-
-    LVFINDINFO lvfi;
-    ::ZeroMemory(&lvfi, sizeof(lvfi));
-    lvfi.flags = LVFI_PARAM;
-    lvfi.lParam = data;
-
+    const int item_index = FindItem(item);
+    item_index < 0 ? AddItem(item) : UpdateItem(item, item_index);
+}
+void CFileListView::UpdateItem(const CProcessingItem* item, int item_index)
+{
+    ASSERT(item_index >= 0);
     CListCtrl& list_ctrl = GetListCtrl();
-    int item_index = list_ctrl.FindItem(&lvfi);
-    if(item_index < 0) return;
-
-    //TODO:
-    LPCTSTR str = GetItemStateText(item->State);
     list_ctrl.SetItemText(item_index, FLV_COLUMN_STATE, GetItemStateText(item->State)); 
+    list_ctrl.SetItemText(item_index, FLV_COLUMN_DESCRIPTION, item->ResultString);
 }
-void CFileListView::AddItem(PProcessingItem item)
+void CFileListView::AddItem(const CProcessingItem* item)
 {
-    ASSERT(item.get());
-    if(NULL == item.get()) return;
+    ASSERT(item);
+    if(NULL == item) return;
     
     CListCtrl& list_ctrl = GetListCtrl();
 
@@ -229,54 +206,22 @@ void CFileListView::AddItem(PProcessingItem item)
     ::ZeroMemory(&lvi, sizeof(lvi));
     lvi.mask = LVIF_TEXT | LVIF_PARAM;
     lvi.pszText = const_cast<LPTSTR>((LPCTSTR)item->SourceFileName);
-    lvi.lParam = reinterpret_cast<LPARAM>(item.get());
+    lvi.lParam = reinterpret_cast<LPARAM>(item);
     
     const int item_index = list_ctrl.InsertItem(&lvi);
-    list_ctrl.SetItemText(item_index, FLV_COLUMN_STATE, GetItemStateText(item->State)); 
+    UpdateItem(item, item_index);
 }
-void CFileListView::RemoveItem(PProcessingItem item)
+void CFileListView::RemoveItem(const CProcessingItem* item)
 {
-    ASSERT(item.get());
-    const LPARAM data = reinterpret_cast<LPARAM>(item.get());
-    if(NULL == data) 
-        return;
-
-    LVFINDINFO lvfi;
-    ::ZeroMemory(&lvfi, sizeof(lvfi));
-    lvfi.flags = LVFI_PARAM;
-    lvfi.lParam = data;
-
-    CListCtrl& list_ctrl = GetListCtrl();
-    const int item_index = list_ctrl.FindItem(&lvfi);
+    if(item && item->IsActive()) return;
+    const int item_index = FindItem(item);
     if(item_index < 0) return;
-    list_ctrl.DeleteItem(item_index);
-}
-void CFileListView::RemoveCompletedItems(PProcessingItem item)
-{
-    CListCtrl& list_ctrl = GetListCtrl();
-    for(int index = -1; ; ++index)
-    {
-        const int found = list_ctrl.GetNextItem(index, LVNI_ALL); 
-        if(found < 0) 
-            break;
-
-        LVITEM lvi;
-        ::ZeroMemory(&lvi, sizeof(lvi));
-        lvi.iItem = found;
-        lvi.mask = LVIF_PARAM;
-        if(0 == list_ctrl.GetItem(&lvi)) 
-            continue;
-
-        CProcessingItemList::iterator i = ProcessingItemList.find(reinterpret_cast<CProcessingItem*>(lvi.lParam));
-        PProcessingItem pi = i->second;
-        if(PIS_READY == pi->State)
-            list_ctrl.DeleteItem(found);
-    }
+    GetListCtrl().DeleteItem(item_index);
 }
 PProcessingItem CFileListView::GetUnprocessedItem()
 {
     CListCtrl& list_ctrl = GetListCtrl();
-    for(int index = -1; ; ++index)
+    for(int index = -1;; ++index)
     {
         const int found = list_ctrl.GetNextItem(index, LVNI_ALL); 
         if(found < 0) 
@@ -315,4 +260,28 @@ CVideoPreviewDoc* CFileListView::GetDocument() const // non-debug version is inl
 }
 #endif //_DEBUG
 
-// CFileListView message handlers
+int CFileListView::FindItem(const CProcessingItem* item)
+{
+    ASSERT(item);
+    const LPARAM data = reinterpret_cast<LPARAM>(item);
+    if(NULL == data) 
+        return -1;
+
+    LVFINDINFO lvfi;
+    ::ZeroMemory(&lvfi, sizeof(lvfi));
+    lvfi.flags = LVFI_PARAM;
+    lvfi.lParam = data;
+    return GetListCtrl().FindItem(&lvfi);
+}
+CProcessingItem* CFileListView::FindItem(int item_index)
+{
+    return reinterpret_cast<CProcessingItem*>(GetListCtrl().GetItemData(item_index));
+}
+CProcessingItem* CFileListView::GetFocusedItem(int* index /*= NULL*/)
+{
+    const int found = GetListCtrl().GetNextItem(-1, LVNI_FOCUSED); 
+    if(found < 0) return NULL;
+
+    if(index) *index = found;
+    return FindItem(found);
+}

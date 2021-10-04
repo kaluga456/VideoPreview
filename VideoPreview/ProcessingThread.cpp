@@ -23,10 +23,7 @@ DWORD CProcessingThread::Start(HWND message_target, const COutputProfile* output
 
     //init
     MessageTarget = message_target;
-
-    //TODO:
-    //SourceFileName = source_file_name;
-
+    SourceFileName = source_file_name;
     OutputProfile = *output_profile; 
 
     //run
@@ -46,8 +43,8 @@ void CProcessingThread::NotifyResult(WPARAM message_type, LPCTSTR error_descript
     LPCTSTR message_data = NULL;
 
     //TODO:
-    //if(error_description != NULL)
-    //    message_data = _strdup(error_description);
+    if(error_description != NULL)
+        message_data = ::_wcsdup(error_description);
     NotifyMessageTarget(message_type, reinterpret_cast<LPARAM>(message_data));
 }
 DWORD CProcessingThread::Run()
@@ -61,9 +58,9 @@ DWORD CProcessingThread::Run()
     for(int i = 1; i < 11; ++i)
     {
         //check terminate signal
-        if(true == TerminateSignal)
+        if(TerminateSignal)
         {
-            NotifyResult(PTM_FAILED, _T("terminated by user"));
+            NotifyResult(PTM_STOP, NULL);
             return 0;
         }
 

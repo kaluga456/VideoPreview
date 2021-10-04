@@ -79,7 +79,7 @@ bool CSourceFileTypes::GetFilterString(LPTSTR filter_string, UINT size)
     filter_string[0] = 0;
 
     UINT pos = 0;
-    int result = ::swprintf_s(filter_string, size, _T("%s"), _T("Video files"));
+    int result = ::swprintf_s(filter_string, size, _T("%s"), _T("Video files|"));
 
     if(result < 0)
         return false;
@@ -100,8 +100,25 @@ bool CSourceFileTypes::GetFilterString(LPTSTR filter_string, UINT size)
     ++pos;
     if(pos + (15 * sizeof(TCHAR)) >= size)
         return false;
-    memcpy(filter_string + pos, _T("All Files\0*.*\0\0"), 15 * sizeof(TCHAR));
+    memcpy(filter_string + pos, _T("|All Files (*.*)|*.*||"), 15 * sizeof(TCHAR));
     return true;
+}
+CString CSourceFileTypes::GetFilterString() const
+{
+    CString result = _T("Video Files|");
+    CString all_files = _T("All Files (*.*)|*.*||");
+    for(CSourceFileTypeList::const_iterator i = SourceFileTypeList.begin(); i != SourceFileTypeList.end(); ++i)
+    {
+        ASSERT(i->IsValid());
+        if(false == i->IsValid())
+            continue;
+
+        CString ext;
+        ext.Format(_T("*.%s;"), i->Get());
+        result += ext;
+    }
+    result += _T("|");
+    return result + all_files;
 }
 bool CSourceFileTypes::AddType(LPCTSTR extension)
 {
@@ -135,4 +152,10 @@ bool CSourceFileTypes::RemoveType(LPCTSTR extension)
         return true;
     }
     return false;
+}
+bool CSourceFileTypes::HasType(LPCTSTR ext) const
+{
+    CSourceFileType sft(ext);
+    CSourceFileTypeList::const_iterator i = SourceFileTypeList.find(sft);
+    return i != SourceFileTypeList.end();
 }

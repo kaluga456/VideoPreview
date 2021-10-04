@@ -19,7 +19,60 @@
 #define new DEBUG_NEW
 #endif
 
+extern CSourceFileTypes SourceFileTypes;
 CProcessingItemList ProcessingItemList;
+
+//items list state CMainFrame::ItemsListState
+class CItemsListState
+{
+public:
+    CItemsListState() : State(NULL) {}
+    void Update();
+
+    int HasReady() const {return State & PILS_HAS_READY;}
+    int HasDone() const {return State & PILS_HAS_DONE;}
+    int HasFailed() const {return State & PILS_HAS_FAILED;}
+
+    void SetReady(bool value) {SetBit(PILS_HAS_READY, value);}
+    void SetDone(bool value) {SetBit(PILS_HAS_DONE, value);}
+    void SetFailed(bool value) {SetBit(PILS_HAS_FAILED, value);}
+
+private:
+    enum
+    {
+        PILS_HAS_READY = 0x00000001,
+        PILS_HAS_DONE = 0x00000002,
+        PILS_HAS_FAILED = 0x00000004
+    };
+
+    int State;
+    void SetBit(int bit, bool value = true);
+} ItemsListState;
+
+void CItemsListState::SetBit(int bit, bool value /*= true*/)
+{
+    if(value) State |= bit;
+    else State &= ~bit;
+}
+void CItemsListState::Update()
+{
+    State = 0;
+    for(CProcessingItemList::iterator i = ProcessingItemList.begin(); i != ProcessingItemList.end(); ++i)
+    {
+        PProcessingItem pi = i->second;
+        if(PIS_READY == pi->State) SetBit(PILS_HAS_READY);
+        if(PIS_DONE == pi->State) SetBit(PILS_HAS_DONE);
+        if(PIS_FAILED == pi->State) SetBit(PILS_HAS_FAILED);
+    }
+}
+
+static CString GetLParamString(LPARAM value)
+{
+    if(NULL == value) return _T("");
+    CString result = reinterpret_cast<LPCTSTR>(value);
+    ::free(reinterpret_cast<void*>(value));
+    return result;
+}
 
 // CMainFrame
 IMPLEMENT_DYNCREATE(CMainFrame, CFrameWndEx)
@@ -27,14 +80,16 @@ IMPLEMENT_DYNCREATE(CMainFrame, CFrameWndEx)
 BEGIN_MESSAGE_MAP(CMainFrame, CFrameWndEx)
 	ON_WM_CREATE()
     ON_WM_DESTROY()
+    ON_WM_CONTEXTMENU() //TEST:
     ON_REGISTERED_MESSAGE(AFX_WM_RESETTOOLBAR, OnResetToolbar)
     ON_MESSAGE(WM_PROCESSING_THREAD, OnProcessingThread)
 
     //commands    
     ON_COMMAND(ID_FILE_ADDFILES, &CMainFrame::OnAddFiles)
     ON_COMMAND(ID_FILE_ADDFOLDER, &CMainFrame::OnAddFolder)
-    ON_COMMAND(ID_FILE_REMOVECOMPLETED, &CMainFrame::OnRemoveCompleted)
-    ON_COMMAND(ID_FILE_REMOVEALL, &CMainFrame::OnRemoveAll)
+    ON_COMMAND(ID_FILE_REMOVEFAILED, &CMainFrame::OnRemoveFailed)
+    ON_COMMAND(ID_FILE_REMOVE_COMPLETED, &CMainFrame::OnRemoveCompleted)
+    ON_COMMAND(ID_FILE_REMOVE_ALL, &CMainFrame::OnRemoveAll)
     ON_COMMAND(ID_FILE_STARTPROCESSING, &CMainFrame::OnStartProcessing)
     ON_COMMAND(ID_FILE_STOPPROCESSING, &CMainFrame::OnStopProcessing)       
     ON_COMMAND(ID_FILE_OPTIONS, &CMainFrame::OnOptions)
@@ -44,18 +99,31 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWndEx)
     ON_COMMAND(ID_APP_ABOUT, &CMainFrame::OnAppAbout)
     ON_COMMAND(ID_EDIT_TEST, &CMainFrame::OnEditTest) //TEST
 
+    //file list context menu
+    ON_COMMAND(ID_POPUP_OPEN_VIDEO, &CMainFrame::OnContextOpenVideo)
+    ON_COMMAND(ID_POPUP_OPEN_PREVIEW, &CMainFrame::OnContextOpenPreview)
+    ON_COMMAND(ID_POPUP_PROCESS_ITEM, &CMainFrame::OnContextProcessItem)
+    ON_COMMAND(ID_POPUP_RESET_ITEM, &CMainFrame::OnContextResetItem)
+    ON_COMMAND(ID_POPUP_REMOVE_ITEM, &CMainFrame::OnContextRemoveItem)
+
     //other
     ON_CBN_SELCHANGE(ID_PROFILE_COMBO, OnProfileCombo)
 
-    //TODO: update UI
-    ON_UPDATE_COMMAND_UI(ID_FILE_REMOVECOMPLETED, OnUpdateUI)
-    ON_UPDATE_COMMAND_UI(ID_FILE_REMOVEALL, OnUpdateUI)
+    //update UI
+    ON_UPDATE_COMMAND_UI(ID_FILE_REMOVEFAILED, OnUpdateUI)
+    ON_UPDATE_COMMAND_UI(ID_FILE_REMOVE_COMPLETED, OnUpdateUI)
+    ON_UPDATE_COMMAND_UI(ID_FILE_REMOVE_ALL, OnUpdateUI)
     ON_UPDATE_COMMAND_UI(ID_FILE_STARTPROCESSING, OnUpdateUI)
     ON_UPDATE_COMMAND_UI(ID_FILE_STOPPROCESSING, OnUpdateUI)
     ON_UPDATE_COMMAND_UI(ID_PROFILE_SAVE, OnUpdateUI)
     ON_UPDATE_COMMAND_UI(ID_PROFILE_DELETE, OnUpdateUI)
     ON_UPDATE_COMMAND_UI(ID_PROFILE_COMBO, OnUpdateUI)
 
+    ON_UPDATE_COMMAND_UI(ID_POPUP_OPEN_VIDEO, OnUpdateContextMenu)
+    ON_UPDATE_COMMAND_UI(ID_POPUP_OPEN_PREVIEW, OnUpdateContextMenu)
+    ON_UPDATE_COMMAND_UI(ID_POPUP_PROCESS_ITEM, OnUpdateContextMenu)
+    ON_UPDATE_COMMAND_UI(ID_POPUP_RESET_ITEM, OnUpdateContextMenu)
+    ON_UPDATE_COMMAND_UI(ID_POPUP_REMOVE_ITEM, OnUpdateContextMenu)
 END_MESSAGE_MAP()
 
 void CMainFrame::OnAppAbout()
@@ -67,10 +135,7 @@ void CMainFrame::OnAppAbout()
 //TODO:
 static UINT SBIndicators[] =
 {
-	ID_SEPARATOR,           // status line indicator
-	ID_INDICATOR_CAPS,
-	ID_INDICATOR_NUM,
-	ID_INDICATOR_SCRL,
+	ID_SEPARATOR           // status line indicator
 };
 
 // CMainFrame construction/destruction
@@ -84,7 +149,7 @@ CMainFrame::~CMainFrame()
 
 int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
-	if (CFrameWndEx::OnCreate(lpCreateStruct) == -1)
+	if(CFrameWndEx::OnCreate(lpCreateStruct) == -1)
 		return -1;
 
 	BOOL bNameValid;
@@ -191,6 +256,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	if(FALSE == CBProfile->SelectItem(Options.SelectedProfile))
         CBProfile->SelectItem(0);
 
+    ItemsListState.Update();
     return 0;
 }
 
@@ -212,8 +278,28 @@ void CMainFrame::OnDestroy()
 }
 BOOL CMainFrame::OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult)
 {
-     //TODO:
-    int a = 0;
+    LPNMHDR nmhdr = reinterpret_cast<LPNMHDR>(lParam);
+
+    CView* flv = GetActiveView(); //file list view
+    if(flv && nmhdr->hwndFrom == flv->m_hWnd)
+    {
+        //if(LVN_COLUMNCLICK == nmhdr->code) 
+        //{
+        //    LPNMLISTVIEW nmlv = reinterpret_cast<LPNMLISTVIEW>(lParam);
+        //    //OnColumnClick(nmlv->iSubItem);
+        //    return TRUE;
+        //}
+        if(NM_DBLCLK == nmhdr->code)
+        {
+            OnContextOpenVideo();
+        }
+        else if(LVN_COLUMNCLICK == nmhdr->code) 
+        {
+            LPNMLISTVIEW nmlv = reinterpret_cast<LPNMLISTVIEW>(lParam);
+            GetFileListView()->OnColumnClick(nmlv->iSubItem);
+        }
+    }
+
     return CFrameWndEx::OnNotify(wParam, lParam, pResult);
 }
 BOOL CMainFrame::PreCreateWindow(CREATESTRUCT& cs)
@@ -230,6 +316,7 @@ LRESULT CMainFrame::OnResetToolbar(WPARAM wp,LPARAM lp)
     CMFCToolBarComboBoxButton profile_combo(ID_PROFILE_COMBO, 0, CBS_DROPDOWNLIST, 300);
     ToolBar.ReplaceButton(ID_PROFILE_COMBO, profile_combo);
 
+    //TODO:
     CMFCToolBarComboBoxButton* cc = GetProfileCombo();
 
     return 0;
@@ -276,12 +363,111 @@ void CMainFrame::OnViewPropertiesWindow()
 }
 void CMainFrame::OnAddFiles()
 {
-    //TODO:
-    MessageBox(L"OnAddFiles", L"DEBUG", MB_OK | MB_ICONINFORMATION);
+    const int FILE_LIST_BUFFER_SIZE = ((255 * (MAX_PATH + 1)) + 1);
+    CString filter = SourceFileTypes.GetFilterString();
+    CFileDialog fd(TRUE, NULL, NULL, OFN_ALLOWMULTISELECT | OFN_ENABLESIZING | OFN_EXPLORER, filter, this, sizeof(OPENFILENAME), TRUE);
+    OPENFILENAME& ofn = fd.GetOFN();
+    ofn.lpstrTitle = _T("Add Video Files");
+    if(IDCANCEL == fd.DoModal())
+        return;
+
+    //root directory
+    CString root_dir = ofn.lpstrFile;
+    int name_size = root_dir.GetLength();
+    if(0 == name_size)
+        return;
+    root_dir += _T("\\");
+    
+    const int items_count = GetFileListView()->GetListCtrl().GetItemCount();
+    for(LPCTSTR file_names = ofn.lpstrFile + name_size + 1; ;file_names += name_size + 1)
+    {
+        CString file_name = file_names;
+        name_size = file_name.GetLength();
+        if(0 == name_size)
+            break;
+
+        PProcessingItem pi(new CProcessingItem(PIS_READY, root_dir + file_name));
+        AddItem(pi);
+    }
+
+    //if has new items in list
+    if(items_count < GetFileListView()->GetListCtrl().GetItemCount())
+    {
+        GetFileListView()->Sort();
+        ItemsListState.SetReady(false);
+        UpdateDialogControls(this, FALSE);
+    }
 }
 void CMainFrame::OnAddFolder()
 {
-    //TODO:
+    CFolderPickerDialog fpd(NULL, OFN_ALLOWMULTISELECT | OFN_ENABLESIZING | OFN_EXPLORER, this, sizeof(OPENFILENAME));
+    const int FILE_LIST_BUFFER_SIZE = ((255 * (MAX_PATH + 1)) + 1);
+    OPENFILENAME& ofn = fpd.GetOFN();
+    ofn.lpstrTitle = _T("Add Video Files");
+    if(IDCANCEL == fpd.DoModal())
+        return;
+
+    //root directory
+    CString root_dir = ofn.lpstrFile;
+    int name_size = root_dir.GetLength();
+    if(0 == name_size)
+        return;
+
+    //if only one directory selected
+    if(0 == *(ofn.lpstrFile + name_size + 1))
+    {
+        AddFolder(root_dir);
+        return;
+    }
+
+    root_dir += _T("\\");
+    const int items_count = GetFileListView()->GetListCtrl().GetItemCount();
+    for(LPCTSTR file_names = ofn.lpstrFile + name_size + 1; ;file_names += name_size + 1)
+    {
+        CString file_name = file_names;
+        name_size = file_name.GetLength();
+        if(0 == name_size)
+            break;
+
+        AddFolder(root_dir + file_name);
+    }
+
+    //if has new items in list
+    if(items_count < GetFileListView()->GetListCtrl().GetItemCount())
+    {
+        GetFileListView()->Sort();
+        ItemsListState.SetReady(false);
+        UpdateDialogControls(this, FALSE);
+    }
+}
+void CMainFrame::AddFolder(CString root_dir)
+{
+    CFileFind finder;
+    BOOL result = finder.FindFile(root_dir + _T("\\*.*"));
+    while(result)
+    {
+        result = finder.FindNextFile();
+        if(finder.IsDots()) continue;
+
+        //recursive search
+        CString found_name = finder.GetFileName();
+        if(finder.IsDirectory())
+        {
+            AddFolder(root_dir + _T("\\") + found_name);
+            continue;
+        }
+
+        //check file extension
+        LPCTSTR dot_pos = ::wcsrchr(found_name, _T('.'));
+        if(NULL == dot_pos) continue;
+        CString ext = dot_pos + 1;
+        ext.MakeLower();
+        if(SourceFileTypes.HasType(ext))
+        {
+            PProcessingItem pi(new CProcessingItem(PIS_READY, root_dir + _T("\\") + found_name));
+            AddItem(pi);
+        }
+    }
 }
 LRESULT CMainFrame::OnProcessingThread(WPARAM wp, LPARAM lp)
 {
@@ -295,100 +481,175 @@ LRESULT CMainFrame::OnProcessingThread(WPARAM wp, LPARAM lp)
     case PTM_PROGRESS:   //LPARAM - progress (0..100)
         ASSERT(0 <= lp && lp <= 100);
         CurrentItem->State = PIS_MIN_PROCESSING + lp;
-        file_list_view->UpdateItem(CurrentItem);
+        file_list_view->UpdateItem(CurrentItem.get());
         return 0;
     case PTM_DONE:       //LPARAM - result text, including output file name (LPTSTR)
-        //TODO:
         CurrentItem->State = PIS_DONE;
-        file_list_view->UpdateItem(CurrentItem);
+        CurrentItem->ResultString = GetLParamString(lp);
+        file_list_view->UpdateItem(CurrentItem.get());
+        ItemsListState.SetDone(true);
         CurrentItem.reset();
-        IsProcessing = false;
+        ProcessNextItem();
+        break;
+    case PTM_STOP:       //LPARAM - NULL
+        CurrentItem->State = PIS_READY;
+        CurrentItem->ResultString = _T("");
+        file_list_view->UpdateItem(CurrentItem.get());
+        ItemsListState.SetReady(true);
+        CurrentItem.reset();        
         break;
     case PTM_FAILED:      //LPARAM - error description (LPTSTR)
-        //TODO:
         CurrentItem->State = PIS_FAILED;
-        file_list_view->UpdateItem(CurrentItem);
-        CurrentItem.reset();
-        IsProcessing = false;
+        CurrentItem->ResultString = GetLParamString(lp);
+        file_list_view->UpdateItem(CurrentItem.get());
+        ItemsListState.SetFailed(true);
+
+        if(IsProceedOnError())
+        {
+            CurrentItem.reset();
+            ProcessNextItem();
+        }
         break;
     default:
         ASSERT(FALSE);
-        return 0;
+        CurrentItem.reset();
+        IsProcessing = false;
     }
 
-    //TODO:
-    //PProcessingItem pi = file_list_view->GetUnprocessedItem();
-    //if(NULL == pi)
-    //{
-    //    //TODO: update UI
-    //    IsProcessing = false;
-    //    return 0;
-    //}
-    //const COutputProfile* current_profile = GetCurrentProfile();
-    //if(NULL == current_profile)
-    //    return 0;
-    //const DWORD result = ProcessingThread.Start(m_hWnd, current_profile, pi->SourceFileName);
-    //if(ERROR_SUCCESS != result)
-    //{
-    //    ; //TODO: message
-    //    //TODO: update UI
-    //    IsProcessing = false;
-    //    return 0;
-    //}
-
+    UpdateDialogControls(this, FALSE);
     return 0;
+}
+void CMainFrame::SetProcessingState(bool Value)
+{
+    if(Value == IsProcessing) return;
+    if(Value)
+    {       
+        IsProcessing = true;
+    }
+    else
+    {
+        //TODO: get actual state from thread message
+        ProcessingThread.Stop();
+        IsProcessing = false;
+    }
+    UpdateDialogControls(this, FALSE);
+}
+bool CMainFrame::IsProceedOnError()
+{
+    if(COptions::ACTION_ON_ERROR_SKIP == Options.ActionOnError)
+        return true;
+    if(COptions::ACTION_ON_ERROR_PROMT == Options.ActionOnError)
+        return true; //TODO: promt
+    return false;
+}
+bool CMainFrame::ProcessNextItem()
+{
+    for(;;)
+    {
+        ASSERT(NULL == CurrentItem.get());
+        if(CurrentItem.get()) 
+            break;
+
+        PProcessingItem pi = GetFileListView()->GetUnprocessedItem();
+        if(NULL == pi) 
+            break; //no more items to process
+
+        const COutputProfile* current_profile = GetCurrentProfile();
+        if(NULL == current_profile)
+        {
+            //TODO: message
+            break;
+        }
+
+        const DWORD result = ProcessingThread.Start(m_hWnd, current_profile, pi->SourceFileName);
+        if(ERROR_SUCCESS == result)
+        {
+            CurrentItem = pi;
+            SetProcessingState(true);
+            return true;
+        }
+        else
+        {
+            ; //TODO: message
+        }
+
+        if(false == IsProceedOnError())
+            break;
+    }
+
+    CurrentItem.reset();
+    SetProcessingState(false);
+    return false;
 }
 void CMainFrame::OnStartProcessing()
 {
-    ASSERT(false == IsProcessing);
-    if(IsProcessing) return;
-
-    CFileListView* file_list_view = GetFileListView();
-    if(NULL == file_list_view)
-        return;
-
-    const COutputProfile* current_profile = GetCurrentProfile();
-    if(NULL == current_profile)
-        return;
-
-    PProcessingItem pi = file_list_view->GetUnprocessedItem();
-    if(NULL == pi)
-        return;
-
-    const DWORD result = ProcessingThread.Start(m_hWnd, current_profile, pi->SourceFileName);
-    if(ERROR_SUCCESS != result)
-    {
-        ; //TODO: message
-        return;
-    }
-
-    CurrentItem = pi;
-    IsProcessing = true;
+    ProcessNextItem();
 }
 void CMainFrame::OnStopProcessing()
 {
-    ASSERT(IsProcessing);
-    if(false == IsProcessing) return;
-
     //TODO: confirm
-    ProcessingThread.Stop();
+    SetProcessingState(false);
+}
+void CMainFrame::OnRemoveFailed()
+{
+    const int result = AfxMessageBox(_T("Remove failed files from list?"), MB_OKCANCEL | MB_ICONEXCLAMATION | MB_DEFBUTTON1);
+    if(result != IDOK) return;
+
+    for(CProcessingItemList::iterator i = ProcessingItemList.begin(); i != ProcessingItemList.end();)
+    {
+        PProcessingItem pi = i->second;
+        if(PIS_FAILED == pi->State) 
+            i = ProcessingItemList.erase(i);
+        else
+            ++i;     
+    }
+    CFileListView* flv = GetFileListView();
+    flv->UpdateItems();
+    ItemsListState.SetFailed(false);
+    UpdateDialogControls(this, FALSE);
 }
 void CMainFrame::OnRemoveCompleted()
 {
-    // TODO: Add your command handler code here
     const int result = AfxMessageBox(_T("Remove completed files from list?"), MB_OKCANCEL | MB_ICONEXCLAMATION | MB_DEFBUTTON1);
     if(result != IDOK) return;
 
+    for(CProcessingItemList::iterator i = ProcessingItemList.begin(); i != ProcessingItemList.end();)
+    {
+        PProcessingItem pi = i->second;
+        if(PIS_DONE == pi->State) 
+            i = ProcessingItemList.erase(i);
+        else
+            ++i;     
+    }
+    CFileListView* flv = GetFileListView();
+    flv->UpdateItems();
+    ItemsListState.SetDone(false);
+    UpdateDialogControls(this, FALSE);
+}
+void CMainFrame::RemoveAllItems()
+{
+    //remove all items...
+    CFileListView* flv = GetFileListView();
+    flv->GetListCtrl().DeleteAllItems();
+    ProcessingItemList.clear();
 
+    //...excluding current item
+    if(CurrentItem.get())
+    {
+        ProcessingItemList[CurrentItem.get()] = CurrentItem;
+        flv->UpdateItem(CurrentItem.get());
+    }
+
+    ItemsListState.SetFailed(false);
+    ItemsListState.SetReady(false);
+    ItemsListState.SetDone(false);
+    UpdateDialogControls(this, FALSE);
 }
 void CMainFrame::OnRemoveAll()
 {
     const int result = AfxMessageBox(_T("Remove all files from list?"), MB_OKCANCEL | MB_ICONEXCLAMATION | MB_DEFBUTTON1);
     if(result != IDOK) return;
-
-    CFileListView* file_list_view = GetFileListView();
-    file_list_view->GetListCtrl().DeleteAllItems();
-    ProcessingItemList.clear();
+    RemoveAllItems();
 }
 void CMainFrame::OnOptions()
 {
@@ -437,28 +698,35 @@ void CMainFrame::OnEditTest()
     //ProfilePane.SetOutputProfile(&profile);
     //UpdateDialogControls(this, FALSE);
     //MessageBox(L"OnEditTest", L"DEBUG", MB_OK | MB_ICONINFORMATION);
-
-    //CFileListView* file_list_view = static_cast<CFileListView*>(GetActiveView());
-    //file_list_view->AddItem(PProcessingItem(new CProcessingItem(_T("d:\\projects\\VideoPreview\\videos\\Frankie the pug walking on his front legs!.mp4"))));
-
+    
     //TEST:
+    RemoveAllItems();
     AddItem(PProcessingItem(new CProcessingItem(_T("d:\\projects\\VideoPreview\\videos\\Three Cute Golden Retrievers Hug Over Tennis Ball.mp4"))));
     AddItem(PProcessingItem(new CProcessingItem(_T("d:\\projects\\VideoPreview\\videos\\Chicken_Techno_by_Oli_Chang.mp4"))));
     AddItem(PProcessingItem(new CProcessingItem(_T("d:\\projects\\VideoPreview\\videos\\Frankie the pug walking on his front legs!.mp4"))));
+
+    int id1 = GetFileListView()->GetDlgCtrlID(); //id1 = 59648
+    int id2 = GetFileListView()->GetListCtrl().GetDlgCtrlID(); //id2 = 59648
 }
 void CMainFrame::OnUpdateUI(CCmdUI* pCmdUI)
 {
-    //CWnd::UpdateDialogControls() ?
-
-    //TODO:
-    CFileListView* file_list_view = GetFileListView();
-    ASSERT(file_list_view);
     switch(pCmdUI->m_nID)
     {
-    case ID_REMOVE_COMPLETED:
+    case ID_FILE_REMOVE_COMPLETED:
     {
-        CListCtrl& list_ctrl = file_list_view->GetListCtrl();
+        pCmdUI->Enable(ItemsListState.HasDone());
+        break;
+    }
+    case ID_FILE_REMOVEFAILED:
+    {
+        pCmdUI->Enable(ItemsListState.HasFailed());
+        break;
+    }
+    case ID_FILE_REMOVE_ALL:
+    {
+        CListCtrl& list_ctrl = GetFileListView()->GetListCtrl();
         const int items_count = list_ctrl.GetItemCount();
+        pCmdUI->Enable(items_count);
         break;
     }
     case ID_PROFILE_DELETE:
@@ -468,14 +736,46 @@ void CMainFrame::OnUpdateUI(CCmdUI* pCmdUI)
         pCmdUI->Enable(current_profile != &DefaultProfile);
         break;
     }
+    case ID_FILE_STARTPROCESSING:
+    {
+        pCmdUI->Enable(false == IsProcessing);
+        break;
+    }
+    case ID_FILE_STOPPROCESSING:
+    {
+        pCmdUI->Enable(IsProcessing);
+        break;
+    }
     case ID_PROFILE_COMBO:
-        pCmdUI->Enable();
+        pCmdUI->Enable(false == IsProcessing);
         break;
     }
 }
-void CMainFrame::OnUpdateProfileCombo(CCmdUI* pCmdUI)
+void CMainFrame::OnUpdateContextMenu(CCmdUI* pCmdUI)
 {
-    pCmdUI->Enable();
+    switch(pCmdUI->m_nID)
+    {
+    case ID_POPUP_OPEN_VIDEO:
+    {
+        CProcessingItem* pi = GetFileListView()->GetFocusedItem();
+        pCmdUI->Enable(pi != NULL);
+        break;
+    }
+    case ID_POPUP_OPEN_PREVIEW:
+    {
+        CProcessingItem* pi = GetFileListView()->GetFocusedItem();
+        pCmdUI->Enable(pi != NULL && PIS_DONE == pi->State);
+        break;
+    }
+    case ID_POPUP_PROCESS_ITEM:
+    case ID_POPUP_RESET_ITEM:
+    case ID_POPUP_REMOVE_ITEM:
+    {
+        const int sel_items_count = GetFileListView()->GetListCtrl().GetSelectedCount();
+        pCmdUI->Enable(sel_items_count);
+        break;
+    }
+    }
 }
 const COutputProfile* CMainFrame::GetCurrentProfile()
 {
@@ -491,15 +791,72 @@ CFileListView* CMainFrame::GetFileListView()
 }
 void CMainFrame::AddItem(PProcessingItem item)
 {
-    //TODO: duplicates
+    //ignore duplicates
+    for(CProcessingItemList::iterator i = ProcessingItemList.begin(); i != ProcessingItemList.end(); ++i)
+    {
+        PProcessingItem pi = i->second;
+        if(0 == pi->SourceFileName.CompareNoCase(item->SourceFileName))
+            return;
+    }
     ProcessingItemList[item.get()] = item;
-
-    CFileListView* flv = GetFileListView();
-    flv->AddItem(item);
+    GetFileListView()->UpdateItem(item.get());
 }
 void CMainFrame::RemoveItem(PProcessingItem item)
 {
     //TODO: confirm
+    GetFileListView()->RemoveItem(item.get());
+}
+void CMainFrame::OnContextOpenVideo()
+{
+    CProcessingItem* pi = GetFileListView()->GetFocusedItem();
+    if(NULL == pi) return;
+    ::ShellExecute(NULL, _T("open"), pi->SourceFileName, NULL, NULL, SW_SHOWNORMAL);
+}
+void CMainFrame::OnContextOpenPreview()
+{
+    //TODO:
+    CProcessingItem* pi = GetFileListView()->GetFocusedItem();
+    ASSERT(PIS_DONE == pi->State);
+    if(NULL == pi) return;
+    ::ShellExecute(NULL, _T("open"), pi->ResultString, NULL, NULL, SW_SHOWNORMAL);
+}
+void CMainFrame::OnContextProcessItem()
+{
+}
+void CMainFrame::OnContextResetItem()
+{
+    int index = -1;
+    CProcessingItem* pi = GetFileListView()->GetFocusedItem(&index);
+    if(NULL == pi) return;
+    pi->Reset(false);
+    GetFileListView()->UpdateItem(pi, index);
+}
+void CMainFrame::OnContextRemoveItem()
+{
     CFileListView* flv = GetFileListView();
-    flv->RemoveItem(item);
+    CListCtrl& lc = flv->GetListCtrl();
+    const int sel_count = lc.GetSelectedCount();
+    if(0 == sel_count)
+        return;
+
+    const int result = AfxMessageBox(_T("Remove selected files from list?"), MB_OKCANCEL | MB_ICONEXCLAMATION | MB_DEFBUTTON1);
+    if(result != IDOK) 
+        return;
+
+    for(;;)
+    {
+        const int found_index = lc.GetNextItem(-1, LVNI_SELECTED);
+        if(found_index < 0)
+            break;
+
+        CProcessingItem* pi = flv->FindItem(found_index);
+        if(pi == CurrentItem.get()) continue;
+
+        lc.DeleteItem(found_index);
+        CProcessingItemList::iterator i = ProcessingItemList.find(pi);
+        if(i != ProcessingItemList.end())
+            ProcessingItemList.erase(i);
+    }
+
+    ItemsListState.Update();
 }

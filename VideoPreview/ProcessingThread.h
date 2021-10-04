@@ -2,10 +2,11 @@
 
 //messages from processing thread
 //WPARAM - message type
-enum CProcessingThreadMessage
+enum
 {
     PTM_PROGRESS,   //LPARAM - progress (0..100)
     PTM_DONE,       //LPARAM - result text, including output file name (LPTSTR)
+    PTM_STOP,       //LPARAM - NULL
     PTM_FAILED      //LPARAM - error description (LPTSTR)
 };
 const UINT WM_PROCESSING_THREAD = WM_APP + 1; 
@@ -21,9 +22,6 @@ public:
     //init
     DWORD Start(HWND message_target, const COutputProfile* output_profile, LPCTSTR source_file_name);
     void Stop();
-
-    //TODO:
-    bool IsActive() const {return !TerminateSignal;}
 
 private:
     friend class app::thread<CProcessingThread>;

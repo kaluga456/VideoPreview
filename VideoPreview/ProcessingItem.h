@@ -9,16 +9,17 @@ enum
 
     PIS_READY,                  //ready to process
     PIS_DONE,                   //processed successfully
-    PIS_FAILED                  //processed with error
+    PIS_FAILED,                 //processed with error
+    PIS_STOPPED                 //TODO: stopped by user
 };
 
 //processing item - one per each source file
-class CProcessingItem : public CObject
+class CProcessingItem
 {
 public:
     //ctor/dtor
     explicit CProcessingItem(LPCTSTR source_file_name);
-    CProcessingItem(int state, LPCTSTR source_file_name, LPCTSTR result_string); //for loading from setting file
+    CProcessingItem(int state, LPCTSTR source_file_name, LPCTSTR result_string = _T("")); //for loading from setting file
     ~CProcessingItem();
 
     bool IsActive() const {return PIS_MIN_PROCESSING <= State && State <= PIS_MAX_PROCESSING;}
@@ -31,18 +32,3 @@ public:
 };
 typedef boost::shared_ptr<CProcessingItem> PProcessingItem;
 typedef std::map<CProcessingItem*, PProcessingItem> CProcessingItemList;
-
-class CProcessingItemListSerial : public CObject
-{
-     DECLARE_SERIAL(CProcessingItemListSerial)
-
-private:
-    CProcessingItemList* ProcessingItemList;
-
-    CProcessingItemListSerial() : ProcessingItemList(NULL) {}
-
-public:  
-    explicit CProcessingItemListSerial(CProcessingItemList* item_list) : ProcessingItemList(item_list) {}
-
-    void Serialize(CArchive& archive);
-};

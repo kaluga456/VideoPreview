@@ -3,9 +3,23 @@
 class CMainFrame : public CFrameWndEx
 {
 private:
+    //processing
     bool IsProcessing; //true - while there are files to process and command 'stop' not executed
     PProcessingItem CurrentItem; //current item in processing thread
     CProcessingThread ProcessingThread;
+    bool ProcessNextItem();
+    bool IsProceedOnError();
+    void SetProcessingState(bool Value); //true - processing items now
+
+    //output profiles
+    const COutputProfile* GetCurrentProfile();
+
+    //file list
+    CFileListView* GetFileListView();
+    void AddItem(PProcessingItem item);
+    void RemoveItem(PProcessingItem item);
+    void RemoveAllItems();
+    void AddFolder(CString root_dir);
 
 protected:
 	CMFCMenuBar MainMenu;
@@ -25,6 +39,7 @@ protected:
     afx_msg void OnAddFolder();
     afx_msg void OnStartProcessing();
     afx_msg void OnStopProcessing();
+    afx_msg void OnRemoveFailed();
     afx_msg void OnRemoveCompleted();  
     afx_msg void OnRemoveAll();
 	afx_msg void OnOptions();
@@ -35,8 +50,13 @@ protected:
     afx_msg void OnEditTest(); //TEST:
     afx_msg void OnResetToolbar();
     afx_msg void OnAppAbout();
+    afx_msg void OnContextOpenVideo();
+    afx_msg void OnContextOpenPreview();
+    afx_msg void OnContextProcessItem();
+    afx_msg void OnContextResetItem();
+    afx_msg void OnContextRemoveItem();
     afx_msg void OnUpdateUI(CCmdUI* pCmdUI);
-    afx_msg void OnUpdateProfileCombo(CCmdUI* pCmdUI);
+    afx_msg void OnUpdateContextMenu(CCmdUI* pCmdUI);
     afx_msg LRESULT OnResetToolbar(WPARAM wp,LPARAM lp);
     afx_msg LRESULT OnProcessingThread(WPARAM wp,LPARAM lp);
 	DECLARE_MESSAGE_MAP()
@@ -54,11 +74,6 @@ public:
 	virtual void AssertValid() const;
 	virtual void Dump(CDumpContext& dc) const;
 #endif
-
-    const COutputProfile* GetCurrentProfile();
-    CFileListView* GetFileListView();
-    void AddItem(PProcessingItem item);
-    void RemoveItem(PProcessingItem item);
 };
 
 

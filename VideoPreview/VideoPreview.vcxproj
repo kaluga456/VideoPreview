@@ -146,7 +146,6 @@
     <ResourceCompile Include="VideoPreview.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="gui_model.png" />
     <Image Include="res\bitmap1.bmp" />
     <Image Include="res\classview.bmp" />
     <Image Include="res\classview_hc.bmp" />
@@ -183,9 +182,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="res\VideoPreview.rc2" />
-  </ItemGroup>
-  <ItemGroup>
-    <Library Include="C:\Program Files (x86)\Windows Kits\8.0\Lib\win8\um\x86\xmllite.lib" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

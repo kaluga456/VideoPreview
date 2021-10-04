@@ -151,8 +151,8 @@ BEGIN
     BUTTON      ID_FILE_ADDFILES
     BUTTON      ID_FILE_ADDFOLDER
     SEPARATOR
-    BUTTON      ID_FILE_REMOVECOMPLETED
-    BUTTON      ID_FILE_REMOVEALL
+    BUTTON      ID_FILE_REMOVE_COMPLETED
+    BUTTON      ID_FILE_REMOVE_ALL
     SEPARATOR
     BUTTON      ID_FILE_STARTPROCESSING
     BUTTON      ID_FILE_STOPPROCESSING
@@ -208,8 +208,9 @@ BEGIN
         MENUITEM "Add Files...\tInsert",        ID_FILE_ADDFILES
         MENUITEM "Add Folder...\tCtrl+Insert",  ID_FILE_ADDFOLDER
         MENUITEM SEPARATOR
-        MENUITEM "Remove Completed\tShift+Delete", ID_REMOVE_COMPLETED
-        MENUITEM "Remove All\tCtrl+Delete",     ID_FILE_REMOVEALL
+        MENUITEM "Remove Failed",               ID_FILE_REMOVEFAILED
+        MENUITEM "Remove Completed\tShift+Delete", ID_FILE_REMOVE_COMPLETED
+        MENUITEM "Remove All\tCtrl+Delete",     ID_FILE_REMOVE_ALL
         MENUITEM SEPARATOR
         MENUITEM "Start Processing",            ID_FILE_STARTPROCESSING
         MENUITEM "Stop Processing",             ID_FILE_STOPPROCESSING
@@ -234,24 +235,16 @@ BEGIN
     END
 END
 
-IDR_POPUP_EDIT MENU
+IDR_POPUP_MENU MENU
 BEGIN
-    POPUP "Edit"
+    POPUP "Root"
     BEGIN
-        MENUITEM "Cu&t\tCtrl+X",                ID_EDIT_CUT
-        MENUITEM "&Copy\tCtrl+C",               ID_EDIT_COPY
-        MENUITEM "&Paste\tCtrl+V",              ID_EDIT_PASTE
-    END
-END
-
-IDR_POPUP_SORT MENU
-BEGIN
-    POPUP "Sorting"
-    BEGIN
-        MENUITEM "&Sort Alphabeticaly",         ID_SORTING_SORTALPHABETIC
-        MENUITEM "Sort by &Type",               ID_SORTING_SORTBYTYPE
-        MENUITEM "Sort by Acc&ess",             ID_SORTING_SORTBYACCESS
-        MENUITEM "Group by t&ype",              ID_SORTING_GROUPBYTYPE
+        MENUITEM "Open Video...",               ID_POPUP_OPEN_VIDEO
+        MENUITEM "Open Preview...",             ID_POPUP_OPEN_PREVIEW
+        MENUITEM SEPARATOR
+        MENUITEM "Process",                     ID_POPUP_PROCESS_ITEM
+        MENUITEM "Reset",                       ID_POPUP_RESET_ITEM
+        MENUITEM "Remove",                      ID_POPUP_REMOVE_ITEM
     END
 END
 
@@ -420,16 +413,6 @@ END
 
 STRINGTABLE
 BEGIN
-    ID_INDICATOR_EXT        "EXT"
-    ID_INDICATOR_CAPS       "CAP"
-    ID_INDICATOR_NUM        "NUM"
-    ID_INDICATOR_SCRL       "SCRL"
-    ID_INDICATOR_OVR        "OVR"
-    ID_INDICATOR_REC        "REC"
-END
-
-STRINGTABLE
-BEGIN
     ID_FILE_NEW             "Create a new document\nNew"
     ID_FILE_OPEN            "Open an existing document\nOpen"
     ID_FILE_CLOSE           "Close the active document\nClose"
@@ -514,7 +497,7 @@ END
 STRINGTABLE
 BEGIN
     AFX_IDS_SCRESTORE       "Restore the window to normal size"
-    AFX_IDS_SCTASKLIST      "Activate Task List"
+    AFX_IDS_SCTASKLIST      "Remove Failed Files From List\nRemove Failed"
 END
 
 STRINGTABLE
@@ -584,15 +567,21 @@ BEGIN
     ID_FILE_ADDFOLDER       "Add Folder\nAdd Folder"
     ID_FILE_STARTPROCESSING "Start Processing\nStart"
     ID_FILE_STOPPROCESSING  "Stop Processing\nStop"
-    ID_FILE_REMOVECOMPLETED "Remove Completed Source Files From List\nRemove Completed"
 END
 
 STRINGTABLE
 BEGIN
-    ID_FILE_REMOVEALL       "Remove All Source Files From List\nRemove All"
     ID_PROFILE_SAVE         "Save Selected Profile\nSave"
     ID_PROFILE_PREVIEW      "Preview Selected Profile\nPreview Profile"
     ID_PROFILE_DELETE       "Delete Selected Profile\nDelete"
+END
+
+STRINGTABLE
+BEGIN
+    ID_FILE_REMOVE_ALL      "Remove All Source Files From List\nRemove All"
+    ID_FILE_REMOVE_COMPLETED 
+                            "Remove Completed Files From List\nRemove Completed"
+    ID_FILE_REMOVEFAILED    "ID_FILE_REMOVEFAILED"
 END
 
 #endif    // English (United States) resources

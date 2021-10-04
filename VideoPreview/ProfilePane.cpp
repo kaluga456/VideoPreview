@@ -413,7 +413,7 @@ void CProfilePane::SetOutputProfile(const COutputProfile* profile)
     LOGFONT lf;
 
     pgpBackgroundColor->SetColor(profile->BackgroundColor);
-    pgpWriteHeader->SetValue(_variant_t(bool(profile->WriteHeader)));
+    pgpWriteHeader->SetValue(_variant_t(bool(profile->WriteHeader != 0)));
 
     profile->HeaderFont.Get(lf);
     pgpHeaderFont->SetFont(lf);

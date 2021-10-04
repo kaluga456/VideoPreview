@@ -35,15 +35,11 @@ public:
     CString SelectedProfile;
 
     //ctor/dtor
-    COptions();
+    COptions() {}
 
     //init, if file_name not NULL, then it is import/export settings call
     bool Read();
     bool Write();
-
-    //TODO: profiles serialization
-    //void ExportProfile(LPCTSTR file_name);
-    //void ImportProfile(LPCTSTR file_name);
 };
 
 extern COptions Options;
