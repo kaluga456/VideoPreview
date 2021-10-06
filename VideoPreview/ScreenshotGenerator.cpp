@@ -29,17 +29,17 @@ static LPCTSTR get_mime_type_string(int image_type)
 {
     switch(image_type)
     {
-    case OUTPUT_FILE_FORMAT_JPG:
-        return _T("image/jpeg");
+    case OUTPUT_FILE_FORMAT_BMP:
+        return _T("image/bmp");
     case OUTPUT_FILE_FORMAT_PNG:
         return _T("image/png");
     }
 
-    //use BMP format by default (OUTPUT_FILE_FORMAT_BMP)
-    return _T("image/bmp");
+    //use JPG format by default (OUTPUT_FILE_FORMAT_JPG)
+    return _T("image/jpeg");
 }
 
-static LPCTSTR get_relative_file_name(LPCTSTR file_name)
+static LPCTSTR GetRelativeFileName(LPCTSTR file_name)
 {
     if(NULL == file_name)
         return NULL;
@@ -53,7 +53,7 @@ static CString GenerateHeaderText(LPCTSTR video_file_name, const COutputProfile&
     //TODO:
     ASSERT(video_file_name);
     CString result; 
-    LPCTSTR file_name = get_relative_file_name(video_file_name);
+    LPCTSTR file_name = GetRelativeFileName(video_file_name);
     const size_t duration = video_file.GetDuration();
     const size_t video_width = video_file.GetVideoWidth();
     const size_t video_height = video_file.GetVideoHeight();
@@ -152,7 +152,7 @@ int GenerateScreenshots(LPCTSTR video_file_name, const COutputProfile& output_pr
         //{
         //    output_file_name.assign(output_dir);
         //    output_file_name.append(_T("\\"));
-        //    output_file_name.append(get_relative_file_name(video_file_name));
+        //    output_file_name.append(GetRelativeFileName(video_file_name));
         //}   
         //output_file_name.append(_T("."));
         //output_file_name.append(GetImageFileExt(output_profile.OutputFileFormat));
@@ -171,7 +171,6 @@ int GenerateScreenshots(LPCTSTR video_file_name, const COutputProfile& output_pr
             exc.string(buf, 2*KILOBYTE);
             result_string = buf;
         }
-        ::OutputDebugString(result_string);
         return SNAPSHOTS_RESULT_FAIL;
     }
     catch(...)

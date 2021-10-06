@@ -28,7 +28,10 @@ public:
     //data
     int State;
     CString SourceFileName;
-    CString ResultString; //for PIS_READY - empty, for PIS_DONE - output file name, for PIS_FAILED - error description 
+    CString ResultString; //for PIS_READY - empty, for PIS_DONE - output file name, for PIS_FAILED - error description
+
+    //TODO:
+    int Selected; //used for Process Selected command
 };
 typedef boost::shared_ptr<CProcessingItem> PProcessingItem;
 typedef std::map<CProcessingItem*, PProcessingItem> CProcessingItemList;

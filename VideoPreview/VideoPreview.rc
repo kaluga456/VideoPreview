@@ -98,7 +98,6 @@ IDI_PROPERTIES_WND_HC   ICON                    "res\\properties_wnd_hc.ico"
 // Bitmap
 //
 
-IDR_MAINFRAME           BITMAP                  "D:\\projects\\VideoPreview\\VideoPreview\\res\\Toolbar.bmp"
 IDR_MAINFRAME_256       BITMAP                  "D:\\projects\\VideoPreview\\VideoPreview\\res\\Toolbar256.bmp"
 IDR_SORT                BITMAP                  "res\\sort.bmp"
 IDB_SORT_24             BITMAP                  "res\\sort_hc.bmp"
@@ -126,40 +125,20 @@ IDB_MAIN_TOOLBAR        BITMAP                  "res\\Toolbar256.bmp"
 // Toolbar
 //
 
-IDR_MAINFRAME TOOLBAR 16, 15
-BEGIN
-    BUTTON      ID_FILE_NEW
-    BUTTON      ID_FILE_OPEN
-    BUTTON      ID_FILE_SAVE
-    SEPARATOR
-    BUTTON      ID_EDIT_CUT
-    BUTTON      ID_EDIT_COPY
-    BUTTON      ID_EDIT_PASTE
-    SEPARATOR
-    BUTTON      ID_FILE_PRINT
-    SEPARATOR
-    BUTTON      ID_VIEW_LARGEICON
-    BUTTON      ID_VIEW_SMALLICON
-    BUTTON      ID_VIEW_LIST
-    BUTTON      ID_VIEW_DETAILS
-    BUTTON      ID_APP_ABOUT
-    BUTTON      ID_PROFILE_DELETE
-END
-
 IDR_MAINFRAME_256 TOOLBAR 16, 15
 BEGIN
-    BUTTON      ID_FILE_ADDFILES
-    BUTTON      ID_FILE_ADDFOLDER
+    BUTTON      ID_CMD_ADD_FILES
+    BUTTON      ID_CMD_ADD_FOLDER
     SEPARATOR
-    BUTTON      ID_FILE_REMOVE_COMPLETED
-    BUTTON      ID_FILE_REMOVE_ALL
+    BUTTON      ID_CMD_REMOVE_COMPLETED
+    BUTTON      ID_CMD_REMOVE_ALL
     SEPARATOR
-    BUTTON      ID_FILE_STARTPROCESSING
-    BUTTON      ID_FILE_STOPPROCESSING
+    BUTTON      ID_CMD_PROCESS_ALL
+    BUTTON      ID_CMD_STOP_PROCESSING
     SEPARATOR
-    BUTTON      ID_PROFILE_SAVE
-    BUTTON      ID_PROFILE_DELETE
-    BUTTON      ID_PROFILE_PREVIEW
+    BUTTON      ID_CMD_PROFILE_SAVE
+    BUTTON      ID_CMD_PROFILE_DELETE
+    BUTTON      ID_CMD_PROFILE_PREVIEW
     BUTTON      ID_PROFILE_COMBO
 END
 
@@ -205,33 +184,34 @@ IDR_MAINFRAME MENU
 BEGIN
     POPUP "File"
     BEGIN
-        MENUITEM "Add Files...\tInsert",        ID_FILE_ADDFILES
-        MENUITEM "Add Folder...\tCtrl+Insert",  ID_FILE_ADDFOLDER
+        MENUITEM "Add Files...\tInsert",        ID_CMD_ADD_FILES
+        MENUITEM "Add Folder...\tCtrl+Insert",  ID_CMD_ADD_FOLDER
         MENUITEM SEPARATOR
-        MENUITEM "Remove Failed",               ID_FILE_REMOVEFAILED
-        MENUITEM "Remove Completed\tShift+Delete", ID_FILE_REMOVE_COMPLETED
-        MENUITEM "Remove All\tCtrl+Delete",     ID_FILE_REMOVE_ALL
+        MENUITEM "Remove Failed",               ID_CMD_REMOVE_FAILED
+        MENUITEM "Remove Completed\tShift+Delete", ID_CMD_REMOVE_COMPLETED
+        MENUITEM "Remove All\tCtrl+Delete",     ID_CMD_REMOVE_ALL
         MENUITEM SEPARATOR
-        MENUITEM "Start Processing",            ID_FILE_STARTPROCESSING
-        MENUITEM "Stop Processing",             ID_FILE_STOPPROCESSING
+        MENUITEM "Start Processing",            ID_CMD_PROCESS_ALL
+        MENUITEM "Stop Processing",             ID_CMD_STOP_PROCESSING
         MENUITEM SEPARATOR
-        MENUITEM "Options...\tCtrl+O",          ID_FILE_OPTIONS
+        MENUITEM "Options...\tCtrl+O",          ID_CMD_OPTIONS
         MENUITEM SEPARATOR
         MENUITEM "Exit",                        ID_APP_EXIT
     END
     POPUP "Profile"
     BEGIN
-        MENUITEM "Save...\tCtrl+S",             ID_PROFILE_SAVE
-        MENUITEM "Delete\tCtrl+D",              ID_PROFILE_DELETE
-        MENUITEM "Preview...\tCtrl+P",          ID_PROFILE_PREVIEW
+        MENUITEM "Save...\tCtrl+S",             ID_CMD_PROFILE_SAVE
+        MENUITEM "Delete\tCtrl+D",              ID_CMD_PROFILE_DELETE
+        MENUITEM "Preview...\tCtrl+P",          ID_CMD_PROFILE_PREVIEW
     END
     POPUP "Help"
     BEGIN
-        MENUITEM "About VideoPreview...",       ID_APP_ABOUT
+        MENUITEM "GitHub...",                   ID_CMD_GITHUB
+        MENUITEM "About...",                    ID_CMD_ABOUT
     END
     POPUP "[Debug]"
     BEGIN
-        MENUITEM "Test\tQ",                     ID_EDIT_TEST
+        MENUITEM "Test\tQ",                     ID_CMD_TEST
     END
 END
 
@@ -239,18 +219,26 @@ IDR_POPUP_MENU MENU
 BEGIN
     POPUP "Root"
     BEGIN
-        MENUITEM "Open Video...",               ID_POPUP_OPEN_VIDEO
-        MENUITEM "Open Preview...",             ID_POPUP_OPEN_PREVIEW
+        MENUITEM "Open Video...",               ID_CMD_OPEN_VIDEO
+        MENUITEM "Open Preview...",             ID_CMD_OPEN_PREVIEW
         MENUITEM SEPARATOR
-        MENUITEM "Process",                     ID_POPUP_PROCESS_ITEM
-        MENUITEM "Reset",                       ID_POPUP_RESET_ITEM
-        MENUITEM "Remove",                      ID_POPUP_REMOVE_ITEM
+        MENUITEM "Browse To Video...",          ID_CMD_BROWSE_TO_VIDEO
+        MENUITEM "Browse To Preview...",        ID_CMD_BROWSE_TO_PREVIEW
+        MENUITEM SEPARATOR
+        MENUITEM "Add Files...\tInsert",        ID_CMD_ADD_FILES
+        MENUITEM "Add Folder...\tCtrl+Insert",  ID_CMD_ADD_FOLDER
+        MENUITEM SEPARATOR
+        MENUITEM "Process Selected",            ID_CMD_PROCESS_SELECTED
+        MENUITEM "Process All",                 ID_CMD_PROCESS_ALL
+        MENUITEM SEPARATOR
+        MENUITEM "Reset Selected",              ID_CMD_RESET_SELECTED
+        MENUITEM "Reset All",                   ID_CMD_RESET_ALL
+        MENUITEM SEPARATOR
+        MENUITEM "Remove Selected",             ID_CMD_REMOVE_SELECTED
+        MENUITEM "Remove Completed",            ID_ROOT_REMOVECOMPLETED
+        MENUITEM "Remove Failed",               ID_ROOT_REMOVEFAILED
+        MENUITEM "Remove All\tCtrl+Delete",     ID_ROOT_REMOVEALL
     END
-END
-
-IDR_HELP_MENU MENU
-BEGIN
-    MENUITEM "&About VideoPreview...",      ID_APP_ABOUT
 END
 
 
@@ -261,15 +249,15 @@ END
 
 IDR_MAINFRAME ACCELERATORS
 BEGIN
-    "Q",            ID_EDIT_TEST,           VIRTKEY, CONTROL, NOINVERT
-    VK_INSERT,      ID_FILE_ADDFILES,       VIRTKEY, NOINVERT
-    VK_INSERT,      ID_FILE_ADDFOLDER,      VIRTKEY, CONTROL, NOINVERT
-    "O",            ID_FILE_OPTIONS,        VIRTKEY, CONTROL, NOINVERT
+    "Q",            ID_CMD_TEST,            VIRTKEY, CONTROL, NOINVERT
+    VK_INSERT,      ID_CMD_ADD_FILES,       VIRTKEY, NOINVERT
+    VK_INSERT,      ID_CMD_ADD_FOLDER,      VIRTKEY, CONTROL, NOINVERT
+    "O",            ID_CMD_OPTIONS,         VIRTKEY, CONTROL, NOINVERT
     VK_DELETE,      ID_FILE_REMOVECOMPLETED, VIRTKEY, SHIFT, NOINVERT
     VK_DELETE,      ID_FILE_REMOVEALL,      VIRTKEY, CONTROL, NOINVERT
-    "S",            ID_PROFILE_SAVE,        VIRTKEY, CONTROL, NOINVERT
-    "D",            ID_PROFILE_DELETE,      VIRTKEY, CONTROL, NOINVERT
-    "P",            ID_PROFILE_PREVIEW,     VIRTKEY, CONTROL, NOINVERT
+    "S",            ID_CMD_PROFILE_SAVE,    VIRTKEY, CONTROL, NOINVERT
+    "D",            ID_CMD_PROFILE_DELETE,  VIRTKEY, CONTROL, NOINVERT
+    "P",            ID_CMD_PROFILE_PREVIEW, VIRTKEY, CONTROL, NOINVERT
 END
 
 
@@ -422,7 +410,18 @@ END
 
 STRINGTABLE
 BEGIN
-    ID_APP_ABOUT            "Display program information, version number and copyright\nAbout"
+    ID_CMD_PROCESS_SELECTED "Process Selected Items\nProcess Selected"
+    ID_ROOT_REMOVEALL       "Remove All Source Files From List\nRemove All"
+END
+
+STRINGTABLE
+BEGIN
+    ID_CMD_GITHUB           "Browse program github.com page\nGitHub"
+    ID_CMD_ABOUT            "Display program information\nAbout"
+END
+
+STRINGTABLE
+BEGIN
     ID_APP_EXIT             "Quit the application; prompts to save documents\nExit"
 END
 
@@ -563,25 +562,24 @@ END
 
 STRINGTABLE
 BEGIN
-    ID_FILE_ADDFILES        "Add Video Files\nAdd Files"
-    ID_FILE_ADDFOLDER       "Add Folder\nAdd Folder"
-    ID_FILE_STARTPROCESSING "Start Processing\nStart"
-    ID_FILE_STOPPROCESSING  "Stop Processing\nStop"
+    ID_CMD_ADD_FILES        "Add Video Files\nAdd Files"
+    ID_CMD_ADD_FOLDER       "Add Folder\nAdd Folder"
+    ID_CMD_PROCESS_ALL      "Process All Items\nProcess All"
+    ID_CMD_STOP_PROCESSING  "Stop Processing\nStop"
 END
 
 STRINGTABLE
 BEGIN
-    ID_PROFILE_SAVE         "Save Selected Profile\nSave"
-    ID_PROFILE_PREVIEW      "Preview Selected Profile\nPreview Profile"
-    ID_PROFILE_DELETE       "Delete Selected Profile\nDelete"
+    ID_CMD_PROFILE_SAVE     "Save Selected Profile\nSave"
+    ID_CMD_PROFILE_PREVIEW  "Preview Selected Profile\nPreview Profile"
+    ID_CMD_PROFILE_DELETE   "Delete Selected Profile\nDelete"
 END
 
 STRINGTABLE
 BEGIN
-    ID_FILE_REMOVE_ALL      "Remove All Source Files From List\nRemove All"
-    ID_FILE_REMOVE_COMPLETED 
-                            "Remove Completed Files From List\nRemove Completed"
-    ID_FILE_REMOVEFAILED    "ID_FILE_REMOVEFAILED"
+    ID_CMD_REMOVE_ALL       "Remove All Source Files From List\nRemove All"
+    ID_CMD_REMOVE_COMPLETED "Remove Completed Files From List\nRemove Completed"
+    ID_CMD_REMOVE_FAILED    "ID_CMD_REMOVE_FAILED"
 END
 
 #endif    // English (United States) resources

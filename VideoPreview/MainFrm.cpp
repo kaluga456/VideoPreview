@@ -1,7 +1,9 @@
 #include "stdafx.h"
 #pragma hdrstop
+#include "app_error.h"
 #include "app_thread.h"
 #include "Resource.h"
+#include "About.h"
 #include "Options.h"
 #include "SourceFileTypes.h"
 #include "OutputProfile.h"
@@ -70,67 +72,58 @@ void CItemsListState::Update()
 static CString GetLParamString(LPARAM value)
 {
     if(NULL == value) return _T("");
-    CString result = reinterpret_cast<LPCTSTR>(value);
+    CString result(reinterpret_cast<LPCTSTR>(value));
     ::free(reinterpret_cast<void*>(value));
     return result;
 }
 
-// CMainFrame
-IMPLEMENT_DYNCREATE(CMainFrame, CFrameWndEx)
-
-BEGIN_MESSAGE_MAP(CMainFrame, CFrameWndEx)
-	ON_WM_CREATE()
-    ON_WM_DESTROY()
-    ON_WM_CONTEXTMENU() //TEST:
-    ON_REGISTERED_MESSAGE(AFX_WM_RESETTOOLBAR, OnResetToolbar)
-    ON_MESSAGE(WM_PROCESSING_THREAD, OnProcessingThread)
-
-    //commands    
-    ON_COMMAND(ID_FILE_ADDFILES, &CMainFrame::OnAddFiles)
-    ON_COMMAND(ID_FILE_ADDFOLDER, &CMainFrame::OnAddFolder)
-    ON_COMMAND(ID_FILE_REMOVEFAILED, &CMainFrame::OnRemoveFailed)
-    ON_COMMAND(ID_FILE_REMOVE_COMPLETED, &CMainFrame::OnRemoveCompleted)
-    ON_COMMAND(ID_FILE_REMOVE_ALL, &CMainFrame::OnRemoveAll)
-    ON_COMMAND(ID_FILE_STARTPROCESSING, &CMainFrame::OnStartProcessing)
-    ON_COMMAND(ID_FILE_STOPPROCESSING, &CMainFrame::OnStopProcessing)       
-    ON_COMMAND(ID_FILE_OPTIONS, &CMainFrame::OnOptions)
-    ON_COMMAND(ID_PROFILE_SAVE, &CMainFrame::OnProfileSave)
-    ON_COMMAND(ID_PROFILE_DELETE, &CMainFrame::OnProfileDelete)
-    ON_COMMAND(ID_PROFILE_PREVIEW, &CMainFrame::OnProfilePreview)
-    ON_COMMAND(ID_APP_ABOUT, &CMainFrame::OnAppAbout)
-    ON_COMMAND(ID_EDIT_TEST, &CMainFrame::OnEditTest) //TEST
-
-    //file list context menu
-    ON_COMMAND(ID_POPUP_OPEN_VIDEO, &CMainFrame::OnContextOpenVideo)
-    ON_COMMAND(ID_POPUP_OPEN_PREVIEW, &CMainFrame::OnContextOpenPreview)
-    ON_COMMAND(ID_POPUP_PROCESS_ITEM, &CMainFrame::OnContextProcessItem)
-    ON_COMMAND(ID_POPUP_RESET_ITEM, &CMainFrame::OnContextResetItem)
-    ON_COMMAND(ID_POPUP_REMOVE_ITEM, &CMainFrame::OnContextRemoveItem)
-
-    //other
-    ON_CBN_SELCHANGE(ID_PROFILE_COMBO, OnProfileCombo)
-
-    //update UI
-    ON_UPDATE_COMMAND_UI(ID_FILE_REMOVEFAILED, OnUpdateUI)
-    ON_UPDATE_COMMAND_UI(ID_FILE_REMOVE_COMPLETED, OnUpdateUI)
-    ON_UPDATE_COMMAND_UI(ID_FILE_REMOVE_ALL, OnUpdateUI)
-    ON_UPDATE_COMMAND_UI(ID_FILE_STARTPROCESSING, OnUpdateUI)
-    ON_UPDATE_COMMAND_UI(ID_FILE_STOPPROCESSING, OnUpdateUI)
-    ON_UPDATE_COMMAND_UI(ID_PROFILE_SAVE, OnUpdateUI)
-    ON_UPDATE_COMMAND_UI(ID_PROFILE_DELETE, OnUpdateUI)
-    ON_UPDATE_COMMAND_UI(ID_PROFILE_COMBO, OnUpdateUI)
-
-    ON_UPDATE_COMMAND_UI(ID_POPUP_OPEN_VIDEO, OnUpdateContextMenu)
-    ON_UPDATE_COMMAND_UI(ID_POPUP_OPEN_PREVIEW, OnUpdateContextMenu)
-    ON_UPDATE_COMMAND_UI(ID_POPUP_PROCESS_ITEM, OnUpdateContextMenu)
-    ON_UPDATE_COMMAND_UI(ID_POPUP_RESET_ITEM, OnUpdateContextMenu)
-    ON_UPDATE_COMMAND_UI(ID_POPUP_REMOVE_ITEM, OnUpdateContextMenu)
-END_MESSAGE_MAP()
-
-void CMainFrame::OnAppAbout()
+static void ShellSelectFile(LPCTSTR file_name)
 {
-	CAboutDlg aboutDlg;
-	aboutDlg.DoModal();
+    ASSERT(file_name);
+    if(NULL == file_name) return;
+
+    SHELLEXECUTEINFO shei;
+    ::ZeroMemory(&shei, sizeof(shei));
+    shei.cbSize = sizeof(shei);
+    shei.fMask = SEE_MASK_UNICODE | SEE_MASK_FLAG_NO_UI;
+    shei.lpVerb = _T("open");
+    shei.lpFile = _T("explorer");
+    CString params;
+    params.Format(_T("/select,\"%s\""), file_name);
+    shei.lpParameters = params;
+    shei.nShow = SW_SHOWNORMAL;
+    const BOOL result = ::ShellExecuteEx(&shei);
+    if(TRUE == result) return;
+
+    const DWORD error_code = ::GetLastError();
+    TCHAR buffer[2048];
+    app::winapi_error_string(error_code, buffer, 2048);
+    CString message;
+    message.Format(_T("Error opening file\r\n%s\r\n\r\n%s"), file_name, buffer);
+    ::AfxMessageBox(message, MB_OK | MB_ICONSTOP);
+}
+static void ShellOpenFile(LPCTSTR file_name, HWND hwnd = NULL)
+{
+    ASSERT(file_name);
+    if(NULL == file_name) return;
+
+    SHELLEXECUTEINFO shei;
+    ::ZeroMemory(&shei, sizeof(shei));
+    shei.cbSize = sizeof(shei);
+    shei.fMask = SEE_MASK_UNICODE | SEE_MASK_FLAG_NO_UI;
+    shei.hwnd = hwnd;
+    shei.lpVerb = _T("open");
+    shei.lpFile = file_name;
+    shei.nShow = SW_SHOWNORMAL;
+    const BOOL result = ::ShellExecuteEx(&shei);
+    if(TRUE == result) return;
+
+    const DWORD error_code = ::GetLastError();
+    TCHAR buffer[2048];
+    app::winapi_error_string(error_code, buffer, 2048);
+    CString message;
+    message.Format(_T("Error opening file\r\n%s\r\n\r\n%s"), file_name, buffer);
+    ::AfxMessageBox(message, MB_OK | MB_ICONSTOP);
 }
 
 //TODO: need status bar?
@@ -138,6 +131,73 @@ static UINT SBIndicators[] =
 {
 	ID_SEPARATOR           // status line indicator
 };
+
+//CMainFrame
+IMPLEMENT_DYNCREATE(CMainFrame, CFrameWndEx)
+
+BEGIN_MESSAGE_MAP(CMainFrame, CFrameWndEx)
+	ON_WM_CREATE()
+    ON_WM_DESTROY()
+    ON_REGISTERED_MESSAGE(AFX_WM_RESETTOOLBAR, OnResetToolbar)
+    ON_MESSAGE(WM_PROCESSING_THREAD, OnProcessingThread)
+
+    //////////////////////////////////////////////////////////////////////////
+    //commands    
+    ON_COMMAND(ID_CMD_OPTIONS, &CMainFrame::OnOptions)
+    ON_COMMAND(ID_CMD_GITHUB, &CMainFrame::OnCmdGitHub)
+    ON_COMMAND(ID_CMD_ABOUT, &CMainFrame::OnCmdAbout)
+    ON_COMMAND(ID_CMD_TEST, &CMainFrame::OnEditTest) //TEST
+
+    ON_COMMAND(ID_CMD_ADD_FILES, &CMainFrame::OnAddFiles)
+    ON_COMMAND(ID_CMD_ADD_FOLDER, &CMainFrame::OnAddFolder)
+    
+    //output profiles
+    ON_COMMAND(ID_CMD_PROFILE_SAVE, &CMainFrame::OnProfileSave)
+    ON_COMMAND(ID_CMD_PROFILE_DELETE, &CMainFrame::OnProfileDelete)
+    ON_COMMAND(ID_CMD_PROFILE_PREVIEW, &CMainFrame::OnProfilePreview)
+    ON_CBN_SELCHANGE(ID_PROFILE_COMBO, OnProfileCombo)
+
+    //processing
+    ON_COMMAND(ID_CMD_PROCESS_ALL, &CMainFrame::OnCmdProcessAll)
+    ON_COMMAND(ID_CMD_PROCESS_SELECTED, &CMainFrame::OnCmdProcessSelected)
+    ON_COMMAND(ID_CMD_STOP_PROCESSING, &CMainFrame::OnCmdStopProcessing)   
+
+    ON_COMMAND(ID_CMD_OPEN_VIDEO, &CMainFrame::OnCmdOpenVideo)
+    ON_COMMAND(ID_CMD_OPEN_PREVIEW, &CMainFrame::OnCmdOpenPreview)
+    ON_COMMAND(ID_CMD_BROWSE_TO_VIDEO, &CMainFrame::OnCmdBrowseToVideo)
+    ON_COMMAND(ID_CMD_BROWSE_TO_PREVIEW, &CMainFrame::OnCmdBrowseToPreview)
+    
+    ON_COMMAND(ID_CMD_RESET_SELECTED, &CMainFrame::OnCmdResetSelected)
+    ON_COMMAND(ID_CMD_RESET_ALL, &CMainFrame::OnCmdResetAll)
+    
+    ON_COMMAND(ID_CMD_REMOVE_FAILED, &CMainFrame::OnCmdRemoveFailed)
+    ON_COMMAND(ID_CMD_REMOVE_COMPLETED, &CMainFrame::OnCmdRemoveCompleted)
+    ON_COMMAND(ID_CMD_REMOVE_SELECTED, &CMainFrame::OnCmdRemoveSelected)
+    ON_COMMAND(ID_CMD_REMOVE_ALL, &CMainFrame::OnCmdRemoveAll)
+
+    //////////////////////////////////////////////////////////////////////////
+    //update UI
+    ON_UPDATE_COMMAND_UI(ID_PROFILE_COMBO, OnUpdateUI)
+    ON_UPDATE_COMMAND_UI(ID_CMD_PROFILE_SAVE, OnUpdateUI)
+    ON_UPDATE_COMMAND_UI(ID_CMD_PROFILE_DELETE, OnUpdateUI)
+
+    ON_UPDATE_COMMAND_UI(ID_CMD_OPEN_VIDEO, OnUpdateUI)
+    ON_UPDATE_COMMAND_UI(ID_CMD_OPEN_PREVIEW, OnUpdateUI)
+    ON_UPDATE_COMMAND_UI(ID_CMD_BROWSE_TO_VIDEO, OnUpdateUI)
+    ON_UPDATE_COMMAND_UI(ID_CMD_BROWSE_TO_PREVIEW, OnUpdateUI)
+
+    ON_UPDATE_COMMAND_UI(ID_CMD_PROCESS_ALL, OnUpdateUI)
+    ON_UPDATE_COMMAND_UI(ID_CMD_PROCESS_SELECTED, OnUpdateUI)
+    ON_UPDATE_COMMAND_UI(ID_CMD_STOP_PROCESSING, OnUpdateUI)
+
+    ON_UPDATE_COMMAND_UI(ID_CMD_RESET_SELECTED, OnUpdateUI)
+    ON_UPDATE_COMMAND_UI(ID_CMD_RESET_ALL, OnUpdateUI)
+
+    ON_UPDATE_COMMAND_UI(ID_CMD_REMOVE_FAILED, OnUpdateUI)
+    ON_UPDATE_COMMAND_UI(ID_CMD_REMOVE_COMPLETED, OnUpdateUI)
+    ON_UPDATE_COMMAND_UI(ID_CMD_REMOVE_SELECTED, OnUpdateUI)
+    ON_UPDATE_COMMAND_UI(ID_CMD_REMOVE_ALL, OnUpdateUI)
+END_MESSAGE_MAP()
 
 // CMainFrame construction/destruction
 CMainFrame::CMainFrame() : IsProcessing(false)
@@ -292,7 +352,7 @@ BOOL CMainFrame::OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult)
         //}
         if(NM_DBLCLK == nmhdr->code)
         {
-            OnContextOpenVideo();
+            OnCmdOpenVideo();
         }
         else if(LVN_COLUMNCLICK == nmhdr->code) 
         {
@@ -361,6 +421,15 @@ void CMainFrame::OnViewPropertiesWindow()
 	// pane can only be closed via the [x] button on the pane frame.
 	//ProfilePane.ShowPane(TRUE, FALSE, TRUE);
 	//ProfilePane.SetFocus();
+}
+void CMainFrame::OnCmdGitHub()
+{
+    ShellOpenFile(APP_URL, m_hWnd);
+}
+void CMainFrame::OnCmdAbout()
+{
+	CAboutDlg aboutDlg;
+	aboutDlg.DoModal();
 }
 void CMainFrame::OnAddFiles()
 {
@@ -582,16 +651,20 @@ bool CMainFrame::ProcessNextItem()
     SetProcessingState(false);
     return false;
 }
-void CMainFrame::OnStartProcessing()
+void CMainFrame::OnCmdProcessSelected()
+{
+    //TODO:
+}
+void CMainFrame::OnCmdProcessAll()
 {
     ProcessNextItem();
 }
-void CMainFrame::OnStopProcessing()
+void CMainFrame::OnCmdStopProcessing()
 {
     //TODO: confirm
     SetProcessingState(false);
 }
-void CMainFrame::OnRemoveFailed()
+void CMainFrame::OnCmdRemoveFailed()
 {
     const int result = AfxMessageBox(_T("Remove failed files from list?"), MB_OKCANCEL | MB_ICONEXCLAMATION | MB_DEFBUTTON1);
     if(result != IDOK) return;
@@ -609,7 +682,7 @@ void CMainFrame::OnRemoveFailed()
     ItemsListState.SetFailed(false);
     UpdateDialogControls(this, FALSE);
 }
-void CMainFrame::OnRemoveCompleted()
+void CMainFrame::OnCmdRemoveCompleted()
 {
     const int result = AfxMessageBox(_T("Remove completed files from list?"), MB_OKCANCEL | MB_ICONEXCLAMATION | MB_DEFBUTTON1);
     if(result != IDOK) return;
@@ -644,7 +717,7 @@ void CMainFrame::RemoveAllItems()
     ItemsListState.Update();
     UpdateDialogControls(this, FALSE);
 }
-void CMainFrame::OnRemoveAll()
+void CMainFrame::OnCmdRemoveAll()
 {
     const int result = AfxMessageBox(_T("Remove all files from list?"), MB_OKCANCEL | MB_ICONEXCLAMATION | MB_DEFBUTTON1);
     if(result != IDOK) return;
@@ -711,69 +784,64 @@ void CMainFrame::OnUpdateUI(CCmdUI* pCmdUI)
 {
     switch(pCmdUI->m_nID)
     {
-    case ID_FILE_REMOVE_COMPLETED:
-    {
-        pCmdUI->Enable(ItemsListState.HasDone());
+    case ID_CMD_OPTIONS:
+        pCmdUI->Enable(false == IsProcessing);
         break;
-    }
-    case ID_FILE_REMOVEFAILED:
-    {
-        pCmdUI->Enable(ItemsListState.HasFailed());
+    case ID_PROFILE_COMBO:
+        pCmdUI->Enable(false == IsProcessing);
         break;
-    }
-    case ID_FILE_REMOVE_ALL:
-    {
-        CListCtrl& list_ctrl = GetFileListView()->GetListCtrl();
-        const int items_count = list_ctrl.GetItemCount();
-        pCmdUI->Enable(items_count);
-        break;
-    }
-    case ID_PROFILE_DELETE:
+    case ID_CMD_PROFILE_DELETE:
     {
         const COutputProfile* current_profile = GetCurrentProfile();
         ASSERT(current_profile);
         pCmdUI->Enable(current_profile != &DefaultProfile);
         break;
     }
-    case ID_FILE_STARTPROCESSING:
+
+    //src and out files
+    case ID_CMD_OPEN_VIDEO:
+    case ID_CMD_BROWSE_TO_VIDEO:
     {
-        pCmdUI->Enable(false == IsProcessing);
+        pCmdUI->Enable(GetFileListView()->GetFocusedItem() != NULL);
         break;
     }
-    case ID_FILE_STOPPROCESSING:
-    {
-        pCmdUI->Enable(IsProcessing);
-        break;
-    }
-    case ID_PROFILE_COMBO:
-        pCmdUI->Enable(false == IsProcessing);
-        break;
-    }
-}
-void CMainFrame::OnUpdateContextMenu(CCmdUI* pCmdUI)
-{
-    switch(pCmdUI->m_nID)
-    {
-    case ID_POPUP_OPEN_VIDEO:
-    {
-        CProcessingItem* pi = GetFileListView()->GetFocusedItem();
-        pCmdUI->Enable(pi != NULL);
-        break;
-    }
-    case ID_POPUP_OPEN_PREVIEW:
+    case ID_CMD_OPEN_PREVIEW:
+    case ID_CMD_BROWSE_TO_PREVIEW:
     {
         CProcessingItem* pi = GetFileListView()->GetFocusedItem();
         pCmdUI->Enable(pi != NULL && PIS_DONE == pi->State);
         break;
     }
-    case ID_POPUP_PROCESS_ITEM:
-    case ID_POPUP_RESET_ITEM:
-    case ID_POPUP_REMOVE_ITEM:
-    {
-        const int sel_items_count = GetFileListView()->GetListCtrl().GetSelectedCount();
-        pCmdUI->Enable(sel_items_count);
+    
+    //processing
+    case ID_CMD_PROCESS_ALL:     
+        pCmdUI->Enable(ItemsListState.HasReady() && false == IsProcessing);
         break;
-    }
+    case ID_CMD_PROCESS_SELECTED:     
+        pCmdUI->Enable(ItemsListState.HasReady() && false == IsProcessing && GetFileListView()->GetListCtrl().GetSelectedCount());
+        break;
+    case ID_CMD_STOP_PROCESSING:
+        pCmdUI->Enable(IsProcessing);
+        break;
+
+    //reset items
+    case ID_CMD_RESET_SELECTED:
+        pCmdUI->Enable((ItemsListState.HasDone() || ItemsListState.HasFailed()) && GetFileListView()->GetListCtrl().GetSelectedCount());
+        break;
+
+    //remove
+    case ID_CMD_REMOVE_COMPLETED:
+        pCmdUI->Enable(ItemsListState.HasDone());
+        break;
+    case ID_CMD_REMOVE_FAILED:
+        pCmdUI->Enable(ItemsListState.HasFailed());
+        break;
+    case ID_CMD_REMOVE_SELECTED:
+        pCmdUI->Enable(GetFileListView()->GetListCtrl().GetSelectedCount());
+        break;
+    case ID_CMD_REMOVE_ALL:
+        pCmdUI->Enable(GetFileListView()->GetListCtrl().GetItemCount());
+        break;
     }
 }
 const COutputProfile* CMainFrame::GetCurrentProfile()
@@ -805,32 +873,51 @@ void CMainFrame::RemoveItem(PProcessingItem item)
     //TODO: confirm
     GetFileListView()->RemoveItem(item.get());
 }
-void CMainFrame::OnContextOpenVideo()
+void CMainFrame::OnCmdOpenVideo()
 {
     CProcessingItem* pi = GetFileListView()->GetFocusedItem();
     if(NULL == pi) return;
-    ::ShellExecute(NULL, _T("open"), pi->SourceFileName, NULL, NULL, SW_SHOWNORMAL);
+    ShellOpenFile(pi->SourceFileName, m_hWnd);
 }
-void CMainFrame::OnContextOpenPreview()
+void CMainFrame::OnCmdOpenPreview()
+{
+    CProcessingItem* pi = GetFileListView()->GetFocusedItem();
+    if(NULL == pi) return;
+    ASSERT(PIS_DONE == pi->State);
+    ShellOpenFile(pi->ResultString, m_hWnd);
+}
+void CMainFrame::OnCmdBrowseToVideo()
+{
+    CProcessingItem* pi = GetFileListView()->GetFocusedItem();
+    if(NULL == pi) return;
+    ShellSelectFile(pi->SourceFileName);
+}
+void CMainFrame::OnCmdBrowseToPreview()
+{
+    CProcessingItem* pi = GetFileListView()->GetFocusedItem();
+    if(NULL == pi) return;
+    ASSERT(PIS_DONE == pi->State);
+    ShellSelectFile(pi->ResultString);
+}
+void CMainFrame::OnCmdResetSelected()
 {
     //TODO:
-    CProcessingItem* pi = GetFileListView()->GetFocusedItem();
-    ASSERT(PIS_DONE == pi->State);
-    if(NULL == pi) return;
-    ::ShellExecute(NULL, _T("open"), pi->ResultString, NULL, NULL, SW_SHOWNORMAL);
-}
-void CMainFrame::OnContextProcessItem()
-{
-}
-void CMainFrame::OnContextResetItem()
-{
     int index = -1;
     CProcessingItem* pi = GetFileListView()->GetFocusedItem(&index);
     if(NULL == pi) return;
     pi->Reset(false);
     GetFileListView()->UpdateItem(pi, index);
 }
-void CMainFrame::OnContextRemoveItem()
+void CMainFrame::OnCmdResetAll()
+{
+    //TODO:
+    //int index = -1;
+    //CProcessingItem* pi = GetFileListView()->GetFocusedItem(&index);
+    //if(NULL == pi) return;
+    //pi->Reset(false);
+    //GetFileListView()->UpdateItem(pi, index);
+}
+void CMainFrame::OnCmdRemoveSelected()
 {
     CFileListView* flv = GetFileListView();
     CListCtrl& lc = flv->GetListCtrl();
@@ -859,3 +946,4 @@ void CMainFrame::OnContextRemoveItem()
 
     ItemsListState.Update();
 }
+

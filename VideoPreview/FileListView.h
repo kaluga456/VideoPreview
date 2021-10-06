@@ -3,9 +3,9 @@
 //file list view column ids
 enum
 {
-    FLV_COLUMN_SOURCE_FILE,
+    FLV_COLUMN_VIDEO,
     FLV_COLUMN_STATE,       //image or progress bar
-    FLV_COLUMN_DESCRIPTION, //error description if any
+    FLV_COLUMN_RESULT, //error description if any
 
     FLV_COLUMNS_COUNT
 };

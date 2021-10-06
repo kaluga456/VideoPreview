@@ -95,26 +95,26 @@
 #define ID_VIEW_PROPERTIESWND           330
 #define IDC_STATIC_VERSION              1000
 #define IDC_STATIC_APP_URL              1001
-#define ID_EDIT_TEST                    32771
-#define ID_FILE_ADDFILES                32774
-#define ID_FILE_ADDFOLDER               32775
-#define ID_FILE_STARTPROCESSING         32776
-#define ID_FILE_STOPPROCESSING          32777
+#define ID_CMD_TEST                     32771
+#define ID_CMD_ADD_FILES                32774
+#define ID_CMD_ADD_FOLDER               32775
+#define ID_CMD_PROCESS_ALL              32776
+#define ID_CMD_STOP_PROCESSING          32777
 #define ID_FILE_REMOVECOMPLETED         32778
 #define ID_FILE_REMOPEALL               32779
-#define ID_FILE_OPTIONS                 32780
+#define ID_CMD_OPTIONS                  32780
 #define ID_FILE_REMOVEALL               32785
-#define ID_PROFILE_SAVE                 32788
-#define ID_PROFILE_PREVIEW              32789
+#define ID_CMD_PROFILE_SAVE             32788
+#define ID_CMD_PROFILE_PREVIEW          32789
 #define ID_PROFILE_SAVECURRENT          32790
 #define ID_PROFILE_PREVIEW32791         32791
-#define ID_PROFILE_DELETE               32792
+#define ID_CMD_PROFILE_DELETE           32792
 #define ID_PROFILE_COMBO                32793
 #define ID_PROFILE_DELETE32794          32794
 #define ID_REMOVE_COMPLETED             32801
-#define ID_FILE_REMOVE_ALL              32802
-#define ID_FILE_REMOVE_COMPLETED        32803
-#define ID_FILE_REMOVEFAILED            32804
+#define ID_CMD_REMOVE_ALL               32802
+#define ID_CMD_REMOVE_COMPLETED         32803
+#define ID_CMD_REMOVE_FAILED            32804
 #define ID_EDIT_OPENVIDEO               32805
 #define ID_EDIT_RESET                   32806
 #define ID_FILE_OPENVIDEO               32808
@@ -124,18 +124,36 @@
 #define ID_FILE_PROCESS_ITEM            32812
 #define ID_FILE_RESET_ITEM              32813
 #define ID_FILE_REMOVE_ITEM             32814
-#define ID_POPUP_REMOVE_ITEM            32815
-#define ID_POPUP_RESET_ITEM             32816
-#define ID_POPUP_PROCESS_ITEM           32817
-#define ID_POPUP_OPEN_PREVIEW           32818
-#define ID_POPUP_OPEN_VIDEO             32819
+#define ID_CMD_REMOVE_SELECTED          32815
+#define ID_CMD_RESET_SELECTED           32816
+#define ID_CMD_PROCESS_SELECTED         32817
+#define ID_CMD_OPEN_PREVIEW             32818
+#define ID_CMD_OPEN_VIDEO               32819
+#define ID_ROOT_BROWSETOVIDEO           32820
+#define ID_CMD_BROWSETOVIDEO            32821
+#define ID_ROOT_BROWSETOPREVIEW         32822
+#define ID_CMD_BROWSETOPREVIEW          32823
+#define ID_ROOT_REMOVECOMPLETED         32824
+#define ID_ROOT_REMOVEFAILED            32825
+#define ID_ROOT_REMOVEALL               32826
+#define ID_ROOT_RESETALL                32827
+#define ID_ROOT_PROCESSALL              32828
+#define ID_CMD_BROWSE_TO_VIDEO          32829
+#define ID_CMD_BROWSE_TO_PREVIEW        32830
+#define ID_ROOT_RESET_ALL               32831
+#define ID_CMD_RESET_ALL                32832
+#define ID_HELP_GITHUB                  32833
+#define ID_CMD_GITHUB                   32834
+#define ID_CMD_ABOUT                    32835
+#define ID_FILE_ADDFILES                32836
+#define ID_ROOT_ADDFOLDER               32837
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        322
-#define _APS_NEXT_COMMAND_VALUE         32820
+#define _APS_NEXT_COMMAND_VALUE         32838
 #define _APS_NEXT_CONTROL_VALUE         1002
 #define _APS_NEXT_SYMED_VALUE           331
 #endif

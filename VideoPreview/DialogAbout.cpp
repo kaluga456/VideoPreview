@@ -17,7 +17,7 @@ BOOL CAboutDlg::OnInitDialog()
 
     CStatic* url_ctrl = static_cast<CStatic*>(GetDlgItem(IDC_STATIC_APP_URL));
 
-     CFont* font = url_ctrl->GetFont();    
+    CFont* font = url_ctrl->GetFont();    
     LOGFONT lf;
     font->GetLogFont(&lf);
     lf.lfUnderline = TRUE;

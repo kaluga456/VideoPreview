@@ -37,11 +37,11 @@ protected:
 	afx_msg void OnViewPropertiesWindow();
     afx_msg void OnAddFiles();
     afx_msg void OnAddFolder();
-    afx_msg void OnStartProcessing();
-    afx_msg void OnStopProcessing();
-    afx_msg void OnRemoveFailed();
-    afx_msg void OnRemoveCompleted();  
-    afx_msg void OnRemoveAll();
+    afx_msg void OnCmdProcessAll();
+    afx_msg void OnCmdStopProcessing();
+    afx_msg void OnCmdRemoveFailed();
+    afx_msg void OnCmdRemoveCompleted();  
+    afx_msg void OnCmdRemoveAll();
 	afx_msg void OnOptions();
     afx_msg void OnProfileSave();
     afx_msg void OnProfileDelete();
@@ -49,14 +49,16 @@ protected:
     afx_msg void OnProfileCombo();
     afx_msg void OnEditTest(); //TEST:
     afx_msg void OnResetToolbar();
-    afx_msg void OnAppAbout();
-    afx_msg void OnContextOpenVideo();
-    afx_msg void OnContextOpenPreview();
-    afx_msg void OnContextProcessItem();
-    afx_msg void OnContextResetItem();
-    afx_msg void OnContextRemoveItem();
+    afx_msg void OnCmdAbout();
+    afx_msg void OnCmdOpenVideo();
+    afx_msg void OnCmdOpenPreview();
+    afx_msg void OnCmdBrowseToVideo();
+    afx_msg void OnCmdBrowseToPreview();
+    afx_msg void OnCmdProcessSelected();
+    afx_msg void OnCmdResetSelected();
+    afx_msg void OnCmdResetAll();
+    afx_msg void OnCmdRemoveSelected();
     afx_msg void OnUpdateUI(CCmdUI* pCmdUI);
-    afx_msg void OnUpdateContextMenu(CCmdUI* pCmdUI);
     afx_msg LRESULT OnResetToolbar(WPARAM wp,LPARAM lp);
     afx_msg LRESULT OnProcessingThread(WPARAM wp,LPARAM lp);
 	DECLARE_MESSAGE_MAP()
@@ -74,6 +76,7 @@ public:
 	virtual void AssertValid() const;
 	virtual void Dump(CDumpContext& dc) const;
 #endif
+    afx_msg void OnCmdGitHub();
 };
 
 

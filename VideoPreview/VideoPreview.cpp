@@ -24,10 +24,6 @@ LPCTSTR REG_PROFILES_SECTION = _T("Profiles");
 
 // CMainApp
 BEGIN_MESSAGE_MAP(CMainApp, CWinAppEx)
-	ON_COMMAND(ID_APP_ABOUT, &CMainApp::OnAppAbout)
-	// Standard file based document commands
-	ON_COMMAND(ID_FILE_NEW, &CWinAppEx::OnFileNew)
-	ON_COMMAND(ID_FILE_OPEN, &CWinAppEx::OnFileOpen)
 END_MESSAGE_MAP()
 
 // CMainApp construction
@@ -194,11 +190,6 @@ void CMainApp::DeleteProfile(LPCTSTR profile_name)
         return;
 
     LONG result = app_reg.DeleteValue(profile_name);
-}
-
-// App command to run the dialog
-void CMainApp::OnAppAbout()
-{
 }
 
 // CMainApp customization load/save methods

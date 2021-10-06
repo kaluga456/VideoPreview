@@ -94,9 +94,9 @@ void CFileListView::OnInitialUpdate()
 
     //init columns
     int i = 0;
-    i = listCtrl.InsertColumn(FLV_COLUMN_SOURCE_FILE, _T("Source File"), LVCFMT_LEFT, 100);
+    i = listCtrl.InsertColumn(FLV_COLUMN_VIDEO, _T("Video"), LVCFMT_LEFT, 100);
     i = listCtrl.InsertColumn(FLV_COLUMN_STATE, _T("State"), LVCFMT_LEFT, 100);
-    i = listCtrl.InsertColumn(FLV_COLUMN_DESCRIPTION, _T("Description"), LVCFMT_LEFT, 100);
+    i = listCtrl.InsertColumn(FLV_COLUMN_RESULT, _T("Result"), LVCFMT_LEFT, 100);
 
     //TODO: last column autowidth
     CRect rect;
@@ -104,12 +104,9 @@ void CFileListView::OnInitialUpdate()
     const int client_width = rect.Width();
 
     //column widths
-    int column_width1 = Options.ColumnWidth1;
-    int column_width2 = Options.ColumnWidth2;
-    int column_width3 = Options.ColumnWidth3;
-    if(column_width1 <= 0) column_width1 = 10;
-    if(column_width2 <= 0) column_width2 = 10;
-    if(column_width3 <= 0) column_width3 = 10;
+    const int column_width1 = Options.ColumnWidth1 <= 0 ? 10 : Options.ColumnWidth1;
+    const int column_width2 = Options.ColumnWidth2 <= 0 ? 10 : Options.ColumnWidth2;
+    const int column_width3 = client_width - column_width1 - column_width2;
     listCtrl.SetColumnWidth(0, column_width1);
     listCtrl.SetColumnWidth(1, column_width2);
     listCtrl.SetColumnWidth(2, column_width3);
@@ -159,14 +156,14 @@ CProcessingItem* CFileListView::FindItem(const CPoint& point)
 void CFileListView::Sort()
 {
     CListCtrl& list_ctrl = GetListCtrl();
-    if(FLV_COLUMN_SOURCE_FILE == Options.SortedColumn)
+    if(FLV_COLUMN_VIDEO == Options.SortedColumn)
         list_ctrl.SortItems(FileListViewSortBySource, Options.SortOrder);
     else if(FLV_COLUMN_STATE == Options.SortedColumn)
         list_ctrl.SortItems(FileListViewSortByState, Options.SortOrder);
 }
 void CFileListView::OnColumnClick(int column_index)
 {
-    if(column_index != FLV_COLUMN_SOURCE_FILE && column_index != FLV_COLUMN_STATE)
+    if(column_index != FLV_COLUMN_VIDEO && column_index != FLV_COLUMN_STATE)
         return;
     if(column_index == Options.SortedColumn)
         Options.SortOrder = !Options.SortOrder;
@@ -193,7 +190,7 @@ void CFileListView::UpdateItem(const CProcessingItem* item, int item_index)
     ASSERT(item_index >= 0);
     CListCtrl& list_ctrl = GetListCtrl();
     list_ctrl.SetItemText(item_index, FLV_COLUMN_STATE, GetItemStateText(item->State)); 
-    list_ctrl.SetItemText(item_index, FLV_COLUMN_DESCRIPTION, item->ResultString);
+    list_ctrl.SetItemText(item_index, FLV_COLUMN_RESULT, item->ResultString);
 }
 void CFileListView::AddItem(const CProcessingItem* item)
 {
