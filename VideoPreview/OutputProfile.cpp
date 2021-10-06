@@ -118,9 +118,37 @@ void COutputProfile::Normalize()
 {
     //TODO:
 }
-void COutputProfile::operator=(const COutputProfile& objectSrc)
+
+//TODO:
+void COutputProfile::operator=(const COutputProfile& src)
 {
     //TODO: copy for processing thread or block writing?
+    BackgroundColor = src.BackgroundColor; //COLORREF
+    WriteHeader = src.WriteHeader; //bool
+    HeaderText = src.HeaderText; //format string
+    HeaderFont = src.HeaderFont;
+
+    //frames count
+    FrameColumns = src.FrameColumns;
+    FrameRows = src.FrameRows;
+
+    //TODO:
+    UseTimeInterval = src.UseTimeInterval; //bool: true => frames count defined by video duration and TimeInterval
+    FrameTimeInterval = src.FrameTimeInterval; //seconds
+
+    //output image width
+    OutputSizeMethod = src.OutputSizeMethod; //enum
+    OutputImageSize = src.OutputImageSize; //pixels
+    BorderPadding = src.BorderPadding; //pixels
+    FramePadding = src.FramePadding; //pixels
+
+    //timestamp
+    TimestampType = src.TimestampType; //enum
+    TimestampFont = src.TimestampFont;
+   
+    //ouput file
+    OutputFileName = src.OutputFileName; //format string
+    OutputFileFormat = src.OutputFileFormat; //enum
 }
 
 void COutputProfile::Serialize(CArchive& archive)

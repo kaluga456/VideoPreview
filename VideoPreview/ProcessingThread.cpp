@@ -1,15 +1,18 @@
 #include "stdafx.h"
 #pragma hdrstop
 #include "app_thread.h"
+#include "Options.h"
 #include "OutputProfile.h"
+#include "ScreenshotGenerator.h"
 #include "ProcessingItem.h"
 #include "ProcessingThread.h"
 
 //DEBUG:
 #ifdef _DEBUG
-#define SHALLOW_PROCESSING
+//#define SHALLOW_PROCESSING
 #endif //_DEBUG
 
+extern COptions Options;
 CProcessingThread ProcessingThread;
 
 DWORD CProcessingThread::Start(HWND message_target, const COutputProfile* output_profile, LPCTSTR source_file_name)
@@ -38,14 +41,14 @@ void CProcessingThread::NotifyMessageTarget(WPARAM message_type, LPARAM message_
 {
     ::PostMessage(MessageTarget, WM_PROCESSING_THREAD, message_type, message_data);
 }
-void CProcessingThread::NotifyResult(WPARAM message_type, LPCTSTR error_description)
+void CProcessingThread::NotifyResult(WPARAM message_type, LPCTSTR result_string)
 {
-    LPCTSTR message_data = NULL;
-
-    //TODO:
-    if(error_description != NULL)
-        message_data = ::_wcsdup(error_description);
+    LPCTSTR message_data = result_string ? ::_wcsdup(result_string) : NULL;
     NotifyMessageTarget(message_type, reinterpret_cast<LPARAM>(message_data));
+}
+void CProcessingThread::SetProgress(size_t progress)
+{
+    NotifyMessageTarget(PTM_PROGRESS, progress);
 }
 DWORD CProcessingThread::Run()
 {
@@ -77,25 +80,16 @@ DWORD CProcessingThread::Run()
     }
     NotifyResult(PTM_DONE, _T("<output file name>"));
 #else //SHALLOW_PROCESSING
-      
-    //TODO: exception class
-    try
-    {
-        ProcessItem();
-    }
-    catch(...)
-    {
-        //TODO:
-    }
+    //TODO: processing procedure
+    CString result_string;
+    const int result = GenerateScreenshots(SourceFileName, OutputProfile, Options.UseSourceFileLocation ? NULL : Options.OutputDirectory, result_string, this);
+    if(SNAPSHOTS_RESULT_SUCCESS == result)
+        NotifyResult(PTM_DONE, result_string);
+    else if(SNAPSHOTS_RESULT_TERMINATED == result)
+        NotifyResult(PTM_STOP, NULL);
+    else
+        NotifyResult(PTM_FAILED, result_string);
 #endif //SHALLOW_PROCESSING
 
     return 0;
-}
-
-void CProcessingThread::ProcessItem()
-{
-    //TODO: processing procedure
-
-
-
 }

@@ -1,30 +1,5 @@
 #pragma once
 
-typedef int CImageType;
-enum
-{
-    IMAGE_TYPE_BMP,
-    IMAGE_TYPE_JPEG,
-    IMAGE_TYPE_GIF,
-    IMAGE_TYPE_TIFF,
-    IMAGE_TYPE_PNG,
-
-    IMAGE_TYPES_COUNT
-};
-
-inline LPCTSTR GetImageFileExt(int image_type) throw()
-{
-    switch(image_type)
-    {
-    case IMAGE_TYPE_BMP: return _T("bmp");
-    case IMAGE_TYPE_JPEG: return _T("jpeg");
-    case IMAGE_TYPE_GIF: return _T("gif");
-    case IMAGE_TYPE_TIFF: return _T("tiff");
-    case IMAGE_TYPE_PNG: return _T("png");
-    default: return _T("");
-    }
-}
-
 //snapshot size types
 enum 
 {
@@ -40,6 +15,7 @@ enum
     SNAPSHOT_COUNT_FIXED,
     SNAPSHOT_COUNT_VARIABLE
 };
+#pragma once
 
 //output type
 enum
@@ -48,19 +24,21 @@ enum
     OUTPUT_FILE_SEPARATED
 };
 
-enum SNAPSHOTS_RESULT
+enum
 {
     SNAPSHOTS_RESULT_SUCCESS,
     SNAPSHOTS_RESULT_FAIL,
     SNAPSHOTS_RESULT_TERMINATED
 };
 
+LPCTSTR GetImageFileExt(int image_type);
+
 //callback target interface
-class ISnaphotsCallback
+class IScreenshotsCallback
 {
 public:
     virtual bool IsTerminate() const = 0;
     virtual void SetProgress(size_t progress) = 0;
 };
 
-SNAPSHOTS_RESULT GenerateScreenshots(LPCTSTR video_file_name, const COutputProfile& options, ISnaphotsCallback* callback = NULL);
+int GenerateScreenshots(LPCTSTR video_file_name, const COutputProfile& output_profile, LPCTSTR output_dir, CString& result_string, IScreenshotsCallback* callback = NULL);

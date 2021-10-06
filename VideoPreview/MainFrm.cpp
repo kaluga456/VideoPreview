@@ -6,6 +6,7 @@
 #include "SourceFileTypes.h"
 #include "OutputProfile.h"
 #include "ProcessingItem.h"
+#include "ScreenshotGenerator.h"
 #include "ProcessingThread.h"
 #include "VideoPreview.h"
 #include "DialogAbout.h"
@@ -132,7 +133,7 @@ void CMainFrame::OnAppAbout()
 	aboutDlg.DoModal();
 }
 
-//TODO:
+//TODO: need status bar?
 static UINT SBIndicators[] =
 {
 	ID_SEPARATOR           // status line indicator
@@ -640,9 +641,7 @@ void CMainFrame::RemoveAllItems()
         flv->UpdateItem(CurrentItem.get());
     }
 
-    ItemsListState.SetFailed(false);
-    ItemsListState.SetReady(false);
-    ItemsListState.SetDone(false);
+    ItemsListState.Update();
     UpdateDialogControls(this, FALSE);
 }
 void CMainFrame::OnRemoveAll()

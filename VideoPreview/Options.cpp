@@ -94,7 +94,7 @@ bool COptions::Read()
     SourceFileTypes.SetString(s);
 
     ActionOnError = theApp.GetInt(_T("ActionOnError"), DEFAULT_ACTION_ON_ERROR);
-    SaveProcessingItems = theApp.GetInt(_T("SaveSourceFileList"), DEFAULT_SAVE_FILE_LIST_ON_EXIT);
+    SaveFileListOnExit = theApp.GetInt(_T("SaveSourceFileList"), DEFAULT_SAVE_FILE_LIST_ON_EXIT);
     UseExplorerContextMenu = theApp.GetInt(_T("ExplorerContextMenu"), DEFAULT_USE_EXPLORER_CONTEXT_MENU);
 
     //layout
@@ -112,8 +112,11 @@ bool COptions::Read()
     SelectedProfile = theApp.GetString(_T("SelectedProfile"));
   
     //processing items
-    CProcessingItemListSerial pils(&ProcessingItemList);
-    theApp.GetObject(_T("Items"), pils);
+    if(SaveFileListOnExit)
+    {
+        CProcessingItemListSerial pils(&ProcessingItemList);
+        theApp.GetObject(_T("Items"), pils);
+    }
 
     return true;
 }
@@ -126,7 +129,7 @@ bool COptions::Write()
     theApp.WriteInt(_T("OverwriteFiles"), OverwriteOutputFiles);
     theApp.WriteString(_T("SourceFileTypes"), SourceFileTypes.GetString());
     theApp.WriteInt(_T("ActionOnError"), ActionOnError);
-    theApp.WriteInt(_T("SaveSourceFileList"), SaveProcessingItems);
+    theApp.WriteInt(_T("SaveSourceFileList"), SaveFileListOnExit);
     theApp.WriteInt(_T("ExplorerContextMenu"), UseExplorerContextMenu);
 
     //layout
@@ -142,7 +145,11 @@ bool COptions::Write()
     theApp.WriteString(_T("SelectedProfile"), SelectedProfile);
 
     //processing items
-    CProcessingItemListSerial pils(&ProcessingItemList);
-    theApp.WriteObject(_T("Items"), pils);
+    if(SaveFileListOnExit)
+    {
+        CProcessingItemListSerial pils(&ProcessingItemList);
+        theApp.WriteObject(_T("Items"), pils);
+    }
+
     return true;
 } 

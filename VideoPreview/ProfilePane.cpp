@@ -3,6 +3,7 @@
 #include "app_thread.h"
 #include "Resource.h"
 #include "OutputProfile.h"
+#include "ScreenshotGenerator.h"
 #include "ProcessingThread.h"
 #include "VideoPreview.h"
 #include "ProfilePane.h"

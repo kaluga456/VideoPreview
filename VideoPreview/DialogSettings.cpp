@@ -101,7 +101,7 @@ void CDialogSettings::OnOK()
 //
 //    SourceFileTypes = SourceFileTypes;
 //    Options.UseExplorerContextMenu = GetButtonChek(IDC_CBTN_USE_EXPLORER_CONTEXT_MENU);
-//    Options.SaveProcessingItems = GetButtonChek(IDC_CBTN_SAVE_FILE_LIST);
+//    Options.SaveFileListOnExit = GetButtonChek(IDC_CBTN_SAVE_FILE_LIST);
     EndDialog(IDOK);
 }
 void CDialogSettings::OnCancel()

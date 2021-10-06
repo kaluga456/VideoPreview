@@ -125,7 +125,7 @@ public:
     int OutputFileFormat; //enum
 
     //operations
-    void operator=(const COutputProfile& objectSrc); 
+    void operator=(const COutputProfile& src); 
     void SetDefault();
     void Normalize();
 

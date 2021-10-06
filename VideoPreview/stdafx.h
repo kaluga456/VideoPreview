@@ -45,4 +45,7 @@
 #include <boost\shared_ptr.hpp>
 
 //misc
-#include <XmlLite.h>
+//TODO: #include <XmlLite.h>
+
+//WinAPI
+#include <Dshow.h>

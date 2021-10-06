@@ -79,6 +79,30 @@
     <ClInclude Include="ScreenshotGenerator.h">
       <Filter>core</Filter>
     </ClInclude>
+    <ClInclude Include="app_exception.h">
+      <Filter>generic</Filter>
+    </ClInclude>
+    <ClInclude Include="app.h">
+      <Filter>generic</Filter>
+    </ClInclude>
+    <ClInclude Include="app_string.h">
+      <Filter>generic</Filter>
+    </ClInclude>
+    <ClInclude Include="app_com.h">
+      <Filter>generic</Filter>
+    </ClInclude>
+    <ClInclude Include="app_gdi.h">
+      <Filter>generic</Filter>
+    </ClInclude>
+    <ClInclude Include="VideoFile.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="app_buffer.h">
+      <Filter>generic</Filter>
+    </ClInclude>
+    <ClInclude Include="app_direct_show.h">
+      <Filter>generic</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FileListView.cpp">
@@ -124,6 +148,9 @@
       <Filter>gui</Filter>
     </ClCompile>
     <ClCompile Include="ScreenshotGenerator.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="VideoFile.cpp">
       <Filter>core</Filter>
     </ClCompile>
   </ItemGroup>
@@ -237,5 +264,7 @@
     <None Include="res\VideoPreview.rc2">
       <Filter>res</Filter>
     </None>
+    <None Include="ClassDiagram.cd" />
+    <None Include="ClassDiagram1.cd" />
   </ItemGroup>
 </Project>

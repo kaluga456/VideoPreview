@@ -1,5 +1,4 @@
 TODO:
-- processing thread
 - save/load settings
 - output profiles save/load
 ? default output directory option
@@ -13,12 +12,8 @@ TODO:
 ? one program instance
 - choose default output location if no defined
 - output preview, save as temp file and show it to user
-- x64 version
 
 TODO GUI:
-- file list context menu
-- add files dialog
-- settings window
 - combobox with saved strings for output dir in settings dialog
 - output profiles editor
 - dragndrop files/folders to file list view

@@ -16,7 +16,7 @@ public:
     int UseExplorerContextMenu;
 
     //processing items
-    int SaveProcessingItems;
+    int SaveFileListOnExit;
 
     //output
     CString OutputDirectory;

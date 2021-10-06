@@ -8,6 +8,7 @@
 #include "OutputProfile.h"
 #include "ProcessingItem.h"
 #include "Options.h"
+#include "ScreenshotGenerator.h"
 #include "ProcessingThread.h"
 #include "VideoPreview.h"
 #include "VideoPreviewDoc.h"

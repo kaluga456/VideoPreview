@@ -12,7 +12,7 @@ enum
 const UINT WM_PROCESSING_THREAD = WM_APP + 1; 
 
 //processing thread
-class CProcessingThread : private boost::noncopyable
+class CProcessingThread : public IScreenshotsCallback, private boost::noncopyable
 {
 public:
     //ctor/dtor
@@ -38,6 +38,10 @@ private:
     void NotifyResult(WPARAM message_type, LPCTSTR error_description);
     DWORD Run(); //thread procedure
     void ProcessItem();
+
+    //callbacks
+    virtual bool IsTerminate() const {return TerminateSignal;}
+    virtual void SetProgress(size_t progress);
 };
 
 extern CProcessingThread ProcessingThread;
