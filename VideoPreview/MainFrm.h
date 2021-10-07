@@ -12,14 +12,14 @@ private:
     void SetProcessingState(bool Value); //true - processing items now
 
     //output profiles
-    const COutputProfile* GetCurrentProfile();
+    COutputProfile* GetCurrentProfile();
 
     //file list
     CFileListView* GetFileListView();
     void AddItem(PProcessingItem item);
+    void AddFolder(CString root_dir);
     void RemoveItem(PProcessingItem item);
     void RemoveAllItems();
-    void AddFolder(CString root_dir);
 
 protected:
 	CMFCMenuBar MainMenu;
@@ -30,6 +30,7 @@ protected:
 
     //int CBProfileIndex;
     CMFCToolBarComboBoxButton* GetProfileCombo();
+    void UpdateProfileCombo();
 
     //message handlers
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
@@ -42,13 +43,15 @@ protected:
     afx_msg void OnCmdRemoveFailed();
     afx_msg void OnCmdRemoveCompleted();  
     afx_msg void OnCmdRemoveAll();
-	afx_msg void OnOptions();
-    afx_msg void OnProfileSave();
-    afx_msg void OnProfileDelete();
+	afx_msg void OnCmdSettings();
+    afx_msg void OnCmdProfileAdd();
+    afx_msg void OnCmdProfileSave();
+    afx_msg void OnCmdProfileDelete();
     afx_msg void OnProfilePreview();
     afx_msg void OnProfileCombo();
-    afx_msg void OnEditTest(); //TEST:
+    afx_msg void OnCmdTest(); //TEST:
     afx_msg void OnResetToolbar();
+    afx_msg void OnCmdGitHub();
     afx_msg void OnCmdAbout();
     afx_msg void OnCmdOpenVideo();
     afx_msg void OnCmdOpenPreview();
@@ -70,13 +73,13 @@ protected:
 
 public:
 	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
+    virtual void OnUpdateFrameTitle(BOOL bAddToTitle);
 	virtual ~CMainFrame();
 
 #ifdef _DEBUG
 	virtual void AssertValid() const;
 	virtual void Dump(CDumpContext& dc) const;
 #endif
-    afx_msg void OnCmdGitHub();
 };
 
 

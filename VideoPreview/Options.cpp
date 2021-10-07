@@ -109,7 +109,8 @@ bool COptions::Read()
     //TODO: read <default> as mandatory always-saved profile
     if(FALSE == theApp.GetObject(_T("DefaultProfile"), DefaultProfile))
         DefaultProfile.SetDefault();
-    SelectedProfile = theApp.GetString(_T("SelectedProfile"));
+    CString output_profile = theApp.GetString(_T("SelectedProfile"));
+    SetSelectedOutputProfile(output_profile);
   
     //processing items
     if(SaveFileListOnExit)
@@ -142,7 +143,9 @@ bool COptions::Write()
 
     //output profiles
     theApp.WriteObject(_T("DefaultProfile"), DefaultProfile);
-    theApp.WriteString(_T("SelectedProfile"), SelectedProfile);
+
+    CString profile_name = GetSelectedOutputProfileName();
+    theApp.WriteString(_T("SelectedProfile"), profile_name);
 
     //processing items
     if(SaveFileListOnExit)

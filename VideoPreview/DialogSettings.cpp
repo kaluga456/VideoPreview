@@ -7,14 +7,6 @@
 #include "Options.h"
 #include "DialogSettings.h"
 
-//dialog control helper
-template<class T> class CDlgItem : public T
-{
-public:
-    CDlgItem(HWND dialog_wnd, int control_id) : T() {Attach(::GetDlgItem(dialog_wnd, control_id));}
-    ~CDlgItem() {Detach();}
-};
-
 void CDialogSettings::SetButtonChek(int control_id, BOOL value /*= TRUE*/)
 {
     CDlgItem<CButton> button(m_hWnd, control_id);

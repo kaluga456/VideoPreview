@@ -1,14 +1,11 @@
 TODO:
-- save/load settings
 - output profiles save/load
 ? default output directory option
-- save file list option
 - file types option
 - default output profile
 - selected output profile option
 ? export/import settings commands
 - save/load settings file in user directory
-? last directory for opened files option (implemented by Windows?)
 ? one program instance
 - choose default output location if no defined
 - output preview, save as temp file and show it to user

@@ -89,9 +89,9 @@ BOOL CMainApp::InitInstance()
     //test_profile.SetDefault();
     //WriteSectionObject(REG_PROFILES_SECTION, _T("123_Profile"), test_profile);
     //WriteSectionObject(REG_PROFILES_SECTION, _T("321_Profile"), test_profile);
-
-    Options.Read();
+    
     ReadProfiles();
+    Options.Read();
 
 	InitContextMenuManager();
 	InitShellManager();
@@ -205,16 +205,3 @@ void CMainApp::PreLoadState()
 	//ASSERT(bNameValid);
 	//GetContextMenuManager()->AddMenu(strName, IDR_POPUP_EXPLORER);
 }
-
-void CMainApp::LoadCustomState()
-{
-    //TODO: need here?
-    //Options.Read();
-}
-
-void CMainApp::SaveCustomState()
-{
-    //TODO: need here?
-    //Options.Write();
-}
-

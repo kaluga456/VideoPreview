@@ -17,16 +17,20 @@ LPCTSTR GetSelectedOutputProfileName()
 }
 void SetSelectedOutputProfile(LPCTSTR output_profile_name)
 {
-    ASSERT(output_profile_name);
-    for(COutputProfiles::const_iterator i = OutputProfiles.begin(); i != OutputProfiles.end(); ++i)
+    if(output_profile_name)
     {
-        if(0 == ::_tcscmp(output_profile_name, i->first))
-        {
-            SelectedOutputProfile = i->second.get();
-            return;
-        }
+        COutputProfiles::const_iterator i = OutputProfiles.find(output_profile_name);
+        SelectedOutputProfile = (i == OutputProfiles.end()) ? NULL : i->second.get();
     }
     SelectedOutputProfile = NULL;
+}
+COutputProfile* GetOutputProfile(LPCTSTR output_profile_name)
+{
+    if(NULL == output_profile_name) return NULL;
+    if(0 == ::_tcscmp(output_profile_name, CURRENT_OUTPUT_PROFILE_NAME))
+        return &DefaultProfile;
+    COutputProfiles::const_iterator i = OutputProfiles.find(output_profile_name);
+    return (i == OutputProfiles.end()) ? NULL : i->second.get();
 }
 
 CFontData::CFontData()

@@ -73,9 +73,11 @@
 #define IDS_EXPLORER                    305
 #define IDS_EDIT_MENU                   306
 #define IDD_CHANGE_OUTPUT_PROFILE_NAME  308
+#define IDD_OUTPUT_PROFILE              308
 #define IDC_EDIT_OUTPUT_PROFILE_NAME    309
 #define IDC_CBTN_COPY_FROM_OUTPUT_PROFILE 310
 #define IDC_CBOX_OUTPUT_PROFILES        311
+#define IDC_COMBO_OUTPUT_PROFILES       311
 #define IDC_EDIT_OUTPUT_LOCATION        313
 #define IDC_BTN_OUTPUT_DIRECTORY        314
 #define IDC_RBTN_ACTION_ON_ERROR_SKIP   315
@@ -147,13 +149,17 @@
 #define ID_CMD_ABOUT                    32835
 #define ID_FILE_ADDFILES                32836
 #define ID_ROOT_ADDFOLDER               32837
+#define ID_CMD_ADD_PROFILE              32839
+#define ID_BUTTON32842                  32842
+#define ID_CMD_PROFILE_ADD              32842
+#define ID_PROFILE_ADD                  32844
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        322
-#define _APS_NEXT_COMMAND_VALUE         32838
+#define _APS_NEXT_COMMAND_VALUE         32845
 #define _APS_NEXT_CONTROL_VALUE         1002
 #define _APS_NEXT_SYMED_VALUE           331
 #endif

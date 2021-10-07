@@ -136,10 +136,13 @@ BEGIN
     BUTTON      ID_CMD_PROCESS_ALL
     BUTTON      ID_CMD_STOP_PROCESSING
     SEPARATOR
+    BUTTON      ID_CMD_PROFILE_ADD
     BUTTON      ID_CMD_PROFILE_SAVE
     BUTTON      ID_CMD_PROFILE_DELETE
-    BUTTON      ID_CMD_PROFILE_PREVIEW
     BUTTON      ID_PROFILE_COMBO
+    BUTTON      ID_CMD_PROFILE_PREVIEW
+    SEPARATOR
+    BUTTON      ID_CMD_OPTIONS
 END
 
 IDR_SORT TOOLBAR 16, 15
@@ -194,12 +197,13 @@ BEGIN
         MENUITEM "Start Processing",            ID_CMD_PROCESS_ALL
         MENUITEM "Stop Processing",             ID_CMD_STOP_PROCESSING
         MENUITEM SEPARATOR
-        MENUITEM "Options...\tCtrl+O",          ID_CMD_OPTIONS
+        MENUITEM "Settings...\tCtrl+O",         ID_CMD_OPTIONS
         MENUITEM SEPARATOR
         MENUITEM "Exit",                        ID_APP_EXIT
     END
     POPUP "Profile"
     BEGIN
+        MENUITEM "Add...",                      ID_CMD_PROFILE_ADD
         MENUITEM "Save...\tCtrl+S",             ID_CMD_PROFILE_SAVE
         MENUITEM "Delete\tCtrl+D",              ID_CMD_PROFILE_DELETE
         MENUITEM "Preview...\tCtrl+P",          ID_CMD_PROFILE_PREVIEW
@@ -276,7 +280,7 @@ BEGIN
     DEFPUSHBUTTON   "OK",IDOK,90,36,50,14,BS_CENTER | WS_GROUP
 END
 
-IDD_CHANGE_OUTPUT_PROFILE_NAME DIALOGEX 0, 0, 166, 90
+IDD_OUTPUT_PROFILE DIALOGEX 0, 0, 166, 90
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "<runtime defined>"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
@@ -286,7 +290,7 @@ BEGIN
     EDITTEXT        IDC_EDIT_OUTPUT_PROFILE_NAME,7,17,152,14,ES_AUTOHSCROLL
     CONTROL         "Copy from",IDC_CBTN_COPY_FROM_OUTPUT_PROFILE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,38,50,10
     LTEXT           "Output profile name",IDC_STATIC,7,7,66,8
-    COMBOBOX        IDC_CBOX_OUTPUT_PROFILES,7,51,152,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_COMBO_OUTPUT_PROFILES,7,51,152,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
 END
 
 IDD_OPTIONS DIALOGEX 0, 0, 235, 194
@@ -376,6 +380,10 @@ BEGIN
         BOTTOMMARGIN, 50
     END
 
+    IDD_OUTPUT_PROFILE, DIALOG
+    BEGIN
+    END
+
     IDD_OPTIONS, DIALOG
     BEGIN
     END
@@ -390,22 +398,13 @@ END
 
 STRINGTABLE
 BEGIN
-    IDR_MAINFRAME           "VideoPreview\n\nVideoPreview\n\n\nVideoPreview.Document\nVideoPreview.Document"
+    IDR_MAINFRAME           "Video Preview (alpha)\n\nVideoPreview\n\n\nVideoPreview.Document\nVideoPreview.Document"
 END
 
 STRINGTABLE
 BEGIN
     AFX_IDS_APP_TITLE       "VideoPreview"
     AFX_IDS_IDLEMESSAGE     "Ready"
-END
-
-STRINGTABLE
-BEGIN
-    ID_FILE_NEW             "Create a new document\nNew"
-    ID_FILE_OPEN            "Open an existing document\nOpen"
-    ID_FILE_CLOSE           "Close the active document\nClose"
-    ID_FILE_SAVE            "Save the active document\nSave"
-    ID_FILE_SAVE_AS         "Save the active document with a new name\nSave As"
 END
 
 STRINGTABLE
@@ -418,31 +417,13 @@ STRINGTABLE
 BEGIN
     ID_CMD_GITHUB           "Browse program github.com page\nGitHub"
     ID_CMD_ABOUT            "Display program information\nAbout"
+    ID_CMD_PROFILE_ADD      "Add New Output Profile\nAdd Profile"
+    ID_PROFILE_ADD          "Add New Profile\nAdd Profile"
 END
 
 STRINGTABLE
 BEGIN
     ID_APP_EXIT             "Quit the application; prompts to save documents\nExit"
-END
-
-STRINGTABLE
-BEGIN
-    ID_FILE_MRU_FILE1       "Open this document"
-    ID_FILE_MRU_FILE2       "Open this document"
-    ID_FILE_MRU_FILE3       "Open this document"
-    ID_FILE_MRU_FILE4       "Open this document"
-    ID_FILE_MRU_FILE5       "Open this document"
-    ID_FILE_MRU_FILE6       "Open this document"
-    ID_FILE_MRU_FILE7       "Open this document"
-    ID_FILE_MRU_FILE8       "Open this document"
-    ID_FILE_MRU_FILE9       "Open this document"
-    ID_FILE_MRU_FILE10      "Open this document"
-    ID_FILE_MRU_FILE11      "Open this document"
-    ID_FILE_MRU_FILE12      "Open this document"
-    ID_FILE_MRU_FILE13      "Open this document"
-    ID_FILE_MRU_FILE14      "Open this document"
-    ID_FILE_MRU_FILE15      "Open this document"
-    ID_FILE_MRU_FILE16      "Open this document"
 END
 
 STRINGTABLE
@@ -454,21 +435,6 @@ END
 STRINGTABLE
 BEGIN
     ID_WINDOW_SPLIT         "Split the active window into panes\nSplit"
-END
-
-STRINGTABLE
-BEGIN
-    ID_EDIT_CLEAR           "Erase the selection\nErase"
-    ID_EDIT_CLEAR_ALL       "Erase everything\nErase All"
-    ID_EDIT_COPY            "Copy the selection and put it on the Clipboard\nCopy"
-    ID_EDIT_CUT             "Cut the selection and put it on the Clipboard\nCut"
-    ID_EDIT_FIND            "Find the specified text\nFind"
-    ID_EDIT_PASTE           "Insert Clipboard contents\nPaste"
-    ID_EDIT_REPEAT          "Repeat the last action\nRepeat"
-    ID_EDIT_REPLACE         "Replace specific text with different text\nReplace"
-    ID_EDIT_SELECT_ALL      "Select the entire document\nSelect All"
-    ID_EDIT_UNDO            "Undo the last action\nUndo"
-    ID_EDIT_REDO            "Redo the previously undone action\nRedo"
 END
 
 STRINGTABLE
@@ -566,6 +532,7 @@ BEGIN
     ID_CMD_ADD_FOLDER       "Add Folder\nAdd Folder"
     ID_CMD_PROCESS_ALL      "Process All Items\nProcess All"
     ID_CMD_STOP_PROCESSING  "Stop Processing\nStop"
+    ID_CMD_OPTIONS          "Show Settings Dialog\nSettings"
 END
 
 STRINGTABLE

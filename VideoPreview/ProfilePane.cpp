@@ -325,7 +325,7 @@ void CProfilePane::InitPropList()
     pgpOutputSizeMethod->AddItem(_T("Frame Witdh"), OUTPUT_IMAGE_WIDTH_BY_FRAME_WIDTH);
     pgpOutputSizeMethod->AddItem(_T("Frame Height"), OUTPUT_IMAGE_WIDTH_BY_FRAME_HEIGHT);
     pgpOutputSizeMethod->AllowEdit(FALSE);
-    pgpOutputSize = new CMFCPropertyGridProperty(_T("Size Value"), (_variant_t) 1000, _T("TODO"), ID_PROP_OUTPUT_IMAGE_SIZE);
+    pgpOutputSize = new CMFCPropertyGridProperty(_T("Size Value"), (_variant_t)int(1000), _T("TODO"), ID_PROP_OUTPUT_IMAGE_SIZE);
     pgp_output_image_size->AddSubItem(pgpOutputSizeMethod);
     pgp_output_image_size->AddSubItem(pgpOutputSize);
     //pgpOutputSize->Enable(FALSE); //TODO:

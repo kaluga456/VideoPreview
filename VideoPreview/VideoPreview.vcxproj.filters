@@ -103,6 +103,9 @@
     <ClInclude Include="app_direct_show.h">
       <Filter>generic</Filter>
     </ClInclude>
+    <ClInclude Include="DialogOutputProfile.h">
+      <Filter>gui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FileListView.cpp">
@@ -152,6 +155,9 @@
     </ClCompile>
     <ClCompile Include="VideoFile.cpp">
       <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="DialogOutputProfile.cpp">
+      <Filter>gui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -254,9 +260,6 @@
       <Filter>res</Filter>
     </Image>
     <Image Include="res\Toolbar256.bmp">
-      <Filter>res</Filter>
-    </Image>
-    <Image Include="res\bitmap1.bmp">
       <Filter>res</Filter>
     </Image>
   </ItemGroup>

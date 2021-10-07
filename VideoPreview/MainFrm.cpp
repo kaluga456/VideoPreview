@@ -13,6 +13,7 @@
 #include "VideoPreview.h"
 #include "DialogAbout.h"
 #include "DialogSettings.h"
+#include "DialogOutputProfile.h"
 #include "ProfilePane.h"
 #include "VideoPreviewDoc.h"
 #include "FileListView.h"
@@ -143,17 +144,18 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWndEx)
 
     //////////////////////////////////////////////////////////////////////////
     //commands    
-    ON_COMMAND(ID_CMD_OPTIONS, &CMainFrame::OnOptions)
+    ON_COMMAND(ID_CMD_OPTIONS, &CMainFrame::OnCmdSettings)
     ON_COMMAND(ID_CMD_GITHUB, &CMainFrame::OnCmdGitHub)
     ON_COMMAND(ID_CMD_ABOUT, &CMainFrame::OnCmdAbout)
-    ON_COMMAND(ID_CMD_TEST, &CMainFrame::OnEditTest) //TEST
+    ON_COMMAND(ID_CMD_TEST, &CMainFrame::OnCmdTest) //TEST
 
     ON_COMMAND(ID_CMD_ADD_FILES, &CMainFrame::OnAddFiles)
     ON_COMMAND(ID_CMD_ADD_FOLDER, &CMainFrame::OnAddFolder)
     
     //output profiles
-    ON_COMMAND(ID_CMD_PROFILE_SAVE, &CMainFrame::OnProfileSave)
-    ON_COMMAND(ID_CMD_PROFILE_DELETE, &CMainFrame::OnProfileDelete)
+    ON_COMMAND(ID_CMD_PROFILE_ADD, &CMainFrame::OnCmdProfileAdd)
+    ON_COMMAND(ID_CMD_PROFILE_SAVE, &CMainFrame::OnCmdProfileSave)
+    ON_COMMAND(ID_CMD_PROFILE_DELETE, &CMainFrame::OnCmdProfileDelete)
     ON_COMMAND(ID_CMD_PROFILE_PREVIEW, &CMainFrame::OnProfilePreview)
     ON_CBN_SELCHANGE(ID_PROFILE_COMBO, OnProfileCombo)
 
@@ -178,8 +180,10 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWndEx)
     //////////////////////////////////////////////////////////////////////////
     //update UI
     ON_UPDATE_COMMAND_UI(ID_PROFILE_COMBO, OnUpdateUI)
+    ON_UPDATE_COMMAND_UI(ID_CMD_PROFILE_ADD, OnUpdateUI)
     ON_UPDATE_COMMAND_UI(ID_CMD_PROFILE_SAVE, OnUpdateUI)
     ON_UPDATE_COMMAND_UI(ID_CMD_PROFILE_DELETE, OnUpdateUI)
+    ON_UPDATE_COMMAND_UI(ID_CMD_PROFILE_PREVIEW, OnUpdateUI)
 
     ON_UPDATE_COMMAND_UI(ID_CMD_OPEN_VIDEO, OnUpdateUI)
     ON_UPDATE_COMMAND_UI(ID_CMD_OPEN_PREVIEW, OnUpdateUI)
@@ -247,13 +251,6 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	const DWORD dwViewStyle = WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST | WS_BORDER | CBS_SORT | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
     //CBProfile = new CMFCToolBarComboBoxButton(ID_PROFILE_COMBO, NULL, 3, 100);
 
- //   //TODO: init profiles
-	//CBProfile.AddString(_T("<Current>"));
-	//CBProfile.AddString(_T("Profile 1"));
- //   CBProfile.AddString(_T("Profile 2"));
-	//CBProfile.SetCurSel(0);
-    ////////////////////////////////////////////////////////
-
 	CString strToolBarName;
 	bNameValid = strToolBarName.LoadString(IDS_TOOLBAR_STANDARD);
 	ASSERT(bNameValid);
@@ -304,23 +301,12 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
     ProfilePane.SetOutputProfile(&DefaultProfile);
 
     CBProfile = GetProfileCombo();
-
-    //TODO: init profile list
-    CBProfile->AddSortedItem(_T("<Default>"), reinterpret_cast<DWORD_PTR>(&DefaultProfile));
-    for(COutputProfiles::const_iterator profile_i = OutputProfiles.begin(); profile_i != OutputProfiles.end(); ++profile_i)
-    {
-        POutputProfile profile = profile_i->second;
-        CBProfile->AddSortedItem(profile_i->first, reinterpret_cast<DWORD_PTR>(profile.get()));
-    }
-
-    //TODO:
-	if(FALSE == CBProfile->SelectItem(Options.SelectedProfile))
-        CBProfile->SelectItem(0);
+    UpdateProfileCombo();
 
     ItemsListState.Update();
+
     return 0;
 }
-
 void CMainFrame::OnDestroy()
 {
     ProcessingThread.Stop();
@@ -332,10 +318,13 @@ void CMainFrame::OnDestroy()
     ProfilePane.GetClientRect(&rect);
     Options.ProfilePaneWidth = rect.Width();
 
-    LPCTSTR current_profile = CBProfile->GetItem();
-    Options.SelectedProfile = current_profile ? current_profile : _T("");
-
     CFrameWndEx::OnDestroy();
+}
+void CMainFrame::OnUpdateFrameTitle(BOOL bAddToTitle)
+{
+    //TODO: frame title is first name from IDR_MAINFRAME
+    //CFrameWndEx::OnUpdateFrameTitle(bAddToTitle);
+    ::AfxSetWindowText(m_hWnd, APP_NAME _T(" (build: ") APP_BUILD _T(")"));
 }
 BOOL CMainFrame::OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult)
 {
@@ -344,12 +333,6 @@ BOOL CMainFrame::OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult)
     CView* flv = GetActiveView(); //file list view
     if(flv && nmhdr->hwndFrom == flv->m_hWnd)
     {
-        //if(LVN_COLUMNCLICK == nmhdr->code) 
-        //{
-        //    LPNMLISTVIEW nmlv = reinterpret_cast<LPNMLISTVIEW>(lParam);
-        //    //OnColumnClick(nmlv->iSubItem);
-        //    return TRUE;
-        //}
         if(NM_DBLCLK == nmhdr->code)
         {
             OnCmdOpenVideo();
@@ -369,6 +352,8 @@ BOOL CMainFrame::PreCreateWindow(CREATESTRUCT& cs)
 		return FALSE;
 	// TODO: Modify the Window class or styles here by modifying
 	//  the CREATESTRUCT cs
+
+    cs.style &= ~FWS_ADDTOTITLE;
 
 	return TRUE;
 }
@@ -401,7 +386,6 @@ CMFCToolBarComboBoxButton* CMainFrame::GetProfileCombo()
     ASSERT(profile_combo_index >= 0);
     return static_cast<CMFCToolBarComboBoxButton*>(ToolBar.GetButton(profile_combo_index));
 }
-
 // CMainFrame diagnostics
 #ifdef _DEBUG
 void CMainFrame::AssertValid() const
@@ -723,16 +707,73 @@ void CMainFrame::OnCmdRemoveAll()
     if(result != IDOK) return;
     RemoveAllItems();
 }
-void CMainFrame::OnOptions()
+void CMainFrame::OnCmdSettings()
 {
     CDialogSettings dialog(this);
     dialog.DoModal();
 }
-void CMainFrame::OnProfileSave()
+void CMainFrame::OnProfileCombo()
 {
-    //TODO:
+    COutputProfile* current_profile = GetCurrentProfile();
+    SelectedOutputProfile = (current_profile == &DefaultProfile) ? NULL : current_profile;
+    ProfilePane.SetOutputProfile(current_profile);
 }
-void CMainFrame::OnProfileDelete()
+void CMainFrame::OnCmdProfileAdd()
+{
+    CDialogOutputProfile dialog(this, true);
+    if(IDOK != dialog.DoModal())
+        return;
+
+    POutputProfile new_profile(new COutputProfile);
+    if(dialog.IsCopyFrom && false == dialog.CopyFrom.IsEmpty())
+    {
+        const COutputProfile* op = ::GetOutputProfile(dialog.CopyFrom);  
+        if(NULL == op)
+        {
+            ASSERT(FALSE);
+            new_profile->SetDefault();
+        }
+        else
+        {
+            *new_profile = *op;
+        }
+    }
+    else
+    {
+        new_profile->SetDefault();
+    }
+
+    OutputProfiles[dialog.ProfileName] = new_profile;
+    theApp.WriteProfile(dialog.ProfileName);
+
+    //update controls
+    UpdateProfileCombo();
+    ProfilePane.SetOutputProfile(new_profile.get());
+}
+void CMainFrame::OnCmdProfileSave()
+{
+    CDialogOutputProfile dialog(this, false);
+    if(IDOK != dialog.DoModal())
+        return;
+
+    COutputProfile* profile_to_save = ::GetOutputProfile(dialog.ProfileName);
+    if(profile_to_save)
+    {
+        ProfilePane.GetOutputProfile(profile_to_save);
+    }
+    else
+    {
+        POutputProfile new_profile(new COutputProfile);
+        OutputProfiles[dialog.ProfileName] = new_profile;
+        profile_to_save = new_profile.get();
+    }
+
+    ProfilePane.GetOutputProfile(profile_to_save);
+    theApp.WriteProfile(dialog.ProfileName);
+
+    UpdateProfileCombo();
+}
+void CMainFrame::OnCmdProfileDelete()
 {
     const COutputProfile* current_profile = GetCurrentProfile();
 
@@ -745,31 +786,51 @@ void CMainFrame::OnProfileDelete()
     const int result = AfxMessageBox(msg, MB_OKCANCEL | MB_ICONEXCLAMATION | MB_DEFBUTTON1);
     if(result != IDOK) return;
 
-    CBProfile->DeleteItem(selected_profile_name);
     theApp.DeleteProfile(selected_profile_name);
     COutputProfiles::iterator profile_i = OutputProfiles.find(selected_profile_name);
     if(profile_i != OutputProfiles.end()) 
-        OutputProfiles.erase(profile_i);   
+        OutputProfiles.erase(profile_i);
+
+    SetSelectedOutputProfile(NULL);
+
+    UpdateProfileCombo();
+}
+void CMainFrame::UpdateProfileCombo()
+{
+    CBProfile->RemoveAllItems();
+    CBProfile->AddItem(CURRENT_OUTPUT_PROFILE_NAME, reinterpret_cast<DWORD_PTR>(&DefaultProfile));
+    for(COutputProfiles::const_iterator profile_i = OutputProfiles.begin(); profile_i != OutputProfiles.end(); ++profile_i)
+    {
+        POutputProfile profile = profile_i->second;
+        CBProfile->AddItem(profile_i->first, reinterpret_cast<DWORD_PTR>(profile.get()));
+    }
+
+    //set selected item
+    BOOL result = FALSE;
+    LPCTSTR profile_name = GetSelectedOutputProfileName();
+    if(SelectedOutputProfile)
+        result = CBProfile->SelectItem(reinterpret_cast<DWORD_PTR>(SelectedOutputProfile));
+    else
+        result = CBProfile->SelectItem(0, FALSE);
+
+    //TODO:
+    ASSERT(result);
+
+    ToolBar.Invalidate();
 }
 void CMainFrame::OnProfilePreview()
 {
     //TODO:
     int i = 0;
 }
-void CMainFrame::OnProfileCombo()
-{
-    const COutputProfile* current_profile = GetCurrentProfile();
-    //TODO: disable delete profile command
-    ProfilePane.SetOutputProfile(current_profile);
-}
-void CMainFrame::OnEditTest()
+void CMainFrame::OnCmdTest()
 {
     //TEST:
     //COutputProfile profile;
     //profile.SetDefault();
     //ProfilePane.SetOutputProfile(&profile);
     //UpdateDialogControls(this, FALSE);
-    //MessageBox(L"OnEditTest", L"DEBUG", MB_OK | MB_ICONINFORMATION);
+    //MessageBox(L"OnCmdTest", L"DEBUG", MB_OK | MB_ICONINFORMATION);
     
     //TEST:
     RemoveAllItems();
@@ -788,6 +849,9 @@ void CMainFrame::OnUpdateUI(CCmdUI* pCmdUI)
         pCmdUI->Enable(false == IsProcessing);
         break;
     case ID_PROFILE_COMBO:
+    case ID_CMD_PROFILE_ADD:
+    case ID_CMD_PROFILE_SAVE:
+    case ID_CMD_PROFILE_PREVIEW:
         pCmdUI->Enable(false == IsProcessing);
         break;
     case ID_CMD_PROFILE_DELETE:
@@ -844,9 +908,9 @@ void CMainFrame::OnUpdateUI(CCmdUI* pCmdUI)
         break;
     }
 }
-const COutputProfile* CMainFrame::GetCurrentProfile()
+COutputProfile* CMainFrame::GetCurrentProfile()
 {
-    const COutputProfile* result = reinterpret_cast<const COutputProfile*>(CBProfile->GetItemData());
+    COutputProfile* result = reinterpret_cast<COutputProfile*>(CBProfile->GetItemData());
     ASSERT(result);
     return result;
 }
