@@ -2,6 +2,7 @@
 #pragma hdrstop
 #include "SourceFileTypes.h"
 #include "OutputProfile.h"
+#include "OutputProfileList.h"
 #include "ProcessingItem.h"
 #include "VideoPreview.h"
 #include "Options.h"
@@ -23,6 +24,7 @@ const int DEFAULT_SAVE_FILE_LIST_ON_EXIT = true;
 const int DEFAULT_FILE_LIST_COLUMN_WIDTH = 100;
 const int DEFAULT_FILE_LIST_SORTED_COLUMN = 0;
 const int DEFAULT_FILE_LIST_SORT_ORDER = 0; //TODO: check
+const int DEFAULT_PROFILE_PANE_DESC_ROWS = 4; //TODO: check
 const int DEFAULT_PROFILE_PANE_WIDTH = 200; //TODO: check
 
 //CProcessingItemListSerial - CProcessingItemList serializator
@@ -106,11 +108,9 @@ bool COptions::Read()
     ProfilePaneWidth = theApp.GetSectionInt(_T("Layout"), _T("ProfilePaneWidth"), DEFAULT_PROFILE_PANE_WIDTH);
 
     //output profiles
-    //TODO: read <default> as mandatory always-saved profile
-    if(FALSE == theApp.GetObject(_T("DefaultProfile"), DefaultProfile))
-        DefaultProfile.SetDefault();
-    CString output_profile = theApp.GetString(_T("SelectedProfile"));
-    SetSelectedOutputProfile(output_profile);
+    OutputProfiles.ReadProfiles(theApp);
+    CString selected_profile = theApp.GetString(_T("SelectedProfile"));
+    OutputProfiles.SetSelectedProfile(selected_profile);
   
     //processing items
     if(SaveFileListOnExit)
@@ -123,7 +123,6 @@ bool COptions::Read()
 }
 bool COptions::Write()
 {
-    //TODO:
     //main
     theApp.WriteString(_T("OutputPath"), OutputDirectory);
     theApp.WriteInt(_T("UseSourceLocation"), UseSourceFileLocation);
@@ -142,10 +141,8 @@ bool COptions::Write()
     theApp.WriteSectionInt(_T("Layout"), _T("ProfilePaneWidth"), ProfilePaneWidth);
 
     //output profiles
-    theApp.WriteObject(_T("DefaultProfile"), DefaultProfile);
-
-    CString profile_name = GetSelectedOutputProfileName();
-    theApp.WriteString(_T("SelectedProfile"), profile_name);
+    LPCTSTR profile_name = OutputProfiles.GetSelectedProfileName();
+    theApp.WriteString(_T("SelectedProfile"), profile_name ? profile_name : _T(""));
 
     //processing items
     if(SaveFileListOnExit)

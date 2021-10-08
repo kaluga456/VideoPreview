@@ -3,9 +3,11 @@
 #include "afxdialogex.h"
 #pragma hdrstop
 #include "app_thread.h"
+#include "About.h"
 #include "Resource.h"
 #include "SourceFileTypes.h"
 #include "OutputProfile.h"
+#include "OutputProfileList.h"
 #include "ProcessingItem.h"
 #include "Options.h"
 #include "ScreenshotGenerator.h"
@@ -19,8 +21,6 @@
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
-
-LPCTSTR REG_PROFILES_SECTION = _T("Profiles");
 
 // CMainApp
 BEGIN_MESSAGE_MAP(CMainApp, CWinAppEx)
@@ -82,15 +82,7 @@ BOOL CMainApp::InitInstance()
 	SetRegistryKey(_T("Kaluga456"));
     SetRegistryBase(_T(""));
 	//LoadStdProfileSettings(4);  // Load standard INI file options (including MRU)
-
-
-    //TEST:
-    //COutputProfile test_profile;
-    //test_profile.SetDefault();
-    //WriteSectionObject(REG_PROFILES_SECTION, _T("123_Profile"), test_profile);
-    //WriteSectionObject(REG_PROFILES_SECTION, _T("321_Profile"), test_profile);
     
-    ReadProfiles();
     Options.Read();
 
 	InitContextMenuManager();
@@ -134,62 +126,6 @@ int CMainApp::ExitInstance()
     Options.Write();
     
     return CWinAppEx::ExitInstance();
-}
-void CMainApp::ReadProfiles()
-{
-    //TODO:
-    HKEY root_reg_key = GetAppRegistryKey();
-    if(NULL == root_reg_key) 
-        return;
-
-    CRegKey app_reg;
-    if(ERROR_SUCCESS != app_reg.Open(root_reg_key, REG_PROFILES_SECTION))
-        return;
-    
-    DWORD profile_name_size = 0;
-    TCHAR profile_name[MAX_OUTPUT_PROFILE_NAME_SIZE + 1];
-    profile_name[MAX_OUTPUT_PROFILE_NAME_SIZE] = 0;
-    for(int value_index = 0; ; ++value_index)
-    {
-        profile_name_size = MAX_OUTPUT_PROFILE_NAME_SIZE + 1;
-        LONG result = ::RegEnumValue(app_reg.m_hKey, value_index, profile_name, &profile_name_size, NULL, NULL, NULL, NULL);
-        if(result != ERROR_SUCCESS) 
-        {
-            ASSERT(ERROR_NO_MORE_ITEMS == result);
-            break;
-        }
-
-        if(*profile_name == 0)
-        {
-            ASSERT(0);
-            continue;
-        }
-
-        POutputProfile profile(new COutputProfile);
-        if(FALSE == GetSectionObject(REG_PROFILES_SECTION, profile_name, *(profile.get()))) continue;
-
-        OutputProfiles[profile_name] = profile;
-    }
-}
-void CMainApp::WriteProfile(LPCTSTR profile_name)
-{
-    COutputProfiles::const_iterator profile_i = OutputProfiles.find(profile_name);
-    if(profile_i == OutputProfiles.end()) return;
-    COutputProfile* profile = profile_i->second.get();
-    ASSERT(profile);
-    WriteSectionObject(REG_PROFILES_SECTION, profile_name, *profile);
-}
-void CMainApp::DeleteProfile(LPCTSTR profile_name)
-{
-    HKEY root_reg_key = GetAppRegistryKey();
-    if(NULL == root_reg_key) 
-        return;
-
-    CRegKey app_reg;
-    if(ERROR_SUCCESS != app_reg.Open(root_reg_key, REG_PROFILES_SECTION))
-        return;
-
-    LONG result = app_reg.DeleteValue(profile_name);
 }
 
 // CMainApp customization load/save methods

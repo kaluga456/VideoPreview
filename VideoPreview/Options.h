@@ -4,13 +4,15 @@
 class COptions
 {
 public:
+    //profile pane
+    int ProfilePaneWidth;
+
     //file list view
     int ColumnWidth1;
     int ColumnWidth2;
     int ColumnWidth3;
     int SortedColumn;
     int SortOrder;
-    int ProfilePaneWidth;
 
     //source files
     int UseExplorerContextMenu;

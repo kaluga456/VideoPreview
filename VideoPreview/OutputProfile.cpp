@@ -2,37 +2,6 @@
 #pragma hdrstop
 #include "OutputProfile.h"
 
-COutputProfiles OutputProfiles;
-COutputProfile* SelectedOutputProfile = NULL;
-COutputProfile DefaultProfile;
-
-LPCTSTR GetSelectedOutputProfileName()
-{
-    for(COutputProfiles::const_iterator i = OutputProfiles.begin(); i != OutputProfiles.end(); ++i)
-    {
-        if(SelectedOutputProfile == i->second.get())
-            return i->first;
-    }
-    return _T("");
-}
-void SetSelectedOutputProfile(LPCTSTR output_profile_name)
-{
-    if(output_profile_name)
-    {
-        COutputProfiles::const_iterator i = OutputProfiles.find(output_profile_name);
-        SelectedOutputProfile = (i == OutputProfiles.end()) ? NULL : i->second.get();
-    }
-    SelectedOutputProfile = NULL;
-}
-COutputProfile* GetOutputProfile(LPCTSTR output_profile_name)
-{
-    if(NULL == output_profile_name) return NULL;
-    if(0 == ::_tcscmp(output_profile_name, CURRENT_OUTPUT_PROFILE_NAME))
-        return &DefaultProfile;
-    COutputProfiles::const_iterator i = OutputProfiles.find(output_profile_name);
-    return (i == OutputProfiles.end()) ? NULL : i->second.get();
-}
-
 CFontData::CFontData()
 {
     SetDefault();

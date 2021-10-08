@@ -10,6 +10,14 @@ public:
 	virtual BOOL AllowShowOnList() const { return FALSE; }
 };
 
+class CPGPNumberEdit : public CMFCPropertyGridProperty
+{
+public:
+    CPGPNumberEdit(const CString& strName, const COleVariant& varValue, LPCTSTR lpszDescr = NULL, DWORD_PTR dwData = 0);
+    void SetInt(int value);
+    int GetInt();
+};
+
 class CPGPCombo : public CMFCPropertyGridProperty
 {
 public:
@@ -33,6 +41,8 @@ public:
 class CProfilePane : public CDockablePane
 {
 public:
+    CMFCPropertyGridCtrl PGProfile;
+
 	CProfilePane();
     virtual ~CProfilePane();
 
@@ -41,6 +51,8 @@ public:
 
     void SetOutputProfile(const COutputProfile* profile);
     void GetOutputProfile(COutputProfile* profile);
+    bool IsProfileChanged() const {return ProfileChanged;}
+    void ResetProfileChanged() {ProfileChanged = false;}
 
 protected:
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
@@ -60,9 +72,10 @@ protected:
 
 	int CBProfileHeight;
 	CFont m_fntPropList;
+    bool ProfileChanged;
+
 	//CComboBox CBProfile; //TODO: need this?
 	//CProfileToolBar TBProfile; //TODO: need this?
-	CMFCPropertyGridCtrl PGProfile;
 
     //property controls
     CMFCPropertyGridColorProperty* pgpBackgroundColor;
@@ -75,7 +88,7 @@ protected:
     CPGPFont* pgpTimestampFont;
     CMFCPropertyGridColorProperty* pgpTimestampFontColor;
     CPGPCombo* pgpOutputSizeMethod;
-    CMFCPropertyGridProperty* pgpOutputSize;
+    CPGPNumberEdit* pgpOutputSize;
     CMFCPropertyGridProperty* pgpOutputFileName;
     CPGPCombo* pgpOutputFileFormat;
 

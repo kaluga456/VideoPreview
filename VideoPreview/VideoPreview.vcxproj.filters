@@ -106,6 +106,9 @@
     <ClInclude Include="DialogOutputProfile.h">
       <Filter>gui</Filter>
     </ClInclude>
+    <ClInclude Include="OutputProfileList.h">
+      <Filter>gui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FileListView.cpp">
@@ -157,6 +160,9 @@
       <Filter>core</Filter>
     </ClCompile>
     <ClCompile Include="DialogOutputProfile.cpp">
+      <Filter>gui</Filter>
+    </ClCompile>
+    <ClCompile Include="OutputProfileList.cpp">
       <Filter>gui</Filter>
     </ClCompile>
   </ItemGroup>
@@ -267,7 +273,5 @@
     <None Include="res\VideoPreview.rc2">
       <Filter>res</Filter>
     </None>
-    <None Include="ClassDiagram.cd" />
-    <None Include="ClassDiagram1.cd" />
   </ItemGroup>
 </Project>

@@ -121,6 +121,7 @@
     <ClInclude Include="MainFrm.h" />
     <ClInclude Include="Options.h" />
     <ClInclude Include="OutputProfile.h" />
+    <ClInclude Include="OutputProfileList.h" />
     <ClInclude Include="ProcessingItem.h" />
     <ClInclude Include="ProcessingThread.h" />
     <ClInclude Include="ProfilePane.h" />
@@ -142,6 +143,7 @@
     <ClCompile Include="MainFrm.cpp" />
     <ClCompile Include="Options.cpp" />
     <ClCompile Include="OutputProfile.cpp" />
+    <ClCompile Include="OutputProfileList.cpp" />
     <ClCompile Include="ProcessingItem.cpp" />
     <ClCompile Include="ProcessingThread.cpp" />
     <ClCompile Include="ProfilePane.cpp" />
@@ -193,8 +195,6 @@
     <Image Include="UserImages.bmp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="ClassDiagram.cd" />
-    <None Include="ClassDiagram1.cd" />
     <None Include="res\VideoPreview.rc2" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

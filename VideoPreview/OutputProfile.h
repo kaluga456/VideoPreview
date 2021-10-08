@@ -1,9 +1,6 @@
 #pragma once
 
-const int MAX_OUTPUT_PROFILE_NAME_SIZE = 32;
 const int MAX_OUTPUT_PROFILE_HEADER_SIZE = 2048; //TODO: required?
-const int MAX_OUTPUT_PROFILE_FILE_NAME_SIZE = 64;
-LPCTSTR const CURRENT_OUTPUT_PROFILE_NAME = _T("<Current>");
 
 enum
 {
@@ -135,22 +132,6 @@ public:
 };
 
 typedef boost::shared_ptr<COutputProfile> POutputProfile;
-typedef std::map<CString, POutputProfile> COutputProfiles;
 
-//TODO: custom COutputProfiles class
-class COutputProfiles1
-{
-public:
-    COutputProfile DefaultProfile;
-    COutputProfiles Profiles;
-    COutputProfile* SelectedOutputProfile;
-};
 
-//data
-extern COutputProfiles OutputProfiles; //all profiles except DefaultProfile
-extern COutputProfile* SelectedOutputProfile; //if NULL then DefaultProfile is used
-extern COutputProfile DefaultProfile; //mandatory profile, must be always initialized
-LPCTSTR GetSelectedOutputProfileName();
-void SetSelectedOutputProfile(LPCTSTR output_profile_name);
-COutputProfile* GetOutputProfile(LPCTSTR output_profile_name);
 

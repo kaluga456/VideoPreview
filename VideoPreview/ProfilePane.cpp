@@ -82,6 +82,30 @@ LPCTSTR PROPERTY_DESCR[] =
 };
 static_assert(sizeof(PROPERTY_DESCR) / sizeof(LPCTSTR) == PROFILE_PROP_COUNT, "Invalid PROPERTY_DESCR size");
 /////////////////////////////////////////////////////////////////////////////
+//CPGPNumberEdit
+CPGPNumberEdit::CPGPNumberEdit(const CString& strName, const COleVariant& varValue, LPCTSTR lpszDescr /*= NULL*/, DWORD_PTR dwData /*= 0*/) :
+    CMFCPropertyGridProperty(strName, varValue, lpszDescr, dwData, NULL, NULL, _T("0123456789")) 
+{
+}
+void CPGPNumberEdit::SetInt(int value)
+{
+    //TODO: assert types workarround
+    CString val;
+    val.Format(_T("%u"), value);
+
+    COleVariant v = val;
+    SetValue(v);    
+
+    _variant_t v1 = GetValue();
+}
+int CPGPNumberEdit::GetInt()
+{
+    const COleVariant& v = GetValue();
+    LONG lval = 0;
+    VarI4FromStr(v.bstrVal, NULL, LOCALE_NOUSEROVERRIDE, &lval);
+    return lval;
+}
+/////////////////////////////////////////////////////////////////////////////
 //CPGPCombo
 CPGPCombo::CPGPCombo(const CString& strName, const COleVariant& varValue, LPCTSTR lpszDescr /*= NULL*/, DWORD_PTR dwData /*= 0*/) : 
     CMFCPropertyGridProperty(strName, varValue, lpszDescr, dwData) 
@@ -325,7 +349,7 @@ void CProfilePane::InitPropList()
     pgpOutputSizeMethod->AddItem(_T("Frame Witdh"), OUTPUT_IMAGE_WIDTH_BY_FRAME_WIDTH);
     pgpOutputSizeMethod->AddItem(_T("Frame Height"), OUTPUT_IMAGE_WIDTH_BY_FRAME_HEIGHT);
     pgpOutputSizeMethod->AllowEdit(FALSE);
-    pgpOutputSize = new CMFCPropertyGridProperty(_T("Size Value"), (_variant_t)int(1000), _T("TODO"), ID_PROP_OUTPUT_IMAGE_SIZE);
+    pgpOutputSize = new CPGPNumberEdit(_T("Size Value"), (_variant_t)_T("1000"), _T("TODO"), ID_PROP_OUTPUT_IMAGE_SIZE);
     pgp_output_image_size->AddSubItem(pgpOutputSizeMethod);
     pgp_output_image_size->AddSubItem(pgpOutputSize);
     //pgpOutputSize->Enable(FALSE); //TODO:
@@ -409,6 +433,9 @@ void CProfilePane::SetVSDotNetLook(BOOL bSet)
 }
 void CProfilePane::SetOutputProfile(const COutputProfile* profile)
 {
+    //TEST:
+    TRACE1("GetOutputProfile: %s\r\n", profile->OutputFileName);
+
     ASSERT(profile);
 
     LOGFONT lf;
@@ -424,7 +451,8 @@ void CProfilePane::SetOutputProfile(const COutputProfile* profile)
     pgpFramesGridRows->SetValue(_variant_t(long(profile->FrameRows)));
 
     pgpOutputSizeMethod->SetItem(profile->OutputSizeMethod);
-    pgpOutputSize->SetValue(_variant_t(int(profile->OutputImageSize)));
+
+    pgpOutputSize->SetInt(profile->OutputImageSize);
     pgpOutputSize->Enable(profile->OutputSizeMethod != OUTPUT_IMAGE_WIDTH_BY_ORIGINAL_FRAME_WIDTH);
 
     pgpTimestampType->SetItem(profile->TimestampType);
@@ -437,9 +465,15 @@ void CProfilePane::SetOutputProfile(const COutputProfile* profile)
 
     pgpOutputFileName->SetValue(COleVariant(profile->OutputFileName));
     pgpOutputFileFormat->SetItem(profile->OutputFileFormat);
+
+    ProfileChanged = false;
+    EnableWindow(TRUE);
 }
 void CProfilePane::GetOutputProfile(COutputProfile* profile)
 {
+    //TEST:
+    TRACE1("GetOutputProfile: %s\r\n", profile->OutputFileName);
+
     //TODO: value checks
     //TODO: try catch ?
     ASSERT(profile);
@@ -454,7 +488,7 @@ void CProfilePane::GetOutputProfile(COutputProfile* profile)
     profile->FrameRows = pgpFramesGridRows->GetValue().intVal;
 
     profile->OutputSizeMethod = pgpOutputSizeMethod->GetItem();
-    profile->OutputImageSize = pgpOutputSize->GetValue().intVal;
+    profile->OutputImageSize = pgpOutputSize->GetInt();
     
     profile->TimestampType = pgpTimestampType->GetItem();
     LPLOGFONT timestamp_logfont = pgpTimestampFont->GetLogFont();
@@ -517,5 +551,6 @@ LRESULT CProfilePane::OnProfilePropertyChanged(WPARAM wp, LPARAM lp)
         ASSERT(0);
     }
 
+    ProfileChanged = true;
     return 0;
 }

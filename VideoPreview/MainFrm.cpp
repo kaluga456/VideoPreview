@@ -7,6 +7,7 @@
 #include "Options.h"
 #include "SourceFileTypes.h"
 #include "OutputProfile.h"
+#include "OutputProfileList.h"
 #include "ProcessingItem.h"
 #include "ScreenshotGenerator.h"
 #include "ProcessingThread.h"
@@ -138,6 +139,7 @@ IMPLEMENT_DYNCREATE(CMainFrame, CFrameWndEx)
 
 BEGIN_MESSAGE_MAP(CMainFrame, CFrameWndEx)
 	ON_WM_CREATE()
+    ON_WM_CLOSE()
     ON_WM_DESTROY()
     ON_REGISTERED_MESSAGE(AFX_WM_RESETTOOLBAR, OnResetToolbar)
     ON_MESSAGE(WM_PROCESSING_THREAD, OnProcessingThread)
@@ -149,8 +151,8 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWndEx)
     ON_COMMAND(ID_CMD_ABOUT, &CMainFrame::OnCmdAbout)
     ON_COMMAND(ID_CMD_TEST, &CMainFrame::OnCmdTest) //TEST
 
-    ON_COMMAND(ID_CMD_ADD_FILES, &CMainFrame::OnAddFiles)
-    ON_COMMAND(ID_CMD_ADD_FOLDER, &CMainFrame::OnAddFolder)
+    ON_COMMAND(ID_CMD_ADD_FILES, &CMainFrame::OnCmdAddFiles)
+    ON_COMMAND(ID_CMD_ADD_FOLDER, &CMainFrame::OnCmdAddFolder)
     
     //output profiles
     ON_COMMAND(ID_CMD_PROFILE_ADD, &CMainFrame::OnCmdProfileAdd)
@@ -297,22 +299,27 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	}
     DockPane(&ProfilePane);
 
-    //TODO:
-    ProfilePane.SetOutputProfile(&DefaultProfile);
-
-    CBProfile = GetProfileCombo();
+    TempProfile.SetDefault();
+    COutputProfile* profile = OutputProfiles.GetSelectedProfile();
+    if(NULL == profile) 
+    {
+        profile = OutputProfiles.SelectFirst();
+        if(NULL == profile) profile = &TempProfile;
+    }
+    ProfilePane.SetOutputProfile(profile);
     UpdateProfileCombo();
 
     ItemsListState.Update();
-
     return 0;
+}
+void CMainFrame::OnClose()
+{
+    PromtSaveCurrentProfile();
+    CFrameWndEx::OnClose();
 }
 void CMainFrame::OnDestroy()
 {
     ProcessingThread.Stop();
-
-    //TEST:
-    ProfilePane.GetOutputProfile(&DefaultProfile);
 
     CRect rect;
     ProfilePane.GetClientRect(&rect);
@@ -322,7 +329,7 @@ void CMainFrame::OnDestroy()
 }
 void CMainFrame::OnUpdateFrameTitle(BOOL bAddToTitle)
 {
-    //TODO: frame title is first name from IDR_MAINFRAME
+    //NOTE: in default method frame title is first name from IDR_MAINFRAME
     //CFrameWndEx::OnUpdateFrameTitle(bAddToTitle);
     ::AfxSetWindowText(m_hWnd, APP_NAME _T(" (build: ") APP_BUILD _T(")"));
 }
@@ -334,9 +341,7 @@ BOOL CMainFrame::OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult)
     if(flv && nmhdr->hwndFrom == flv->m_hWnd)
     {
         if(NM_DBLCLK == nmhdr->code)
-        {
             OnCmdOpenVideo();
-        }
         else if(LVN_COLUMNCLICK == nmhdr->code) 
         {
             LPNMLISTVIEW nmlv = reinterpret_cast<LPNMLISTVIEW>(lParam);
@@ -361,29 +366,13 @@ LRESULT CMainFrame::OnResetToolbar(WPARAM wp,LPARAM lp)
 {
     CMFCToolBarComboBoxButton profile_combo(ID_PROFILE_COMBO, 0, CBS_DROPDOWNLIST, 300);
     ToolBar.ReplaceButton(ID_PROFILE_COMBO, profile_combo);
-
-    //TODO:
-    CMFCToolBarComboBoxButton* cc = GetProfileCombo();
-
+    CBProfile = GetProfileCombo();
     return 0;
 }
-
 CMFCToolBarComboBoxButton* CMainFrame::GetProfileCombo()
 {
     static int profile_combo_index = -1;
-
-    if(profile_combo_index < 0)
-    {
-        for(int index = 0; index < ToolBar.GetCount(); ++index)
-        {
-            if(ID_PROFILE_COMBO == ToolBar.GetItemID(index))
-            {
-                profile_combo_index = index;
-                break;
-            }
-        }
-    }
-    ASSERT(profile_combo_index >= 0);
+    if(profile_combo_index < 0) profile_combo_index = ToolBar.CommandToIndex(ID_PROFILE_COMBO);
     return static_cast<CMFCToolBarComboBoxButton*>(ToolBar.GetButton(profile_combo_index));
 }
 // CMainFrame diagnostics
@@ -415,7 +404,7 @@ void CMainFrame::OnCmdAbout()
 	CAboutDlg aboutDlg;
 	aboutDlg.DoModal();
 }
-void CMainFrame::OnAddFiles()
+void CMainFrame::OnCmdAddFiles()
 {
     const int FILE_LIST_BUFFER_SIZE = ((255 * (MAX_PATH + 1)) + 1);
     CString filter = SourceFileTypes.GetFilterString();
@@ -430,17 +419,28 @@ void CMainFrame::OnAddFiles()
     int name_size = root_dir.GetLength();
     if(0 == name_size)
         return;
-    root_dir += _T("\\");
-    
     const int items_count = GetFileListView()->GetListCtrl().GetItemCount();
-    for(LPCTSTR file_names = ofn.lpstrFile + name_size + 1; ;file_names += name_size + 1)
-    {
-        CString file_name = file_names;
-        name_size = file_name.GetLength();
-        if(0 == name_size)
-            break;
 
-        PProcessingItem pi(new CProcessingItem(PIS_READY, root_dir + file_name));
+    //multiple files were selected, so first string is root dir
+    if(ofn.nFileOffset > name_size)
+    {
+        root_dir += _T("\\");
+        for(LPCTSTR file_names = ofn.lpstrFile + name_size + 1; ;file_names += name_size + 1)
+        {
+            CString file_name = file_names;
+            name_size = file_name.GetLength();
+            if(0 == name_size)
+                break;
+
+            PProcessingItem pi(new CProcessingItem(PIS_READY, root_dir + file_name));
+            AddItem(pi);
+        }
+    }
+
+    //one file selected
+    else
+    {
+        PProcessingItem pi(new CProcessingItem(PIS_READY, ofn.lpstrFile));
         AddItem(pi);
     }
 
@@ -448,11 +448,11 @@ void CMainFrame::OnAddFiles()
     if(items_count < GetFileListView()->GetListCtrl().GetItemCount())
     {
         GetFileListView()->Sort();
-        ItemsListState.SetReady(false);
+        ItemsListState.SetReady(true);
         UpdateDialogControls(this, FALSE);
     }
 }
-void CMainFrame::OnAddFolder()
+void CMainFrame::OnCmdAddFolder()
 {
     CFolderPickerDialog fpd(NULL, OFN_ALLOWMULTISELECT | OFN_ENABLESIZING | OFN_EXPLORER, this, sizeof(OPENFILENAME));
     const int FILE_LIST_BUFFER_SIZE = ((255 * (MAX_PATH + 1)) + 1);
@@ -490,7 +490,7 @@ void CMainFrame::OnAddFolder()
     if(items_count < GetFileListView()->GetListCtrl().GetItemCount())
     {
         GetFileListView()->Sort();
-        ItemsListState.SetReady(false);
+        ItemsListState.SetReady(true);
         UpdateDialogControls(this, FALSE);
     }
 }
@@ -608,14 +608,8 @@ bool CMainFrame::ProcessNextItem()
         if(NULL == pi) 
             break; //no more items to process
 
-        const COutputProfile* current_profile = GetCurrentProfile();
-        if(NULL == current_profile)
-        {
-            //TODO: message
-            break;
-        }
-
-        const DWORD result = ProcessingThread.Start(m_hWnd, current_profile, pi->SourceFileName);
+        ProfilePane.GetOutputProfile(&TempProfile);
+        const DWORD result = ProcessingThread.Start(m_hWnd, &TempProfile, pi->SourceFileName);
         if(ERROR_SUCCESS == result)
         {
             CurrentItem = pi;
@@ -650,7 +644,7 @@ void CMainFrame::OnCmdStopProcessing()
 }
 void CMainFrame::OnCmdRemoveFailed()
 {
-    const int result = AfxMessageBox(_T("Remove failed files from list?"), MB_OKCANCEL | MB_ICONEXCLAMATION | MB_DEFBUTTON1);
+    const int result = ::AfxMessageBox(_T("Remove failed files from list?"), MB_OKCANCEL | MB_ICONEXCLAMATION | MB_DEFBUTTON1);
     if(result != IDOK) return;
 
     for(CProcessingItemList::iterator i = ProcessingItemList.begin(); i != ProcessingItemList.end();)
@@ -668,7 +662,7 @@ void CMainFrame::OnCmdRemoveFailed()
 }
 void CMainFrame::OnCmdRemoveCompleted()
 {
-    const int result = AfxMessageBox(_T("Remove completed files from list?"), MB_OKCANCEL | MB_ICONEXCLAMATION | MB_DEFBUTTON1);
+    const int result = ::AfxMessageBox(_T("Remove completed files from list?"), MB_OKCANCEL | MB_ICONEXCLAMATION | MB_DEFBUTTON1);
     if(result != IDOK) return;
 
     for(CProcessingItemList::iterator i = ProcessingItemList.begin(); i != ProcessingItemList.end();)
@@ -703,8 +697,7 @@ void CMainFrame::RemoveAllItems()
 }
 void CMainFrame::OnCmdRemoveAll()
 {
-    const int result = AfxMessageBox(_T("Remove all files from list?"), MB_OKCANCEL | MB_ICONEXCLAMATION | MB_DEFBUTTON1);
-    if(result != IDOK) return;
+    if(IDOK != ::AfxMessageBox(_T("Remove all files from list?"), MB_OKCANCEL | MB_ICONEXCLAMATION | MB_DEFBUTTON1)) return;
     RemoveAllItems();
 }
 void CMainFrame::OnCmdSettings()
@@ -712,14 +705,37 @@ void CMainFrame::OnCmdSettings()
     CDialogSettings dialog(this);
     dialog.DoModal();
 }
+void CMainFrame::PromtSaveCurrentProfile()
+{
+    COutputProfile* old_profile = OutputProfiles.GetSelectedProfile();
+    CString old_profile_name = OutputProfiles.GetSelectedProfileName();
+    if(ProfilePane.IsProfileChanged() && old_profile_name && false == old_profile_name.IsEmpty())
+    {
+        CString msg;
+        msg.Format(_T("Do you want to save profile\n\"%s\" ?"), old_profile_name);
+        if(IDOK == ::AfxMessageBox(msg, MB_OKCANCEL | MB_ICONEXCLAMATION | MB_DEFBUTTON1)) 
+        {
+            ProfilePane.GetOutputProfile(old_profile);
+            OutputProfiles.WriteProfile(theApp, old_profile_name);
+        }
+    }
+}
 void CMainFrame::OnProfileCombo()
 {
-    COutputProfile* current_profile = GetCurrentProfile();
-    SelectedOutputProfile = (current_profile == &DefaultProfile) ? NULL : current_profile;
-    ProfilePane.SetOutputProfile(current_profile);
+    COutputProfile* old_profile = OutputProfiles.GetSelectedProfile();
+    COutputProfile* new_profile = GetComboProfile();
+    if(new_profile == old_profile) return;
+
+    PromtSaveCurrentProfile();
+
+    OutputProfiles.SetSelectedProfile(new_profile);
+    ProfilePane.SetOutputProfile(new_profile);
+    ProfilePane.ResetProfileChanged();
 }
 void CMainFrame::OnCmdProfileAdd()
 {
+    PromtSaveCurrentProfile();
+
     CDialogOutputProfile dialog(this, true);
     if(IDOK != dialog.DoModal())
         return;
@@ -727,7 +743,7 @@ void CMainFrame::OnCmdProfileAdd()
     POutputProfile new_profile(new COutputProfile);
     if(dialog.IsCopyFrom && false == dialog.CopyFrom.IsEmpty())
     {
-        const COutputProfile* op = ::GetOutputProfile(dialog.CopyFrom);  
+        const COutputProfile* op = OutputProfiles.GetProfile(dialog.CopyFrom);  
         if(NULL == op)
         {
             ASSERT(FALSE);
@@ -743,12 +759,9 @@ void CMainFrame::OnCmdProfileAdd()
         new_profile->SetDefault();
     }
 
-    OutputProfiles[dialog.ProfileName] = new_profile;
-    theApp.WriteProfile(dialog.ProfileName);
-
-    //update controls
+    OutputProfiles.AddProfile(theApp, dialog.ProfileName, new_profile);
+    ProfilePane.SetOutputProfile(GetCurrentProfile());
     UpdateProfileCombo();
-    ProfilePane.SetOutputProfile(new_profile.get());
 }
 void CMainFrame::OnCmdProfileSave()
 {
@@ -756,66 +769,31 @@ void CMainFrame::OnCmdProfileSave()
     if(IDOK != dialog.DoModal())
         return;
 
-    COutputProfile* profile_to_save = ::GetOutputProfile(dialog.ProfileName);
+    COutputProfile* profile_to_save = OutputProfiles.GetProfile(dialog.ProfileName);
     if(profile_to_save)
     {
         ProfilePane.GetOutputProfile(profile_to_save);
+        OutputProfiles.WriteProfile(theApp, dialog.ProfileName);
     }
     else
     {
         POutputProfile new_profile(new COutputProfile);
-        OutputProfiles[dialog.ProfileName] = new_profile;
-        profile_to_save = new_profile.get();
+        ProfilePane.GetOutputProfile(new_profile.get());
+        OutputProfiles.AddProfile(theApp, dialog.ProfileName, new_profile);
     }
 
-    ProfilePane.GetOutputProfile(profile_to_save);
-    theApp.WriteProfile(dialog.ProfileName);
-
+    ProfilePane.SetOutputProfile(GetCurrentProfile());
     UpdateProfileCombo();
 }
 void CMainFrame::OnCmdProfileDelete()
 {
-    const COutputProfile* current_profile = GetCurrentProfile();
-
-    //default profile
-    if(current_profile == &DefaultProfile) 
-        return;
-
-    CString selected_profile_name = CBProfile->GetItem();
-    CString msg = _T("Do you want to delete profile\r\n\"") + CString(selected_profile_name) + _T("\" ?");
-    const int result = AfxMessageBox(msg, MB_OKCANCEL | MB_ICONEXCLAMATION | MB_DEFBUTTON1);
-    if(result != IDOK) return;
-
-    theApp.DeleteProfile(selected_profile_name);
-    COutputProfiles::iterator profile_i = OutputProfiles.find(selected_profile_name);
-    if(profile_i != OutputProfiles.end()) 
-        OutputProfiles.erase(profile_i);
-
-    SetSelectedOutputProfile(NULL);
-
+    OutputProfiles.DeleteSelectedProfile(theApp);
+    ProfilePane.SetOutputProfile(GetCurrentProfile());
     UpdateProfileCombo();
 }
 void CMainFrame::UpdateProfileCombo()
 {
-    CBProfile->RemoveAllItems();
-    CBProfile->AddItem(CURRENT_OUTPUT_PROFILE_NAME, reinterpret_cast<DWORD_PTR>(&DefaultProfile));
-    for(COutputProfiles::const_iterator profile_i = OutputProfiles.begin(); profile_i != OutputProfiles.end(); ++profile_i)
-    {
-        POutputProfile profile = profile_i->second;
-        CBProfile->AddItem(profile_i->first, reinterpret_cast<DWORD_PTR>(profile.get()));
-    }
-
-    //set selected item
-    BOOL result = FALSE;
-    LPCTSTR profile_name = GetSelectedOutputProfileName();
-    if(SelectedOutputProfile)
-        result = CBProfile->SelectItem(reinterpret_cast<DWORD_PTR>(SelectedOutputProfile));
-    else
-        result = CBProfile->SelectItem(0, FALSE);
-
-    //TODO:
-    ASSERT(result);
-
+    OutputProfiles.Fill(CBProfile);
     ToolBar.Invalidate();
 }
 void CMainFrame::OnProfilePreview()
@@ -833,34 +811,27 @@ void CMainFrame::OnCmdTest()
     //MessageBox(L"OnCmdTest", L"DEBUG", MB_OK | MB_ICONINFORMATION);
     
     //TEST:
-    RemoveAllItems();
-    AddItem(PProcessingItem(new CProcessingItem(_T("d:\\projects\\VideoPreview\\videos\\Three Cute Golden Retrievers Hug Over Tennis Ball.mp4"))));
-    AddItem(PProcessingItem(new CProcessingItem(_T("d:\\projects\\VideoPreview\\videos\\Chicken_Techno_by_Oli_Chang.mp4"))));
-    AddItem(PProcessingItem(new CProcessingItem(_T("d:\\projects\\VideoPreview\\videos\\Frankie the pug walking on his front legs!.mp4"))));
+    //RemoveAllItems();
+    //AddItem(PProcessingItem(new CProcessingItem(_T("d:\\projects\\VideoPreview\\videos\\Three Cute Golden Retrievers Hug Over Tennis Ball.mp4"))));
+    //AddItem(PProcessingItem(new CProcessingItem(_T("d:\\projects\\VideoPreview\\videos\\Chicken_Techno_by_Oli_Chang.mp4"))));
+    //AddItem(PProcessingItem(new CProcessingItem(_T("d:\\projects\\VideoPreview\\videos\\Frankie the pug walking on his front legs!.mp4"))));
 
-    int id1 = GetFileListView()->GetDlgCtrlID(); //id1 = 59648
-    int id2 = GetFileListView()->GetListCtrl().GetDlgCtrlID(); //id2 = 59648
+    ProfilePane.PGProfile.ResetOriginalValues();
 }
 void CMainFrame::OnUpdateUI(CCmdUI* pCmdUI)
 {
     switch(pCmdUI->m_nID)
     {
     case ID_CMD_OPTIONS:
-        pCmdUI->Enable(false == IsProcessing);
-        break;
     case ID_PROFILE_COMBO:
-    case ID_CMD_PROFILE_ADD:
-    case ID_CMD_PROFILE_SAVE:
-    case ID_CMD_PROFILE_PREVIEW:
+    case ID_CMD_PROFILE_ADD: 
         pCmdUI->Enable(false == IsProcessing);
         break;
+    case ID_CMD_PROFILE_PREVIEW:
+    case ID_CMD_PROFILE_SAVE:
     case ID_CMD_PROFILE_DELETE:
-    {
-        const COutputProfile* current_profile = GetCurrentProfile();
-        ASSERT(current_profile);
-        pCmdUI->Enable(current_profile != &DefaultProfile);
+        pCmdUI->Enable(false == IsProcessing && false == OutputProfiles.IsEmpty() && OutputProfiles.GetSelectedProfile());
         break;
-    }
 
     //src and out files
     case ID_CMD_OPEN_VIDEO:
@@ -908,11 +879,19 @@ void CMainFrame::OnUpdateUI(CCmdUI* pCmdUI)
         break;
     }
 }
+COutputProfile* CMainFrame::GetComboProfile()
+{
+    LPCTSTR profile_name = CBProfile->GetItem();
+    return OutputProfiles.GetProfile(profile_name);
+}
 COutputProfile* CMainFrame::GetCurrentProfile()
 {
-    COutputProfile* result = reinterpret_cast<COutputProfile*>(CBProfile->GetItemData());
-    ASSERT(result);
-    return result;
+    COutputProfile* profile = OutputProfiles.GetSelectedProfile();
+
+    //TEST:
+    TRACE1("GetCurrentProfile(): %s\r\n", profile ? profile->OutputFileName : _T("TempProfile"));
+
+    return profile ? profile : &TempProfile;
 }
 CFileListView* CMainFrame::GetFileListView()
 {
@@ -989,7 +968,7 @@ void CMainFrame::OnCmdRemoveSelected()
     if(0 == sel_count)
         return;
 
-    const int result = AfxMessageBox(_T("Remove selected files from list?"), MB_OKCANCEL | MB_ICONEXCLAMATION | MB_DEFBUTTON1);
+    const int result = ::AfxMessageBox(_T("Remove selected files from list?"), MB_OKCANCEL | MB_ICONEXCLAMATION | MB_DEFBUTTON1);
     if(result != IDOK) 
         return;
 

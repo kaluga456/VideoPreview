@@ -12,7 +12,9 @@ private:
     void SetProcessingState(bool Value); //true - processing items now
 
     //output profiles
-    COutputProfile* GetCurrentProfile();
+    COutputProfile* GetComboProfile(); //selected profile on toolbar
+    COutputProfile* GetCurrentProfile(); //selected profile on toolbar or TempProfile
+    void PromtSaveCurrentProfile();
 
     //file list
     CFileListView* GetFileListView();
@@ -22,22 +24,26 @@ private:
     void RemoveAllItems();
 
 protected:
+    COutputProfile TempProfile;
+
+    //controls
 	CMFCMenuBar MainMenu;
 	CMFCToolBar ToolBar;
-    CMFCToolBarComboBoxButton* CBProfile;
 	CProfilePane ProfilePane;
     CMFCStatusBar StatusBar; //TODO: need status bar?
 
-    //int CBProfileIndex;
+    //output profiles combobox
+    CMFCToolBarComboBoxButton* CBProfile;
     CMFCToolBarComboBoxButton* GetProfileCombo();
     void UpdateProfileCombo();
 
     //message handlers
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
     afx_msg void OnDestroy();
+    afx_msg void OnClose();
 	afx_msg void OnViewPropertiesWindow();
-    afx_msg void OnAddFiles();
-    afx_msg void OnAddFolder();
+    afx_msg void OnCmdAddFiles();
+    afx_msg void OnCmdAddFolder();
     afx_msg void OnCmdProcessAll();
     afx_msg void OnCmdStopProcessing();
     afx_msg void OnCmdRemoveFailed();

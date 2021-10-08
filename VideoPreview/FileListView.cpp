@@ -65,6 +65,7 @@ IMPLEMENT_DYNCREATE(CFileListView, CListView)
 BEGIN_MESSAGE_MAP(CFileListView, CListView)
     ON_WM_DESTROY()
 	ON_WM_CONTEXTMENU()
+    //ON_WM_SIZE()
 END_MESSAGE_MAP()
 
 // CFileListView construction/destruction
@@ -78,6 +79,15 @@ BOOL CFileListView::PreCreateWindow(CREATESTRUCT& cs)
 {
 	// TODO: Modify the Window class or styles here by modifying the CREATESTRUCT cs
 	return CListView::PreCreateWindow(cs);
+}
+void CFileListView::OnDestroy()
+{
+    CListCtrl& listCtrl = GetListCtrl();
+    Options.ColumnWidth1 = listCtrl.GetColumnWidth(0);
+    Options.ColumnWidth2 = listCtrl.GetColumnWidth(1);
+    Options.ColumnWidth3 = listCtrl.GetColumnWidth(2);   
+
+    CListView::OnDestroy();
 }
 void CFileListView::OnInitialUpdate()
 {
@@ -107,23 +117,26 @@ void CFileListView::OnInitialUpdate()
     const int column_width1 = Options.ColumnWidth1 <= 0 ? 10 : Options.ColumnWidth1;
     const int column_width2 = Options.ColumnWidth2 <= 0 ? 10 : Options.ColumnWidth2;
     const int column_width3 = client_width - column_width1 - column_width2;
-    listCtrl.SetColumnWidth(0, column_width1);
-    listCtrl.SetColumnWidth(1, column_width2);
-    listCtrl.SetColumnWidth(2, column_width3);
+    listCtrl.SetColumnWidth(FLV_COLUMN_VIDEO, column_width1);
+    listCtrl.SetColumnWidth(FLV_COLUMN_STATE, column_width2);
+    listCtrl.SetColumnWidth(FLV_COLUMN_RESULT, column_width3);
 
     CHeaderCtrl* headerCtrl = listCtrl.GetHeaderCtrl();
     headerCtrl->ShowWindow(SW_SHOW);
 
     UpdateItems();
 }
-void CFileListView::OnDestroy()
+void CFileListView::OnSize(UINT nType, int cx, int cy)
 {
-    CListCtrl& listCtrl = GetListCtrl();
-    Options.ColumnWidth1 = listCtrl.GetColumnWidth(0);
-    Options.ColumnWidth2 = listCtrl.GetColumnWidth(1);
-    Options.ColumnWidth3 = listCtrl.GetColumnWidth(2);   
+    CListView::OnSize(nType, cx, cy);
 
-    CListView::OnDestroy();
+    //TODO: last column autosize
+    CListCtrl& listCtrl = GetListCtrl();
+    const int column_width1 = listCtrl.GetColumnWidth(0);
+    const int column_width2 = listCtrl.GetColumnWidth(1);
+    const int column_width3 = listCtrl.GetColumnWidth(FLV_COLUMN_RESULT);
+    const int space = cx - column_width1 - column_width2;
+    listCtrl.SetColumnWidth(FLV_COLUMN_RESULT, space);
 }
 void CFileListView::OnContextMenu(CWnd* /* pWnd */, CPoint point)
 {

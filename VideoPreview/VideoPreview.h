@@ -21,11 +21,6 @@ public:
     int ExitInstance();
 	virtual void PreLoadState();
 
-    //profiles
-    void ReadProfiles();
-    void WriteProfile(LPCTSTR profile_name);
-    void DeleteProfile(LPCTSTR profile_name);
-
 	DECLARE_MESSAGE_MAP()
 };
 

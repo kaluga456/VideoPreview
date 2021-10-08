@@ -42,6 +42,7 @@ public:
 
     //events
     void OnColumnClick(int column_index);
+    void OnSize(UINT nType, int cx, int cy);
 
     //items
     int FindItem(const CProcessingItem* item);
