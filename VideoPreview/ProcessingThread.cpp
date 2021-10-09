@@ -9,7 +9,7 @@
 
 //DEBUG:
 #ifdef _DEBUG
-//#define SHALLOW_PROCESSING
+#define SHALLOW_PROCESSING
 #endif //_DEBUG
 
 extern COptions Options;

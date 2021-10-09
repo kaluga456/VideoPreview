@@ -24,4 +24,5 @@ public:
 	DECLARE_MESSAGE_MAP()
 };
 
+extern bool IsProcessing; //true - while there are files to process and command 'stop' not executed
 extern CMainApp theApp;

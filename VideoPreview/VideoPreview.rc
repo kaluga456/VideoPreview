@@ -98,19 +98,14 @@ IDI_PROPERTIES_WND_HC   ICON                    "res\\properties_wnd_hc.ico"
 // Bitmap
 //
 
-IDR_MAINFRAME_256       BITMAP                  "D:\\projects\\VideoPreview\\VideoPreview\\res\\Toolbar256.bmp"
-IDR_SORT                BITMAP                  "res\\sort.bmp"
-IDB_SORT_24             BITMAP                  "res\\sort_hc.bmp"
+ID_TOOLBAR_MAIN         BITMAP                  "D:\\projects\\VideoPreview\\VideoPreview\\res\\Toolbar256.bmp"
 IDB_FILE_VIEW           BITMAP                  "res\\fileview.bmp"
 IDB_FILE_VIEW_24        BITMAP                  "res\\fileview_hc.bmp"
 IDB_CLASS_VIEW          BITMAP                  "res\\classview.bmp"
 IDB_CLASS_VIEW_24       BITMAP                  "res\\classview_hc.bmp"
-IDR_EXPLORER            BITMAP                  "res\\explorer.bmp"
 IDB_EXPLORER_24         BITMAP                  "res\\explorer_hc.bmp"
-IDR_MENU_IMAGES         BITMAP                  "res\\menuimages.bmp"
 IDB_MENU_IMAGES_24      BITMAP                  "res\\menuimages_hc.bmp"
-IDR_PROPERTIES          BITMAP                  "res\\properties.bmp"
-IDB_PROPERTIES_HC       BITMAP                  "res\\properties_hc.bmp"
+ID_TOOLBAR_SETTINGS     BITMAP                  "res\\properties.bmp"
 IDB_NAVIGATION_LARGE    BITMAP                  "res\\nav_large.bmp"
 IDB_NAVIGATION_LARGE_HC BITMAP                  "res\\nav_large_hc.bmp"
 IDB_PAGES               BITMAP                  "res\\pages.bmp"
@@ -125,7 +120,7 @@ IDB_MAIN_TOOLBAR        BITMAP                  "res\\Toolbar256.bmp"
 // Toolbar
 //
 
-IDR_MAINFRAME_256 TOOLBAR 16, 15
+ID_TOOLBAR_MAIN TOOLBAR 16, 15
 BEGIN
     BUTTON      ID_CMD_ADD_FILES
     BUTTON      ID_CMD_ADD_FOLDER
@@ -136,45 +131,18 @@ BEGIN
     BUTTON      ID_CMD_PROCESS_ALL
     BUTTON      ID_CMD_STOP_PROCESSING
     SEPARATOR
-    BUTTON      ID_CMD_PROFILE_ADD
-    BUTTON      ID_CMD_PROFILE_SAVE
-    BUTTON      ID_CMD_PROFILE_DELETE
-    BUTTON      ID_PROFILE_COMBO
-    BUTTON      ID_CMD_PROFILE_PREVIEW
-    SEPARATOR
     BUTTON      ID_CMD_OPTIONS
-END
-
-IDR_SORT TOOLBAR 16, 15
-BEGIN
-    BUTTON      ID_SORT_MENU
-    BUTTON      ID_NEW_FOLDER
-END
-
-IDR_EXPLORER TOOLBAR 16, 15
-BEGIN
-    BUTTON      ID_PROPERTIES
-END
-
-IDR_MENU_IMAGES TOOLBAR 16, 15
-BEGIN
-    BUTTON      ID_WINDOW_MANAGER
     SEPARATOR
-    BUTTON      ID_WINDOW_CASCADE
-    BUTTON      ID_WINDOW_TILE_HORZ
-    BUTTON      ID_TOOLS_MACRO
-    BUTTON      ID_SORTING_SORTALPHABETIC
-    BUTTON      ID_SORTING_SORTBYTYPE
-    BUTTON      ID_SORTING_SORTBYACCESS
-    BUTTON      ID_SORTING_GROUPBYTYPE
+    BUTTON      ID_COMBO_OUTPUT_DIR
 END
 
-IDR_PROPERTIES TOOLBAR 16, 15
+ID_TOOLBAR_SETTINGS TOOLBAR 16, 15
 BEGIN
-    BUTTON      ID_EXPAND_ALL
-    BUTTON      ID_SORTPROPERTIES
-    BUTTON      ID_PROPERTIES1
-    BUTTON      ID_PROPERTIES2
+    BUTTON      ID_CMD_PROFILE_ADD
+    BUTTON      ID_CMD_PROFILE_DELETE
+    BUTTON      ID_CMD_PROFILE_SAVE
+    BUTTON      ID_CMD_PROFILE_PREVIEW
+    BUTTON      ID_PROFILE_COMBO
 END
 
 

@@ -3,6 +3,7 @@
 #include "app_thread.h"
 #include "Resource.h"
 #include "OutputProfile.h"
+#include "OutputProfileList.h"
 #include "ScreenshotGenerator.h"
 #include "ProcessingThread.h"
 #include "VideoPreview.h"
@@ -18,9 +19,9 @@ static char THIS_FILE[]=__FILE__;
 enum
 {
     ID_PROP_BACKGROUND_COLOR,
+
     ID_PROP_WRITE_HEADER,
     ID_PROP_HEADER_TEXT,
-
     ID_PROP_HEADER_FONT,
     ID_PROP_HEADER_FONT_COLOR,
 
@@ -154,31 +155,28 @@ void CPGPFont::SetFont(const LOGFONT& logfont)
 }
 /////////////////////////////////////////////////////////////////////////////
 //CProfilePane
-CProfilePane::CProfilePane() : CBProfileHeight(0)
+BEGIN_MESSAGE_MAP(CProfilePane, CDockablePane)
+	ON_WM_CREATE()
+	ON_WM_SIZE()
+	ON_WM_SETFOCUS()
+	ON_WM_SETTINGCHANGE()
+
+    ON_CBN_SELCHANGE(ID_PROFILE_COMBO, OnProfileComboChanged)
+
+    ON_UPDATE_COMMAND_UI(ID_PROFILE_COMBO, OnUpdateUI)
+    ON_UPDATE_COMMAND_UI(ID_CMD_PROFILE_ADD, OnUpdateUI)
+    ON_UPDATE_COMMAND_UI(ID_CMD_PROFILE_PREVIEW, OnUpdateUI)
+    ON_UPDATE_COMMAND_UI(ID_CMD_PROFILE_SAVE, OnUpdateUI)
+    ON_UPDATE_COMMAND_UI(ID_CMD_PROFILE_DELETE, OnUpdateUI)
+
+    ON_REGISTERED_MESSAGE(AFX_WM_PROPERTY_CHANGED, OnProfilePropertyChanged)    
+END_MESSAGE_MAP()
+CProfilePane::CProfilePane()
 {
 }
 CProfilePane::~CProfilePane()
 {
 }
-
-BEGIN_MESSAGE_MAP(CProfilePane, CDockablePane)
-	ON_WM_CREATE()
-	ON_WM_SIZE()
-	ON_COMMAND(ID_EXPAND_ALL, OnExpandAllProperties)
-	ON_UPDATE_COMMAND_UI(ID_EXPAND_ALL, OnUpdateExpandAllProperties)
-	ON_COMMAND(ID_SORTPROPERTIES, OnSortProperties)
-	ON_UPDATE_COMMAND_UI(ID_SORTPROPERTIES, OnUpdateSortProperties)
-	ON_COMMAND(ID_PROPERTIES1, OnProperties1)
-	ON_UPDATE_COMMAND_UI(ID_PROPERTIES1, OnUpdateProperties1)
-	ON_COMMAND(ID_PROPERTIES2, OnProperties2)
-	ON_UPDATE_COMMAND_UI(ID_PROPERTIES2, OnUpdateProperties2)
-	ON_WM_SETFOCUS()
-	ON_WM_SETTINGCHANGE()
-    ON_REGISTERED_MESSAGE(AFX_WM_PROPERTY_CHANGED, OnProfilePropertyChanged)
-END_MESSAGE_MAP()
-
-/////////////////////////////////////////////////////////////////////////////
-//CProfilePane message handlers
 void CProfilePane::AdjustLayout()
 {
 	if(GetSafeHwnd() == NULL || (AfxGetMainWnd() != NULL && AfxGetMainWnd()->IsIconic()))
@@ -187,12 +185,16 @@ void CProfilePane::AdjustLayout()
 	CRect rectClient;
 	GetClientRect(rectClient);
 
-    //TODO: need TBProfile?
-	//int cyTlb = TBProfile.CalcFixedLayout(FALSE, TRUE).cy;
-    int cyTlb = 0;
-	//CBProfile.SetWindowPos(NULL, rectClient.left, rectClient.top, rectClient.Width(), CBProfileHeight, SWP_NOACTIVATE | SWP_NOZORDER);
-	//TBProfile.SetWindowPos(NULL, rectClient.left, rectClient.top + CBProfileHeight, rectClient.Width(), cyTlb, SWP_NOACTIVATE | SWP_NOZORDER);
-	PGProfile.SetWindowPos(NULL, rectClient.left, rectClient.top + CBProfileHeight + cyTlb, rectClient.Width(), rectClient.Height() -(CBProfileHeight+cyTlb), SWP_NOACTIVATE | SWP_NOZORDER);
+    //toolbar and grid
+	const int cyTlb = ToolBar.CalcFixedLayout(FALSE, TRUE).cy;
+	ToolBar.SetWindowPos(NULL, rectClient.left, rectClient.top, rectClient.Width(), cyTlb, SWP_NOACTIVATE | SWP_NOZORDER);
+	PGProfile.SetWindowPos(NULL, rectClient.left, rectClient.top + cyTlb, rectClient.Width(), rectClient.Height() - cyTlb, SWP_NOACTIVATE | SWP_NOZORDER);
+
+    //profiles combo
+    CRect cb_rect = CBProfiles->Rect();
+    cb_rect.right = rectClient.right;
+    CBProfiles->SetRect(cb_rect);
+    ToolBar.Invalidate(FALSE);
 }
 int CProfilePane::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
@@ -203,17 +205,17 @@ int CProfilePane::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	rectDummy.SetRectEmpty();
 
 	//Create combo:
-	//const DWORD dwViewStyle = WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST | WS_BORDER | CBS_SORT | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
-	//if(!CBProfile.Create(dwViewStyle, rectDummy, this, 1))
+	//const DWORD dwviewstyle = WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST | WS_BORDER | CBS_SORT | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
+	//if(!CBProfile.Create(dwviewstyle, rectDummy, this, 1))
 	//{
-	//	TRACE0("Failed to create Properties Combo \n");
+	//	TRACE0("failed to create properties combo \n");
 	//	return -1;      // fail to create
 	//}
 
- //   //TODO: init profiles
+    //TODO: init profiles
 	//CBProfile.AddString(_T("<Current>"));
 	//CBProfile.AddString(_T("Profile 1"));
- //   CBProfile.AddString(_T("Profile 2"));
+    //CBProfile.AddString(_T("Profile 2"));
 	//CBProfile.SetCurSel(0);
 
 	//CRect rectCombo;
@@ -228,67 +230,23 @@ int CProfilePane::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 	InitPropList();
 
-	//TBProfile.Create(this, AFX_DEFAULT_TOOLBAR_STYLE, IDR_PROPERTIES);
-	//TBProfile.LoadToolBar(IDR_PROPERTIES, 0, 0, TRUE /* Is locked */);
-	//TBProfile.CleanUpLockedImages();
-	//TBProfile.LoadBitmap(IDB_PROPERTIES_HC, 0, 0, TRUE /* Locked */);
+	ToolBar.Create(this, AFX_DEFAULT_TOOLBAR_STYLE, ID_TOOLBAR_SETTINGS);
+	ToolBar.LoadToolBar(ID_TOOLBAR_SETTINGS, 0, 0, TRUE /* Is locked */);
+	ToolBar.SetPaneStyle(ToolBar.GetPaneStyle() | CBRS_TOOLTIPS | CBRS_FLYBY);
+	ToolBar.SetPaneStyle(ToolBar.GetPaneStyle() & ~(CBRS_GRIPPER | CBRS_SIZE_DYNAMIC | CBRS_BORDER_TOP | CBRS_BORDER_BOTTOM | CBRS_BORDER_LEFT | CBRS_BORDER_RIGHT));
+	ToolBar.SetOwner(this);
 
-	//TBProfile.SetPaneStyle(TBProfile.GetPaneStyle() | CBRS_TOOLTIPS | CBRS_FLYBY);
-	//TBProfile.SetPaneStyle(TBProfile.GetPaneStyle() & ~(CBRS_GRIPPER | CBRS_SIZE_DYNAMIC | CBRS_BORDER_TOP | CBRS_BORDER_BOTTOM | CBRS_BORDER_LEFT | CBRS_BORDER_RIGHT));
-	//TBProfile.SetOwner(this);
-
-	////All commands will be routed via this control, not via the parent frame:
-	//TBProfile.SetRouteCommandsViaFrame(FALSE);
+	//All commands will be routed via this control, not via the parent frame:
+	ToolBar.SetRouteCommandsViaFrame(FALSE);
+    CBProfiles = GetProfileCombo();
+    ASSERT(CBProfiles);
 
 	AdjustLayout();
+
+    UpdateProfileCombo();
+
 	return 0;
 }
-
-void CProfilePane::OnSize(UINT nType, int cx, int cy)
-{
-	CDockablePane::OnSize(nType, cx, cy);
-	AdjustLayout();
-}
-
-void CProfilePane::OnExpandAllProperties()
-{
-	PGProfile.ExpandAll();
-}
-
-void CProfilePane::OnUpdateExpandAllProperties(CCmdUI* /* pCmdUI */)
-{
-}
-
-void CProfilePane::OnSortProperties()
-{
-	PGProfile.SetAlphabeticMode(!PGProfile.IsAlphabeticMode());
-}
-
-void CProfilePane::OnUpdateSortProperties(CCmdUI* pCmdUI)
-{
-	pCmdUI->SetCheck(PGProfile.IsAlphabeticMode());
-}
-
-void CProfilePane::OnProperties1()
-{
-	// TODO: Add your command handler code here
-}
-
-void CProfilePane::OnUpdateProperties1(CCmdUI* /*pCmdUI*/)
-{
-	// TODO: Add your command update UI handler code here
-}
-
-void CProfilePane::OnProperties2()
-{
-	// TODO: Add your command handler code here
-}
-
-void CProfilePane::OnUpdateProperties2(CCmdUI* /*pCmdUI*/)
-{
-	// TODO: Add your command update UI handler code here
-}
-
 void CProfilePane::InitPropList()
 {
 	SetPropListFont();
@@ -306,22 +264,25 @@ void CProfilePane::InitPropList()
 	lstrcpy(sample_logfont.lfFaceName, _T("Arial"));
 
     //main
+    CMFCPropertyGridProperty* pgp_profile_root = new CMFCPropertyGridProperty(_T("Profile Settings"));
     pgpBackgroundColor = new CMFCPropertyGridColorProperty(_T("Background Color"), RGB(0, 0, 0), NULL, _T("TODO"), ID_PROP_BACKGROUND_COLOR);
     pgpBackgroundColor->EnableOtherButton(_T("Other..."));
-    PGProfile.AddProperty(pgpBackgroundColor);
-    pgpWriteHeader = new CMFCPropertyGridProperty(_T("Write Header"), (_variant_t)false, _T("TODO"), ID_PROP_WRITE_HEADER);
-    PGProfile.AddProperty(pgpWriteHeader);
+    pgp_profile_root->AddSubItem(pgpBackgroundColor);
+    
    
     //header
     //TODO: header text
     //TODO: text color also can be defined in font dialog
     CMFCPropertyGridProperty* pgp_header = new CMFCPropertyGridProperty(_T("Header"));
+    pgpWriteHeader = new CMFCPropertyGridProperty(_T("Write Header"), (_variant_t)false, _T("TODO"), ID_PROP_WRITE_HEADER);
+    pgp_header->AddSubItem(pgpWriteHeader);
     pgpHeaderFont = new CPGPFont(_T("Font"), sample_logfont, CF_EFFECTS | CF_SCREENFONTS, _T("TODO"), ID_PROP_HEADER_FONT);
     pgpHeaderFontColor = new CMFCPropertyGridColorProperty(_T("Font Color"), RGB(0, 0, 0), NULL, _T("TODO"), ID_PROP_HEADER_FONT_COLOR);
     pgpHeaderFontColor->EnableOtherButton(_T("Other..."));
     pgp_header->AddSubItem(pgpHeaderFont);
     pgp_header->AddSubItem(pgpHeaderFontColor);
-    PGProfile.AddProperty(pgp_header);
+    pgp_profile_root->AddSubItem(pgp_header);
+
     //TODO:
     //ID_PROP_HEADER_TEXT
 
@@ -332,8 +293,8 @@ void CProfilePane::InitPropList()
 	pgpFramesGridColumns->EnableSpinControl(TRUE, 1, 10);
     pgpFramesGridRows->EnableSpinControl(TRUE, 1, 10);
 	pgp_frames_grid->AddSubItem(pgpFramesGridColumns);
-    pgp_frames_grid->AddSubItem(pgpFramesGridRows);   
-	PGProfile.AddProperty(pgp_frames_grid);
+    pgp_frames_grid->AddSubItem(pgpFramesGridRows); 
+    pgp_profile_root->AddSubItem(pgp_frames_grid);
     pgpFramesGridColumns->AllowEdit(FALSE);
     pgpFramesGridRows->AllowEdit(FALSE);
     pgp_frames_grid->AllowEdit(FALSE); 
@@ -353,7 +314,7 @@ void CProfilePane::InitPropList()
     pgp_output_image_size->AddSubItem(pgpOutputSizeMethod);
     pgp_output_image_size->AddSubItem(pgpOutputSize);
     //pgpOutputSize->Enable(FALSE); //TODO:
-    PGProfile.AddProperty(pgp_output_image_size);
+    pgp_profile_root->AddSubItem(pgp_output_image_size);
     //TODO:
     //ID_PROP_BORDER_PADDING
     //ID_PROP_FRAME_PADDING
@@ -375,7 +336,7 @@ void CProfilePane::InitPropList()
     pgp_timestamp->AddSubItem(pgpTimestampType);
     pgp_timestamp->AddSubItem(pgpTimestampFont);
     pgp_timestamp->AddSubItem(pgpTimestampFontColor);
-    PGProfile.AddProperty(pgp_timestamp);
+    pgp_profile_root->AddSubItem(pgp_timestamp);
 
     //output file
     CMFCPropertyGridProperty* pgp_output_file = new CMFCPropertyGridProperty(_T("Output File"));
@@ -386,7 +347,13 @@ void CProfilePane::InitPropList()
     pgpOutputFileFormat->AddItem(_T("PNG"), OUTPUT_FILE_FORMAT_PNG);
     pgp_output_file->AddSubItem(pgpOutputFileName);
     pgp_output_file->AddSubItem(pgpOutputFileFormat);
-    PGProfile.AddProperty(pgp_output_file);
+    pgp_profile_root->AddSubItem(pgp_output_file);
+
+    PGProfile.AddProperty(pgp_profile_root);
+
+    //TODO:
+    //CMFCPropertyGridProperty* pgp_settings_root = new CMFCPropertyGridProperty(_T("Common Settings"));
+
 
     //TODO:
 	//static const TCHAR szFilter[] = _T("Icon Files(*.ico)|*.ico|All Files(*.*)|*.*||");
@@ -394,7 +361,69 @@ void CProfilePane::InitPropList()
 	//pGroup3->AddSubItem(new CMFCPropertyGridFileProperty(_T("Folder"), _T("c:\\")));
 	//PGProfile.AddProperty(pGroup3);
 }
+void CProfilePane::OnSize(UINT nType, int cx, int cy)
+{
+	CDockablePane::OnSize(nType, cx, cy);
+	AdjustLayout();
+}
+void CProfilePane::OnUpdateUI(CCmdUI* pCmdUI)
+{
+    switch(pCmdUI->m_nID)
+    {
+    case ID_PROFILE_COMBO:
+    case ID_CMD_PROFILE_ADD: 
+        pCmdUI->Enable(false == ::IsProcessing);
+        break;
+    case ID_CMD_PROFILE_PREVIEW:
+    case ID_CMD_PROFILE_SAVE:
+    case ID_CMD_PROFILE_DELETE:
+        pCmdUI->Enable(false == ::IsProcessing && false == OutputProfiles.IsEmpty() && OutputProfiles.GetSelectedProfile());
+        break;
+    }
+}
+CMFCToolBarComboBoxButton* CProfilePane::GetProfileCombo()
+{
+    static int profile_combo_index = -1;
+    if(profile_combo_index < 0) profile_combo_index = ToolBar.CommandToIndex(ID_PROFILE_COMBO);
+    return static_cast<CMFCToolBarComboBoxButton*>(ToolBar.GetButton(profile_combo_index));
+}
+COutputProfile* CProfilePane::GetComboProfile()
+{
+    LPCTSTR profile_name = CBProfiles->GetItem();
+    return OutputProfiles.GetProfile(profile_name);
+}
+void CProfilePane::OnProfileComboChanged()
+{
+    COutputProfile* old_profile = OutputProfiles.GetSelectedProfile();
+    COutputProfile* new_profile = GetComboProfile();
+    if(new_profile == old_profile) return;
 
+    PromtSaveCurrentProfile();
+
+    OutputProfiles.SetSelectedProfile(new_profile);
+    SetOutputProfile(new_profile);
+    ResetProfileChanged();
+}
+void CProfilePane::UpdateProfileCombo()
+{
+    OutputProfiles.Fill(CBProfiles);
+    ToolBar.Invalidate();
+}
+void CProfilePane::PromtSaveCurrentProfile()
+{
+    COutputProfile* old_profile = OutputProfiles.GetSelectedProfile();
+    CString old_profile_name = OutputProfiles.GetSelectedProfileName();
+    if(IsProfileChanged() && old_profile_name && false == old_profile_name.IsEmpty())
+    {
+        CString msg;
+        msg.Format(_T("Do you want to save profile\n\"%s\" ?"), old_profile_name);
+        if(IDOK == ::AfxMessageBox(msg, MB_OKCANCEL | MB_ICONEXCLAMATION | MB_DEFBUTTON1)) 
+        {
+            GetOutputProfile(old_profile);
+            OutputProfiles.WriteProfile(theApp, old_profile_name);
+        }
+    }
+}
 void CProfilePane::OnSetFocus(CWnd* pOldWnd)
 {
 	CDockablePane::OnSetFocus(pOldWnd);
@@ -446,6 +475,9 @@ void CProfilePane::SetOutputProfile(const COutputProfile* profile)
     profile->HeaderFont.Get(lf);
     pgpHeaderFont->SetFont(lf);
     pgpHeaderFontColor->SetColor(profile->HeaderFont.Color);
+    BOOL enable = pgpWriteHeader->GetValue().boolVal;
+    pgpHeaderFont->Enable(enable);
+    pgpHeaderFontColor->Enable(enable);
 
     pgpFramesGridColumns->SetValue(_variant_t(long(profile->FrameColumns)));
     pgpFramesGridRows->SetValue(_variant_t(long(profile->FrameRows)));
@@ -459,7 +491,7 @@ void CProfilePane::SetOutputProfile(const COutputProfile* profile)
     profile->TimestampFont.Get(lf);
     pgpTimestampFont->SetFont(lf);
     pgpTimestampFontColor->SetColor(profile->TimestampFont.Color);
-    const BOOL enable = (profile->TimestampType != TIMESTAMP_TYPE_DISABLED);
+    enable = (profile->TimestampType != TIMESTAMP_TYPE_DISABLED);
     pgpTimestampFont->Enable(enable);
     pgpTimestampFontColor->Enable(enable);
 
@@ -478,8 +510,8 @@ void CProfilePane::GetOutputProfile(COutputProfile* profile)
     //TODO: try catch ?
     ASSERT(profile);
     profile->BackgroundColor = pgpBackgroundColor->GetColor();
-    profile->WriteHeader = pgpWriteHeader->GetValue().boolVal;
 
+    profile->WriteHeader = pgpWriteHeader->GetValue().boolVal;
     LPLOGFONT header_logfont = pgpHeaderFont->GetLogFont();
     COLORREF header_font_clor = pgpHeaderFontColor->GetColor();
     profile->HeaderFont.Set(*header_logfont, header_font_clor);
@@ -511,9 +543,14 @@ LRESULT CProfilePane::OnProfilePropertyChanged(WPARAM wp, LPARAM lp)
     switch(property_id)
     {
     case ID_PROP_BACKGROUND_COLOR: break;
-    case ID_PROP_WRITE_HEADER: break;
+    case ID_PROP_WRITE_HEADER:
+    {
+        const BOOL enable = pgpWriteHeader->GetValue().boolVal;
+        pgpHeaderFont->Enable(enable);
+        pgpHeaderFontColor->Enable(enable);
+        break;
+    }
     case ID_PROP_HEADER_TEXT: break;
-
     case ID_PROP_HEADER_FONT: break;
     case ID_PROP_HEADER_FONT_COLOR: break;
 
@@ -544,9 +581,11 @@ LRESULT CProfilePane::OnProfilePropertyChanged(WPARAM wp, LPARAM lp)
         break;
     }
     case ID_PROP_TIMESTAMP_FONT: break;
+    case ID_PROP_TIMESTAMP_FONT_COLOR: break;
 
     case ID_PROP_OUTPUT_FILE_NAME: break;
     case ID_PROP_OUTPUT_FILE_FORMAT: break;
+
     default:
         ASSERT(0);
     }

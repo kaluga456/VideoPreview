@@ -11,15 +11,8 @@
 #define IDS_TOOLBAR_CUSTOMIZE           125
 #define IDR_MAINFRAME                   128
 #define IDR_MAINFRAME_256               129
+#define ID_TOOLBAR_MAIN                 129
 #define IDR_VideoPreviewTYPE            130
-#define ID_WINDOW_MANAGER               131
-#define ID_PROPERTIES                   135
-#define ID_NEW_FOLDER                   143
-#define ID_SORT_MENU                    144
-#define ID_SORTING_GROUPBYTYPE          145
-#define ID_SORTING_SORTALPHABETIC       146
-#define ID_SORTING_SORTBYTYPE           147
-#define ID_SORTING_SORTBYACCESS         148
 #define ID_SORTPROPERTIES               151
 #define ID_PROPERTIES1                  152
 #define ID_PROPERTIES2                  153
@@ -36,19 +29,14 @@
 #define IDI_OUTPUT_WND_HC               166
 #define IDI_PROPERTIES_WND              167
 #define IDI_PROPERTIES_WND_HC           168
-#define IDR_EXPLORER                    169
 #define IDB_EXPLORER_24                 170
-#define IDR_SORT                        171
-#define IDB_SORT_24                     172
 #define IDB_FILE_VIEW                   175
 #define IDB_FILE_VIEW_24                176
 #define IDB_CLASS_VIEW                  177
 #define IDB_CLASS_VIEW_24               178
-#define IDR_MENU_IMAGES                 179
 #define IDB_MENU_IMAGES_24              180
-#define ID_TOOLS_MACRO                  181
 #define IDR_PROPERTIES                  183
-#define IDB_PROPERTIES_HC               184
+#define ID_TOOLBAR_SETTINGS             183
 #define IDB_NAVIGATION_LARGE            186
 #define IDB_NAVIGATION_LARGE_HC         187
 #define IDB_PAGES                       188
@@ -153,13 +141,14 @@
 #define ID_BUTTON32842                  32842
 #define ID_CMD_PROFILE_ADD              32842
 #define ID_PROFILE_ADD                  32844
+#define ID_COMBO_OUTPUT_DIR             32848
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        322
-#define _APS_NEXT_COMMAND_VALUE         32845
+#define _APS_NEXT_COMMAND_VALUE         32849
 #define _APS_NEXT_CONTROL_VALUE         1002
 #define _APS_NEXT_SYMED_VALUE           331
 #endif

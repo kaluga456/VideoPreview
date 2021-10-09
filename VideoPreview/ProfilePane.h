@@ -41,6 +41,8 @@ public:
 class CProfilePane : public CDockablePane
 {
 public:
+    CMFCToolBarComboBoxButton* CBProfiles;
+    CProfileToolBar ToolBar;
     CMFCPropertyGridCtrl PGProfile;
 
 	CProfilePane();
@@ -51,31 +53,31 @@ public:
 
     void SetOutputProfile(const COutputProfile* profile);
     void GetOutputProfile(COutputProfile* profile);
+
     bool IsProfileChanged() const {return ProfileChanged;}
     void ResetProfileChanged() {ProfileChanged = false;}
+    void PromtSaveCurrentProfile();
+
+    void UpdateProfileCombo();
 
 protected:
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	afx_msg void OnSize(UINT nType, int cx, int cy);
-	afx_msg void OnExpandAllProperties();
-	afx_msg void OnUpdateExpandAllProperties(CCmdUI* pCmdUI);
-	afx_msg void OnSortProperties();
-	afx_msg void OnUpdateSortProperties(CCmdUI* pCmdUI);
-	afx_msg void OnProperties1();
-	afx_msg void OnUpdateProperties1(CCmdUI* pCmdUI);
-	afx_msg void OnProperties2();
-	afx_msg void OnUpdateProperties2(CCmdUI* pCmdUI);
+	afx_msg void OnUpdateUI(CCmdUI* pCmdUI);
 	afx_msg void OnSetFocus(CWnd* pOldWnd);
 	afx_msg void OnSettingChange(UINT uFlags, LPCTSTR lpszSection);
+    afx_msg void OnProfileComboChanged();
     afx_msg LRESULT OnProfilePropertyChanged(WPARAM wp, LPARAM lp);
 	DECLARE_MESSAGE_MAP()
 
-	int CBProfileHeight;
 	CFont m_fntPropList;
     bool ProfileChanged;
 
-	//CComboBox CBProfile; //TODO: need this?
-	//CProfileToolBar TBProfile; //TODO: need this?
+    CMFCToolBarComboBoxButton* GetProfileCombo();
+    COutputProfile* GetComboProfile();
+
+    void SetPropListFont();
+    void InitPropList();
 
     //property controls
     CMFCPropertyGridColorProperty* pgpBackgroundColor;
@@ -91,8 +93,5 @@ protected:
     CPGPNumberEdit* pgpOutputSize;
     CMFCPropertyGridProperty* pgpOutputFileName;
     CPGPCombo* pgpOutputFileFormat;
-
-    void SetPropListFont();
-    void InitPropList();
 };
 

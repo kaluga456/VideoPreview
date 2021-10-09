@@ -22,6 +22,8 @@
 #define new DEBUG_NEW
 #endif
 
+bool IsProcessing; //true - while there are files to process and command 'stop' not executed
+
 // CMainApp
 BEGIN_MESSAGE_MAP(CMainApp, CWinAppEx)
 END_MESSAGE_MAP()

@@ -1,10 +1,26 @@
 #pragma once
 
+//CMainToolbar - disabled default CMFCToolBar::AdjustLayout()
+class CMainToolbar : public CMFCToolBar
+{
+public:
+    virtual void AdjustLayout();
+};
+
 class CMainFrame : public CFrameWndEx
 {
+public:
+	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
+    virtual void OnUpdateFrameTitle(BOOL bAddToTitle);
+	virtual ~CMainFrame();
+
+#ifdef _DEBUG
+	virtual void AssertValid() const;
+	virtual void Dump(CDumpContext& dc) const;
+#endif
+
 private:
     //processing
-    bool IsProcessing; //true - while there are files to process and command 'stop' not executed
     PProcessingItem CurrentItem; //current item in processing thread
     CProcessingThread ProcessingThread;
     bool ProcessNextItem();
@@ -12,9 +28,7 @@ private:
     void SetProcessingState(bool Value); //true - processing items now
 
     //output profiles
-    COutputProfile* GetComboProfile(); //selected profile on toolbar
     COutputProfile* GetCurrentProfile(); //selected profile on toolbar or TempProfile
-    void PromtSaveCurrentProfile();
 
     //file list
     CFileListView* GetFileListView();
@@ -23,19 +37,29 @@ private:
     void RemoveItem(PProcessingItem item);
     void RemoveAllItems();
 
+    //settings
+    LPCTSTR GetCurrentOutputDir();
+
 protected:
     COutputProfile TempProfile;
 
     //controls
 	CMFCMenuBar MainMenu;
-	CMFCToolBar ToolBar;
-	CProfilePane ProfilePane;
+
+    //TEST:
+    CMainToolbar ToolBar;
+	//CMFCToolBar ToolBar;
+
+	CProfilePane SettingsPane;
     CMFCStatusBar StatusBar; //TODO: need status bar?
 
-    //output profiles combobox
-    CMFCToolBarComboBoxButton* CBProfile;
-    CMFCToolBarComboBoxButton* GetProfileCombo();
-    void UpdateProfileCombo();
+    //output dir combobox
+    CMFCToolBarComboBoxButton* CBOutputDir;
+    CMFCToolBarComboBoxButton* GetOutputDirCombo();
+    void UpdateOutputDirCombo();
+
+    //overrides
+    virtual void AdjustDockingLayout(HDWP hdwp /*= NULL*/);
 
     //message handlers
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
@@ -56,7 +80,6 @@ protected:
     afx_msg void OnProfilePreview();
     afx_msg void OnProfileCombo();
     afx_msg void OnCmdTest(); //TEST:
-    afx_msg void OnResetToolbar();
     afx_msg void OnCmdGitHub();
     afx_msg void OnCmdAbout();
     afx_msg void OnCmdOpenVideo();
@@ -68,24 +91,14 @@ protected:
     afx_msg void OnCmdResetAll();
     afx_msg void OnCmdRemoveSelected();
     afx_msg void OnUpdateUI(CCmdUI* pCmdUI);
+    afx_msg void OnSize(UINT nType, int cx, int cy);
+    afx_msg BOOL OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult);
     afx_msg LRESULT OnResetToolbar(WPARAM wp,LPARAM lp);
     afx_msg LRESULT OnProcessingThread(WPARAM wp,LPARAM lp);
 	DECLARE_MESSAGE_MAP()
 
 	CMainFrame();
 	DECLARE_DYNCREATE(CMainFrame)
-
-    BOOL OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult);
-
-public:
-	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
-    virtual void OnUpdateFrameTitle(BOOL bAddToTitle);
-	virtual ~CMainFrame();
-
-#ifdef _DEBUG
-	virtual void AssertValid() const;
-	virtual void Dump(CDumpContext& dc) const;
-#endif
 };
 
 

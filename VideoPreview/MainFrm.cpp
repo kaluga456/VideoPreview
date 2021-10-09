@@ -24,8 +24,25 @@
 #define new DEBUG_NEW
 #endif
 
-extern CSourceFileTypes SourceFileTypes;
 CProcessingItemList ProcessingItemList;
+
+void CMainToolbar::AdjustLayout()
+{
+    static int profile_combo_index = -1;
+    if(profile_combo_index < 0) profile_combo_index = CommandToIndex(ID_COMBO_OUTPUT_DIR);
+    CMFCToolBarComboBoxButton* cbb = static_cast<CMFCToolBarComboBoxButton*>(GetButton(profile_combo_index));
+
+    //WORKAROUND: this call restores default width of CMFCToolBarComboBoxButton
+    //CMFCToolBar::AdjustLayout();
+
+    CRect rectClient;
+	GetClientRect(rectClient);  
+    CRect cb_rect = cbb->Rect();
+    cb_rect.right = rectClient.right;
+    cbb->SetRect(cb_rect);
+
+    Invalidate();
+}
 
 //items list state CMainFrame::ItemsListState
 class CItemsListState
@@ -65,7 +82,7 @@ void CItemsListState::Update()
     for(CProcessingItemList::iterator i = ProcessingItemList.begin(); i != ProcessingItemList.end(); ++i)
     {
         PProcessingItem pi = i->second;
-        if(PIS_READY == pi->State) SetBit(PILS_HAS_READY);
+        if(PIS_WAIT == pi->State) SetBit(PILS_HAS_READY);
         if(PIS_DONE == pi->State) SetBit(PILS_HAS_DONE);
         if(PIS_FAILED == pi->State) SetBit(PILS_HAS_FAILED);
     }
@@ -134,6 +151,7 @@ static UINT SBIndicators[] =
 	ID_SEPARATOR           // status line indicator
 };
 
+//////////////////////////////////////////////////////////////////////////////
 //CMainFrame
 IMPLEMENT_DYNCREATE(CMainFrame, CFrameWndEx)
 
@@ -141,10 +159,10 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWndEx)
 	ON_WM_CREATE()
     ON_WM_CLOSE()
     ON_WM_DESTROY()
+    ON_WM_SIZE()
     ON_REGISTERED_MESSAGE(AFX_WM_RESETTOOLBAR, OnResetToolbar)
     ON_MESSAGE(WM_PROCESSING_THREAD, OnProcessingThread)
 
-    //////////////////////////////////////////////////////////////////////////
     //commands    
     ON_COMMAND(ID_CMD_OPTIONS, &CMainFrame::OnCmdSettings)
     ON_COMMAND(ID_CMD_GITHUB, &CMainFrame::OnCmdGitHub)
@@ -159,7 +177,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWndEx)
     ON_COMMAND(ID_CMD_PROFILE_SAVE, &CMainFrame::OnCmdProfileSave)
     ON_COMMAND(ID_CMD_PROFILE_DELETE, &CMainFrame::OnCmdProfileDelete)
     ON_COMMAND(ID_CMD_PROFILE_PREVIEW, &CMainFrame::OnProfilePreview)
-    ON_CBN_SELCHANGE(ID_PROFILE_COMBO, OnProfileCombo)
+    ON_CBN_SELCHANGE(ID_COMBO_OUTPUT_DIR, OnProfileCombo)
 
     //processing
     ON_COMMAND(ID_CMD_PROCESS_ALL, &CMainFrame::OnCmdProcessAll)
@@ -179,13 +197,12 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWndEx)
     ON_COMMAND(ID_CMD_REMOVE_SELECTED, &CMainFrame::OnCmdRemoveSelected)
     ON_COMMAND(ID_CMD_REMOVE_ALL, &CMainFrame::OnCmdRemoveAll)
 
-    //////////////////////////////////////////////////////////////////////////
     //update UI
-    ON_UPDATE_COMMAND_UI(ID_PROFILE_COMBO, OnUpdateUI)
-    ON_UPDATE_COMMAND_UI(ID_CMD_PROFILE_ADD, OnUpdateUI)
-    ON_UPDATE_COMMAND_UI(ID_CMD_PROFILE_SAVE, OnUpdateUI)
-    ON_UPDATE_COMMAND_UI(ID_CMD_PROFILE_DELETE, OnUpdateUI)
-    ON_UPDATE_COMMAND_UI(ID_CMD_PROFILE_PREVIEW, OnUpdateUI)
+    ON_UPDATE_COMMAND_UI(ID_COMBO_OUTPUT_DIR, OnUpdateUI)
+    //ON_UPDATE_COMMAND_UI(ID_CMD_PROFILE_ADD, OnUpdateUI)
+    //ON_UPDATE_COMMAND_UI(ID_CMD_PROFILE_SAVE, OnUpdateUI)
+    //ON_UPDATE_COMMAND_UI(ID_CMD_PROFILE_DELETE, OnUpdateUI)
+    //ON_UPDATE_COMMAND_UI(ID_CMD_PROFILE_PREVIEW, OnUpdateUI)
 
     ON_UPDATE_COMMAND_UI(ID_CMD_OPEN_VIDEO, OnUpdateUI)
     ON_UPDATE_COMMAND_UI(ID_CMD_OPEN_PREVIEW, OnUpdateUI)
@@ -205,15 +222,13 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWndEx)
     ON_UPDATE_COMMAND_UI(ID_CMD_REMOVE_ALL, OnUpdateUI)
 END_MESSAGE_MAP()
 
-// CMainFrame construction/destruction
-CMainFrame::CMainFrame() : IsProcessing(false)
+CMainFrame::CMainFrame()
 {
+    ::IsProcessing = false;
 }
-
 CMainFrame::~CMainFrame()
 {
 }
-
 int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	if(CFrameWndEx::OnCreate(lpCreateStruct) == -1)
@@ -227,36 +242,34 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 		return -1;      // fail to create
 	}
 
-    //TODO:
     DWORD menu_bar_sytle = MainMenu.GetPaneStyle();
     menu_bar_sytle &= ~(CBRS_SIZE_DYNAMIC | CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_FLOATING | CBRS_FLOAT_MULTI | CBRS_GRIPPER);
     MainMenu.SetPaneStyle(menu_bar_sytle);
     MainMenu.SetRecentlyUsedMenus(FALSE);
     MainMenu.SetShowAllCommands(TRUE);
+
+    //TODO: need that?
 	//MainMenu.SetPaneStyle(MainMenu.GetPaneStyle() /*| CBRS_SIZE_DYNAMIC | CBRS_TOOLTIPS | CBRS_FLYBY*/);
 
 	// prevent the menu bar from taking the focus on activation
 	CMFCPopupMenu::SetForceMenuFocus(FALSE);
 
-    //TODO:
-	if(!ToolBar.CreateEx(this, TBSTYLE_FLAT, WS_CHILD | WS_VISIBLE | CBRS_TOP | CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_SIZE_DYNAMIC) || !ToolBar.LoadToolBar(IDR_MAINFRAME_256))
-	{
-		TRACE0("Failed to create toolbar\n");
-		return -1;      // fail to create
-	}
+    //TEST
+	ToolBar.Create(this, AFX_DEFAULT_TOOLBAR_STYLE, ID_TOOLBAR_MAIN);
+	ToolBar.LoadToolBar(ID_TOOLBAR_MAIN, 0, 0, TRUE /* Is locked */);
+	ToolBar.SetPaneStyle(ToolBar.GetPaneStyle() | CBRS_TOOLTIPS | CBRS_FLYBY);
+	ToolBar.SetPaneStyle(ToolBar.GetPaneStyle() & ~(CBRS_GRIPPER | CBRS_SIZE_DYNAMIC | CBRS_BORDER_TOP | CBRS_BORDER_BOTTOM | CBRS_BORDER_LEFT | CBRS_BORDER_RIGHT));
 
-    ////////////////////////////////////////////////////////
-    //TODO: create profile combo
-    CRect rectDummy;
-	rectDummy.SetRectEmpty();
-    //CToolBarCtrl toolbar_ctrl = ToolBar.GetToolBarCtrl();
-	const DWORD dwViewStyle = WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST | WS_BORDER | CBS_SORT | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
-    //CBProfile = new CMFCToolBarComboBoxButton(ID_PROFILE_COMBO, NULL, 3, 100);
+	//if(!ToolBar.CreateEx(this, TBSTYLE_FLAT, WS_CHILD | WS_VISIBLE | CBRS_TOP | CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_SIZE_DYNAMIC) || !ToolBar.LoadToolBar(ID_TOOLBAR_MAIN))
+	//{
+	//	TRACE0("Failed to create toolbar\n");
+	//	return -1;      // fail to create
+	//}
 
 	CString strToolBarName;
 	bNameValid = strToolBarName.LoadString(IDS_TOOLBAR_STANDARD);
 	ASSERT(bNameValid);
-	ToolBar.SetWindowText(strToolBarName);
+	ToolBar.SetWindowText(strToolBarName);  
 
     //DEPRECATE:
 	CString strCustomize;
@@ -271,50 +284,44 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	}
 	StatusBar.SetIndicators(SBIndicators, sizeof(SBIndicators)/sizeof(UINT));
 
-    DockPane(&MainMenu);
-    DockPane(&ToolBar);
+	//create profile window
+	CString strPropertiesWnd;
+	bNameValid = strPropertiesWnd.LoadString(IDS_PROPERTIES_WND);
+	ASSERT(bNameValid);
+    if(!SettingsPane.Create(strPropertiesWnd, this, CRect(0, 0, Options.ProfilePaneWidth, 200), FALSE, ID_VIEW_PROPERTIESWND, 
+        WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |  CBRS_LEFT, AFX_CBRS_REGULAR_TABS, AFX_CBRS_RESIZE)) 
+	{
+		TRACE0("Failed to create SettingsPane window\n");
+		return FALSE; // failed to create
+	}
 
-    //TODO:
     CDockState state;
     state.Clear();
     SetDockState(state);
     GetDockingManager()->DisableRestoreDockState(TRUE);
     GetDockingManager()->EnableDocking(CBRS_NOALIGN);
 
-    //TODO:
-	// Outlook bar is created and docking on the left side should be allowed.
-	//EnableDocking(CBRS_ALIGN_LEFT);
-
-	// Load menu item image (not placed on any standard toolbars):
-	CMFCToolBar::AddToolBarForImageCollection(IDR_MENU_IMAGES, IDB_MENU_IMAGES_24);
-
-	//create profile window
-	CString strPropertiesWnd;
-	bNameValid = strPropertiesWnd.LoadString(IDS_PROPERTIES_WND);
-	ASSERT(bNameValid);
-    if(!ProfilePane.Create(strPropertiesWnd, this, CRect(0, 0, Options.ProfilePaneWidth, 200), FALSE, ID_VIEW_PROPERTIESWND, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |  CBRS_LEFT, AFX_CBRS_REGULAR_TABS, AFX_CBRS_RESIZE)) 
-	{
-		TRACE0("Failed to create Profile window\n");
-		return FALSE; // failed to create
-	}
-    DockPane(&ProfilePane);
+    //NOTE: keep this order
+    DockPane(&MainMenu);
+    DockPane(&SettingsPane);
+    DockPane(&ToolBar);
 
     TempProfile.SetDefault();
     COutputProfile* profile = OutputProfiles.GetSelectedProfile();
-    if(NULL == profile) 
-    {
-        profile = OutputProfiles.SelectFirst();
-        if(NULL == profile) profile = &TempProfile;
-    }
-    ProfilePane.SetOutputProfile(profile);
-    UpdateProfileCombo();
+    if(NULL == profile) profile = OutputProfiles.SelectFirst();
+    if(NULL == profile) profile = &TempProfile;
+    SettingsPane.SetOutputProfile(profile);
+
+
+    //ToolBar.AdjustLayout();
+    UpdateOutputDirCombo();
 
     ItemsListState.Update();
     return 0;
 }
 void CMainFrame::OnClose()
 {
-    PromtSaveCurrentProfile();
+    SettingsPane.PromtSaveCurrentProfile();
     CFrameWndEx::OnClose();
 }
 void CMainFrame::OnDestroy()
@@ -322,10 +329,20 @@ void CMainFrame::OnDestroy()
     ProcessingThread.Stop();
 
     CRect rect;
-    ProfilePane.GetClientRect(&rect);
+    SettingsPane.GetClientRect(&rect);
     Options.ProfilePaneWidth = rect.Width();
 
     CFrameWndEx::OnDestroy();
+}
+void CMainFrame::OnSize(UINT nType, int cx, int cy)
+{
+    //TODO:
+    CFrameWndEx::OnSize(nType, cx, cy);
+}
+void CMainFrame::AdjustDockingLayout(HDWP hdwp /*= NULL*/)
+{
+    CFrameWndEx::AdjustDockingLayout(hdwp);
+    if(ToolBar.GetSafeHwnd()) ToolBar.AdjustLayout();
 }
 void CMainFrame::OnUpdateFrameTitle(BOOL bAddToTitle)
 {
@@ -337,7 +354,8 @@ BOOL CMainFrame::OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult)
 {
     LPNMHDR nmhdr = reinterpret_cast<LPNMHDR>(lParam);
 
-    CView* flv = GetActiveView(); //file list view
+    //file list view events
+    CView* flv = GetActiveView(); 
     if(flv && nmhdr->hwndFrom == flv->m_hWnd)
     {
         if(NM_DBLCLK == nmhdr->code)
@@ -353,26 +371,32 @@ BOOL CMainFrame::OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult)
 }
 BOOL CMainFrame::PreCreateWindow(CREATESTRUCT& cs)
 {
-	if( !CFrameWndEx::PreCreateWindow(cs) )
+	if(!CFrameWndEx::PreCreateWindow(cs))
 		return FALSE;
-	// TODO: Modify the Window class or styles here by modifying
-	//  the CREATESTRUCT cs
-
     cs.style &= ~FWS_ADDTOTITLE;
-
 	return TRUE;
 }
 LRESULT CMainFrame::OnResetToolbar(WPARAM wp,LPARAM lp)
 {
-    CMFCToolBarComboBoxButton profile_combo(ID_PROFILE_COMBO, 0, CBS_DROPDOWNLIST, 300);
-    ToolBar.ReplaceButton(ID_PROFILE_COMBO, profile_combo);
-    CBProfile = GetProfileCombo();
+    if(ID_TOOLBAR_MAIN == wp)
+    {
+        CMFCToolBarComboBoxButton profile_combo(ID_COMBO_OUTPUT_DIR, 0, CBS_DROPDOWNLIST, 0);
+        ToolBar.ReplaceButton(ID_COMBO_OUTPUT_DIR, profile_combo);
+        CBOutputDir = GetOutputDirCombo();
+        ToolBar.AdjustLayout();
+    }
+    else if(ID_TOOLBAR_SETTINGS == wp)
+    {
+        CMFCToolBarComboBoxButton profile_combo(ID_PROFILE_COMBO, 0, CBS_DROPDOWNLIST, 0);
+        SettingsPane.ToolBar.ReplaceButton(ID_PROFILE_COMBO, profile_combo);
+    }
     return 0;
 }
-CMFCToolBarComboBoxButton* CMainFrame::GetProfileCombo()
+CMFCToolBarComboBoxButton* CMainFrame::GetOutputDirCombo()
 {
     static int profile_combo_index = -1;
-    if(profile_combo_index < 0) profile_combo_index = ToolBar.CommandToIndex(ID_PROFILE_COMBO);
+    if(profile_combo_index < 0) profile_combo_index = ToolBar.CommandToIndex(ID_COMBO_OUTPUT_DIR);
+    //return static_cast<CMFCToolBarComboBoxButton*>(ToolBar.GetButton(profile_combo_index));
     return static_cast<CMFCToolBarComboBoxButton*>(ToolBar.GetButton(profile_combo_index));
 }
 // CMainFrame diagnostics
@@ -392,8 +416,8 @@ void CMainFrame::OnViewPropertiesWindow()
 {
 	// Show or activate the pane, depending on current state.  The
 	// pane can only be closed via the [x] button on the pane frame.
-	//ProfilePane.ShowPane(TRUE, FALSE, TRUE);
-	//ProfilePane.SetFocus();
+	//SettingsPane.ShowPane(TRUE, FALSE, TRUE);
+	//SettingsPane.SetFocus();
 }
 void CMainFrame::OnCmdGitHub()
 {
@@ -432,7 +456,7 @@ void CMainFrame::OnCmdAddFiles()
             if(0 == name_size)
                 break;
 
-            PProcessingItem pi(new CProcessingItem(PIS_READY, root_dir + file_name));
+            PProcessingItem pi(new CProcessingItem(PIS_WAIT, root_dir + file_name));
             AddItem(pi);
         }
     }
@@ -440,7 +464,7 @@ void CMainFrame::OnCmdAddFiles()
     //one file selected
     else
     {
-        PProcessingItem pi(new CProcessingItem(PIS_READY, ofn.lpstrFile));
+        PProcessingItem pi(new CProcessingItem(PIS_WAIT, ofn.lpstrFile));
         AddItem(pi);
     }
 
@@ -518,14 +542,13 @@ void CMainFrame::AddFolder(CString root_dir)
         ext.MakeLower();
         if(SourceFileTypes.HasType(ext))
         {
-            PProcessingItem pi(new CProcessingItem(PIS_READY, root_dir + _T("\\") + found_name));
+            PProcessingItem pi(new CProcessingItem(PIS_WAIT, root_dir + _T("\\") + found_name));
             AddItem(pi);
         }
     }
 }
 LRESULT CMainFrame::OnProcessingThread(WPARAM wp, LPARAM lp)
 {
-    //TODO: block current item and profile pane while processing
     ASSERT(CurrentItem.get());
 
     CFileListView* file_list_view = GetFileListView();
@@ -546,7 +569,7 @@ LRESULT CMainFrame::OnProcessingThread(WPARAM wp, LPARAM lp)
         ProcessNextItem();
         break;
     case PTM_STOP:       //LPARAM - NULL
-        CurrentItem->State = PIS_READY;
+        CurrentItem->State = PIS_WAIT;
         CurrentItem->ResultString = _T("");
         file_list_view->UpdateItem(CurrentItem.get());
         ItemsListState.SetReady(true);
@@ -557,7 +580,6 @@ LRESULT CMainFrame::OnProcessingThread(WPARAM wp, LPARAM lp)
         CurrentItem->ResultString = GetLParamString(lp);
         file_list_view->UpdateItem(CurrentItem.get());
         ItemsListState.SetFailed(true);
-
         if(IsProceedOnError())
         {
             CurrentItem.reset();
@@ -608,7 +630,7 @@ bool CMainFrame::ProcessNextItem()
         if(NULL == pi) 
             break; //no more items to process
 
-        ProfilePane.GetOutputProfile(&TempProfile);
+        SettingsPane.GetOutputProfile(&TempProfile);
         const DWORD result = ProcessingThread.Start(m_hWnd, &TempProfile, pi->SourceFileName);
         if(ERROR_SUCCESS == result)
         {
@@ -618,7 +640,8 @@ bool CMainFrame::ProcessNextItem()
         }
         else
         {
-            ; //TODO: message
+            //TODO: message
+            //::AfxMessageBox(_T(""), MB_ICONWARNING | MB_OK
         }
 
         if(false == IsProceedOnError())
@@ -705,36 +728,21 @@ void CMainFrame::OnCmdSettings()
     CDialogSettings dialog(this);
     dialog.DoModal();
 }
-void CMainFrame::PromtSaveCurrentProfile()
-{
-    COutputProfile* old_profile = OutputProfiles.GetSelectedProfile();
-    CString old_profile_name = OutputProfiles.GetSelectedProfileName();
-    if(ProfilePane.IsProfileChanged() && old_profile_name && false == old_profile_name.IsEmpty())
-    {
-        CString msg;
-        msg.Format(_T("Do you want to save profile\n\"%s\" ?"), old_profile_name);
-        if(IDOK == ::AfxMessageBox(msg, MB_OKCANCEL | MB_ICONEXCLAMATION | MB_DEFBUTTON1)) 
-        {
-            ProfilePane.GetOutputProfile(old_profile);
-            OutputProfiles.WriteProfile(theApp, old_profile_name);
-        }
-    }
-}
 void CMainFrame::OnProfileCombo()
 {
-    COutputProfile* old_profile = OutputProfiles.GetSelectedProfile();
-    COutputProfile* new_profile = GetComboProfile();
-    if(new_profile == old_profile) return;
+    //COutputProfile* old_profile = OutputProfiles.GetSelectedProfile();
+    //COutputProfile* new_profile = GetCurrentOutputDir();
+    //if(new_profile == old_profile) return;
 
-    PromtSaveCurrentProfile();
+    //SettingsPane.PromtSaveCurrentProfile();
 
-    OutputProfiles.SetSelectedProfile(new_profile);
-    ProfilePane.SetOutputProfile(new_profile);
-    ProfilePane.ResetProfileChanged();
+    //OutputProfiles.SetSelectedProfile(new_profile);
+    //SettingsPane.SetOutputProfile(new_profile);
+    //SettingsPane.ResetProfileChanged();
 }
 void CMainFrame::OnCmdProfileAdd()
 {
-    PromtSaveCurrentProfile();
+    SettingsPane.PromtSaveCurrentProfile();
 
     CDialogOutputProfile dialog(this, true);
     if(IDOK != dialog.DoModal())
@@ -760,8 +768,8 @@ void CMainFrame::OnCmdProfileAdd()
     }
 
     OutputProfiles.AddProfile(theApp, dialog.ProfileName, new_profile);
-    ProfilePane.SetOutputProfile(GetCurrentProfile());
-    UpdateProfileCombo();
+    SettingsPane.SetOutputProfile(GetCurrentProfile());
+    SettingsPane.UpdateProfileCombo();
 }
 void CMainFrame::OnCmdProfileSave()
 {
@@ -772,29 +780,29 @@ void CMainFrame::OnCmdProfileSave()
     COutputProfile* profile_to_save = OutputProfiles.GetProfile(dialog.ProfileName);
     if(profile_to_save)
     {
-        ProfilePane.GetOutputProfile(profile_to_save);
+        SettingsPane.GetOutputProfile(profile_to_save);
         OutputProfiles.WriteProfile(theApp, dialog.ProfileName);
     }
     else
     {
         POutputProfile new_profile(new COutputProfile);
-        ProfilePane.GetOutputProfile(new_profile.get());
+        SettingsPane.GetOutputProfile(new_profile.get());
         OutputProfiles.AddProfile(theApp, dialog.ProfileName, new_profile);
     }
 
-    ProfilePane.SetOutputProfile(GetCurrentProfile());
-    UpdateProfileCombo();
+    SettingsPane.SetOutputProfile(GetCurrentProfile());
+    SettingsPane.UpdateProfileCombo();
 }
 void CMainFrame::OnCmdProfileDelete()
 {
     OutputProfiles.DeleteSelectedProfile(theApp);
-    ProfilePane.SetOutputProfile(GetCurrentProfile());
-    UpdateProfileCombo();
+    SettingsPane.SetOutputProfile(GetCurrentProfile());
+    SettingsPane.UpdateProfileCombo();
 }
-void CMainFrame::UpdateProfileCombo()
+void CMainFrame::UpdateOutputDirCombo()
 {
-    OutputProfiles.Fill(CBProfile);
-    ToolBar.Invalidate();
+    //OutputProfiles.Fill(SettingsPane.CBProfiles);
+    //ToolBar.Invalidate();
 }
 void CMainFrame::OnProfilePreview()
 {
@@ -806,7 +814,7 @@ void CMainFrame::OnCmdTest()
     //TEST:
     //COutputProfile profile;
     //profile.SetDefault();
-    //ProfilePane.SetOutputProfile(&profile);
+    //SettingsPane.SetOutputProfile(&profile);
     //UpdateDialogControls(this, FALSE);
     //MessageBox(L"OnCmdTest", L"DEBUG", MB_OK | MB_ICONINFORMATION);
     
@@ -816,22 +824,44 @@ void CMainFrame::OnCmdTest()
     //AddItem(PProcessingItem(new CProcessingItem(_T("d:\\projects\\VideoPreview\\videos\\Chicken_Techno_by_Oli_Chang.mp4"))));
     //AddItem(PProcessingItem(new CProcessingItem(_T("d:\\projects\\VideoPreview\\videos\\Frankie the pug walking on his front legs!.mp4"))));
 
-    ProfilePane.PGProfile.ResetOriginalValues();
+    //SettingsPane.PGProfile.ResetOriginalValues();
+
+    //CRect cb_rect = CBOutputDir->Rect();
+
+    //profiles combo
+ //   CRect rectClient;
+	//GetClientRect(rectClient); 
+
+ //   ToolBar.GetClientRect(rectClient);
+ //   
+ //   cb_rect = CBOutputDir->Rect();
+ //   cb_rect.right = rectClient.right;
+
+ //   //cb_rect.right = ToolBar.CalcFixedLayout(FALSE, TRUE).cx;
+ //   //GetFileListView()->GetListCtrl().GetClientRect(rectClient);
+ //   cb_rect.right = rectClient.right;
+
+ //   CBOutputDir->SetRect(cb_rect);
+ //   ToolBar.Invalidate(FALSE);  
+
+ //   cb_rect = CBOutputDir->Rect();
+
+    ToolBar.AdjustLayout();
 }
 void CMainFrame::OnUpdateUI(CCmdUI* pCmdUI)
 {
     switch(pCmdUI->m_nID)
     {
+    case ID_COMBO_OUTPUT_DIR:
     case ID_CMD_OPTIONS:
-    case ID_PROFILE_COMBO:
-    case ID_CMD_PROFILE_ADD: 
+    //case ID_CMD_PROFILE_ADD: 
         pCmdUI->Enable(false == IsProcessing);
         break;
-    case ID_CMD_PROFILE_PREVIEW:
-    case ID_CMD_PROFILE_SAVE:
-    case ID_CMD_PROFILE_DELETE:
-        pCmdUI->Enable(false == IsProcessing && false == OutputProfiles.IsEmpty() && OutputProfiles.GetSelectedProfile());
-        break;
+    //case ID_CMD_PROFILE_PREVIEW:
+    //case ID_CMD_PROFILE_SAVE:
+    //case ID_CMD_PROFILE_DELETE:
+    //    pCmdUI->Enable(false == IsProcessing && false == OutputProfiles.IsEmpty() && OutputProfiles.GetSelectedProfile());
+    //    break;
 
     //src and out files
     case ID_CMD_OPEN_VIDEO:
@@ -879,18 +909,13 @@ void CMainFrame::OnUpdateUI(CCmdUI* pCmdUI)
         break;
     }
 }
-COutputProfile* CMainFrame::GetComboProfile()
+LPCTSTR CMainFrame::GetCurrentOutputDir()
 {
-    LPCTSTR profile_name = CBProfile->GetItem();
-    return OutputProfiles.GetProfile(profile_name);
+    return CBOutputDir->GetItem();
 }
 COutputProfile* CMainFrame::GetCurrentProfile()
 {
     COutputProfile* profile = OutputProfiles.GetSelectedProfile();
-
-    //TEST:
-    TRACE1("GetCurrentProfile(): %s\r\n", profile ? profile->OutputFileName : _T("TempProfile"));
-
     return profile ? profile : &TempProfile;
 }
 CFileListView* CMainFrame::GetFileListView()
@@ -944,21 +969,59 @@ void CMainFrame::OnCmdBrowseToPreview()
 }
 void CMainFrame::OnCmdResetSelected()
 {
-    //TODO:
-    int index = -1;
-    CProcessingItem* pi = GetFileListView()->GetFocusedItem(&index);
-    if(NULL == pi) return;
-    pi->Reset(false);
-    GetFileListView()->UpdateItem(pi, index);
+    CFileListView* flv = GetFileListView();
+    CListCtrl& lc = flv->GetListCtrl();
+    const int sel_count = lc.GetSelectedCount();
+    if(0 == sel_count)
+        return;
+
+    const int result = ::AfxMessageBox(_T("Reset selected files?"), MB_OKCANCEL | MB_ICONEXCLAMATION | MB_DEFBUTTON1);
+    if(result != IDOK) 
+        return;
+
+    for(int found_index = -1;;)
+    {
+        found_index = lc.GetNextItem(found_index, LVNI_SELECTED);
+        if(found_index < 0)
+            break;
+
+        CProcessingItem* pi = flv->FindItem(found_index);
+        if(pi == CurrentItem.get()) continue;
+
+        pi->Reset(false);
+    }
+
+    ItemsListState.Update();
+    flv->UpdateItems();
+    UpdateDialogControls(this, FALSE);
 }
 void CMainFrame::OnCmdResetAll()
 {
-    //TODO:
-    //int index = -1;
-    //CProcessingItem* pi = GetFileListView()->GetFocusedItem(&index);
-    //if(NULL == pi) return;
-    //pi->Reset(false);
-    //GetFileListView()->UpdateItem(pi, index);
+    CFileListView* flv = GetFileListView();
+    CListCtrl& lc = flv->GetListCtrl();
+    const int sel_count = lc.GetItemCount();
+    if(0 == sel_count)
+        return;
+
+    const int result = ::AfxMessageBox(_T("Reset all files?"), MB_OKCANCEL | MB_ICONEXCLAMATION | MB_DEFBUTTON1);
+    if(result != IDOK) 
+        return;
+
+    for(int found_index = -1;;)
+    {
+        found_index = lc.GetNextItem(found_index, LVNI_ALL);
+        if(found_index < 0)
+            break;
+
+        CProcessingItem* pi = flv->FindItem(found_index);
+        if(pi == CurrentItem.get()) continue;
+
+        pi->Reset(false);
+    }
+
+    ItemsListState.Update();
+    flv->UpdateItems();
+    UpdateDialogControls(this, FALSE);
 }
 void CMainFrame::OnCmdRemoveSelected()
 {
@@ -972,21 +1035,22 @@ void CMainFrame::OnCmdRemoveSelected()
     if(result != IDOK) 
         return;
 
-    for(;;)
+    for(int found_index = -1;;)
     {
-        const int found_index = lc.GetNextItem(-1, LVNI_SELECTED);
+        found_index = lc.GetNextItem(found_index, LVNI_SELECTED);
         if(found_index < 0)
             break;
 
         CProcessingItem* pi = flv->FindItem(found_index);
         if(pi == CurrentItem.get()) continue;
 
-        lc.DeleteItem(found_index);
         CProcessingItemList::iterator i = ProcessingItemList.find(pi);
         if(i != ProcessingItemList.end())
             ProcessingItemList.erase(i);
     }
 
     ItemsListState.Update();
+    flv->UpdateItems();
+    UpdateDialogControls(this, FALSE);
 }
-
+//////////////////////////////////////////////////////////////////////////////

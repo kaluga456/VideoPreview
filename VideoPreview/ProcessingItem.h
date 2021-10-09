@@ -7,7 +7,7 @@ enum
     PIS_MIN_PROCESSING = 0,
     PIS_MAX_PROCESSING = 100,
 
-    PIS_READY,                  //ready to process
+    PIS_WAIT,                  //ready to process
     PIS_DONE,                   //processed successfully
     PIS_FAILED,                 //processed with error
     PIS_STOPPED                 //TODO: stopped by user
@@ -28,7 +28,7 @@ public:
     //data
     int State;
     CString SourceFileName;
-    CString ResultString; //for PIS_READY - empty, for PIS_DONE - output file name, for PIS_FAILED - error description
+    CString ResultString; //for PIS_WAIT - empty, for PIS_DONE - output file name, for PIS_FAILED - error description
 
     //TODO:
     int Selected; //used for Process Selected command

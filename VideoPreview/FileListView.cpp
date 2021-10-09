@@ -23,7 +23,7 @@ static CString GetItemStateText(int item_state)
 {
     switch(item_state)
     {
-    case PIS_READY: return _T("Waiting");                
+    case PIS_WAIT: return _T("Waiting");                
     case PIS_DONE: return _T("Done");                 
     case PIS_FAILED: return _T("Failed");                
     }
@@ -130,13 +130,19 @@ void CFileListView::OnSize(UINT nType, int cx, int cy)
 {
     CListView::OnSize(nType, cx, cy);
 
+    //TEST:
+ //   const int top_size = 24;
+	//CRect cr;
+	//GetClientRect(cr);
+ //   SetWindowPos(NULL, cr.left, cr.top + top_size, cr.Width(), cr.Height() - top_size, SWP_NOACTIVATE | SWP_NOZORDER);
+
     //TODO: last column autosize
-    CListCtrl& listCtrl = GetListCtrl();
-    const int column_width1 = listCtrl.GetColumnWidth(0);
-    const int column_width2 = listCtrl.GetColumnWidth(1);
-    const int column_width3 = listCtrl.GetColumnWidth(FLV_COLUMN_RESULT);
-    const int space = cx - column_width1 - column_width2;
-    listCtrl.SetColumnWidth(FLV_COLUMN_RESULT, space);
+    //CListCtrl& listCtrl = GetListCtrl();
+    //const int column_width1 = listCtrl.GetColumnWidth(0);
+    //const int column_width2 = listCtrl.GetColumnWidth(1);
+    //const int column_width3 = listCtrl.GetColumnWidth(FLV_COLUMN_RESULT);
+    //const int space = cx - column_width1 - column_width2;
+    //listCtrl.SetColumnWidth(FLV_COLUMN_RESULT, space);
 }
 void CFileListView::OnContextMenu(CWnd* /* pWnd */, CPoint point)
 {
@@ -246,7 +252,7 @@ PProcessingItem CFileListView::GetUnprocessedItem()
 
         CProcessingItemList::iterator i = ProcessingItemList.find(reinterpret_cast<CProcessingItem*>(lvi.lParam));
         PProcessingItem pi = i->second;
-        if(PIS_READY == pi->State)
+        if(PIS_WAIT == pi->State)
             return pi;
     }
     return NULL;
