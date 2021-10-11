@@ -7,6 +7,29 @@ public:
     virtual void AdjustLayout();
 };
 
+class CComboOutputDirs : public CMFCToolBarComboBoxButton
+{
+    DECLARE_SERIAL(CComboOutputDirs)
+public:
+    CComboOutputDirs();
+    explicit CComboOutputDirs(UINT uiID);
+
+    void AddDir(CString new_dir);
+    void Update(LPCTSTR selected_dir = NULL);
+    void InitialUpdate();
+
+    LPCTSTR GetCurrent();
+    void SetCurrent(LPCTSTR selected_dir);
+
+    virtual void Serialize(CArchive& archive);
+
+private:
+    static const int MAX_DIRS_COUNT = 5;
+    int SelectedIndex;
+    std::list<CString> Dirs; //queue
+    bool HasDir(LPCTSTR dir) const;
+};
+
 class CMainFrame : public CFrameWndEx
 {
 public:
@@ -53,10 +76,9 @@ protected:
 	CProfilePane SettingsPane;
     CMFCStatusBar StatusBar; //TODO: need status bar?
 
-    //output dir combobox
-    CMFCToolBarComboBoxButton* CBOutputDir;
-    CMFCToolBarComboBoxButton* GetOutputDirCombo();
-    void UpdateOutputDirCombo();
+    //output dir
+    CComboOutputDirs* CBOutputDir;
+    CComboOutputDirs* GetOutputDirCombo();
 
     //overrides
     virtual void AdjustDockingLayout(HDWP hdwp /*= NULL*/);
@@ -90,6 +112,7 @@ protected:
     afx_msg void OnCmdResetSelected();
     afx_msg void OnCmdResetAll();
     afx_msg void OnCmdRemoveSelected();
+    afx_msg void OnCmdSelectOutputDir();
     afx_msg void OnUpdateUI(CCmdUI* pCmdUI);
     afx_msg void OnSize(UINT nType, int cx, int cy);
     afx_msg BOOL OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult);

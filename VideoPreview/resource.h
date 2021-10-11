@@ -32,8 +32,6 @@
 #define IDB_EXPLORER_24                 170
 #define IDB_FILE_VIEW                   175
 #define IDB_FILE_VIEW_24                176
-#define IDB_CLASS_VIEW                  177
-#define IDB_CLASS_VIEW_24               178
 #define IDB_MENU_IMAGES_24              180
 #define IDR_PROPERTIES                  183
 #define ID_TOOLBAR_SETTINGS             183
@@ -73,7 +71,6 @@
 #define IDC_RBTN_ACTION_ON_ERROR_PROMT  317
 #define IDC_CBTN_SAVE_FILE_LIST         318
 #define IDC_LIST_SOURCE_FILE_TYPES      319
-#define IDB_MAIN_TOOLBAR                319
 #define IDC_BTN_ADD_SOURCE_FILE_TYPE    320
 #define IDC_EDIT_SOURCE_FILE_TYPE       321
 #define IDC_BTN_REMOVE_SOURCE_FILE_TYPE 322
@@ -82,7 +79,7 @@
 #define IDC_CBTN_OVERWRITE_OUTPUT_FILES 325
 #define IDC_BTN_DEFAULT_SOURCE_FILE_TYPE 326
 #define IDD_OPTIONS                     329
-#define ID_VIEW_PROPERTIESWND           330
+#define ID_SETTINGS_PANE                330
 #define IDC_STATIC_VERSION              1000
 #define IDC_STATIC_APP_URL              1001
 #define ID_CMD_TEST                     32771
@@ -142,13 +139,14 @@
 #define ID_CMD_PROFILE_ADD              32842
 #define ID_PROFILE_ADD                  32844
 #define ID_COMBO_OUTPUT_DIR             32848
+#define ID_CMD_SELECT_OUTPUT_DIR        32849
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        322
-#define _APS_NEXT_COMMAND_VALUE         32849
+#define _APS_NEXT_RESOURCE_VALUE        323
+#define _APS_NEXT_COMMAND_VALUE         32850
 #define _APS_NEXT_CONTROL_VALUE         1002
 #define _APS_NEXT_SYMED_VALUE           331
 #endif

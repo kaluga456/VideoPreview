@@ -59,6 +59,7 @@ public:
     void PromtSaveCurrentProfile();
 
     void UpdateProfileCombo();
+    void SetSettings();
 
 protected:
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
@@ -67,7 +68,7 @@ protected:
 	afx_msg void OnSetFocus(CWnd* pOldWnd);
 	afx_msg void OnSettingChange(UINT uFlags, LPCTSTR lpszSection);
     afx_msg void OnProfileComboChanged();
-    afx_msg LRESULT OnProfilePropertyChanged(WPARAM wp, LPARAM lp);
+    afx_msg LRESULT OnPropertyChanged(WPARAM wp, LPARAM lp);
 	DECLARE_MESSAGE_MAP()
 
 	CFont m_fntPropList;
@@ -79,7 +80,7 @@ protected:
     void SetPropListFont();
     void InitPropList();
 
-    //property controls
+    //output profile
     CMFCPropertyGridColorProperty* pgpBackgroundColor;
     CMFCPropertyGridProperty* pgpWriteHeader;
     CPGPFont* pgpHeaderFont;
@@ -93,5 +94,12 @@ protected:
     CPGPNumberEdit* pgpOutputSize;
     CMFCPropertyGridProperty* pgpOutputFileName;
     CPGPCombo* pgpOutputFileFormat;
+
+    //common settings
+    CPGPCombo* pgpActionOnError;
+    CMFCPropertyGridProperty* pgpOverwriteFiles;
+    CMFCPropertyGridProperty* pgpSaveFileListOnExit;
+
+    bool OnSettingsChanged(const DWORD_PTR property_id);
 };
 

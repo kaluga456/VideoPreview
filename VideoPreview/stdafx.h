@@ -38,6 +38,7 @@
 #endif
 
 //stl
+#include <list>
 #include <set>
 #include <map>
 

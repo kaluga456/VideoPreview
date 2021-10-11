@@ -25,25 +25,120 @@
 #endif
 
 CProcessingItemList ProcessingItemList;
+//////////////////////////////////////////////////////////////////////////////
+//CComboOutputDirs
+IMPLEMENT_SERIAL(CComboOutputDirs, CObject, VERSIONABLE_SCHEMA | 1)
+CComboOutputDirs::CComboOutputDirs() : CMFCToolBarComboBoxButton()
+{
+}
+CComboOutputDirs::CComboOutputDirs(UINT uiID) : CMFCToolBarComboBoxButton(uiID, 0, CBS_DROPDOWNLIST, 0), SelectedIndex(0)
+{
+}
+bool CComboOutputDirs::HasDir(LPCTSTR dir) const
+{
+    for(auto i : Dirs)
+    {
+        if(0 == i.CompareNoCase(dir))
+            return true;
+    }
+    return false;
+}
+void CComboOutputDirs::AddDir(CString new_dir)
+{
+    new_dir.Trim();
+    if(new_dir.IsEmpty()) return;
+    if(HasDir(new_dir)) 
+    {
+        SetCurrent(new_dir);
+        return;
+    }
 
+    Dirs.push_front(new_dir);
+    if(Dirs.size() > MAX_DIRS_COUNT)
+        Dirs.pop_back();
+
+    Update(new_dir);
+}
+void CComboOutputDirs::Update(LPCTSTR selected_dir /*= NULL*/)
+{
+    RemoveAllItems();
+    AddItem(_T("<Use video file directory for output>"), NULL);
+
+    CString sel_dir(selected_dir);
+    for(auto i : Dirs)
+    {
+        const int index = AddItem(i);
+        if(index >= MAX_DIRS_COUNT)
+            break;
+    }
+    SetCurrent(selected_dir);
+}
+void CComboOutputDirs::InitialUpdate()
+{
+    Update();
+    if(FALSE == SelectItem(SelectedIndex))
+        SelectItem(0);
+}
+LPCTSTR CComboOutputDirs::GetCurrent()
+{
+    return (0 == GetCurSel()) ? NULL : GetItem();
+}
+void CComboOutputDirs::SetCurrent(LPCTSTR selected_dir)
+{
+    if(selected_dir && FALSE == SelectItem(selected_dir))
+        SelectItem(0);
+}
+void CComboOutputDirs::Serialize(CArchive& archive)
+{
+    CObject::Serialize(archive);
+    if(archive.IsStoring())
+    {
+        const int sel_index = GetCurSel();
+        const int count = Dirs.size();      
+        archive << sel_index;
+        archive << count;
+        for(auto i : Dirs)
+            archive << i;
+    }
+    else
+    {
+        int count = 0;
+        archive >> SelectedIndex;
+        archive >> count;
+        if(count > MAX_DIRS_COUNT)
+            count = MAX_DIRS_COUNT;
+
+        CString dir;
+        Dirs.clear();
+        for(int i = 0; i < count; ++i)
+        {
+            archive >> dir;
+            Dirs.push_back(dir);
+        }
+    }
+}
+//////////////////////////////////////////////////////////////////////////////
+//CMainToolbar
 void CMainToolbar::AdjustLayout()
 {
-    static int profile_combo_index = -1;
-    if(profile_combo_index < 0) profile_combo_index = CommandToIndex(ID_COMBO_OUTPUT_DIR);
-    CMFCToolBarComboBoxButton* cbb = static_cast<CMFCToolBarComboBoxButton*>(GetButton(profile_combo_index));
+    static int combo_button_index = -1;
+    if(combo_button_index < 0) combo_button_index = CommandToIndex(ID_COMBO_OUTPUT_DIR);
+    CMFCToolBarComboBoxButton* cbb = static_cast<CMFCToolBarComboBoxButton*>(GetButton(combo_button_index));
+    ASSERT(cbb);
+    if(NULL == cbb) return;
 
     //WORKAROUND: this call restores default width of CMFCToolBarComboBoxButton
     //CMFCToolBar::AdjustLayout();
 
     CRect rectClient;
 	GetClientRect(rectClient);  
-    CRect cb_rect = cbb->Rect();
+    CRect cb_rect(cbb->Rect());
     cb_rect.right = rectClient.right;
     cbb->SetRect(cb_rect);
 
     Invalidate();
 }
-
+//////////////////////////////////////////////////////////////////////////////
 //items list state CMainFrame::ItemsListState
 class CItemsListState
 {
@@ -87,7 +182,7 @@ void CItemsListState::Update()
         if(PIS_FAILED == pi->State) SetBit(PILS_HAS_FAILED);
     }
 }
-
+//////////////////////////////////////////////////////////////////////////////
 static CString GetLParamString(LPARAM value)
 {
     if(NULL == value) return _T("");
@@ -160,8 +255,8 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWndEx)
     ON_WM_CLOSE()
     ON_WM_DESTROY()
     ON_WM_SIZE()
-    ON_REGISTERED_MESSAGE(AFX_WM_RESETTOOLBAR, OnResetToolbar)
-    ON_MESSAGE(WM_PROCESSING_THREAD, OnProcessingThread)
+    ON_REGISTERED_MESSAGE(AFX_WM_RESETTOOLBAR, &CMainFrame::OnResetToolbar)
+    ON_MESSAGE(WM_PROCESSING_THREAD, &CMainFrame::OnProcessingThread)
 
     //commands    
     ON_COMMAND(ID_CMD_OPTIONS, &CMainFrame::OnCmdSettings)
@@ -177,7 +272,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWndEx)
     ON_COMMAND(ID_CMD_PROFILE_SAVE, &CMainFrame::OnCmdProfileSave)
     ON_COMMAND(ID_CMD_PROFILE_DELETE, &CMainFrame::OnCmdProfileDelete)
     ON_COMMAND(ID_CMD_PROFILE_PREVIEW, &CMainFrame::OnProfilePreview)
-    ON_CBN_SELCHANGE(ID_COMBO_OUTPUT_DIR, OnProfileCombo)
+    ON_CBN_SELCHANGE(ID_COMBO_OUTPUT_DIR, &CMainFrame::OnProfileCombo)
 
     //processing
     ON_COMMAND(ID_CMD_PROCESS_ALL, &CMainFrame::OnCmdProcessAll)
@@ -197,29 +292,33 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWndEx)
     ON_COMMAND(ID_CMD_REMOVE_SELECTED, &CMainFrame::OnCmdRemoveSelected)
     ON_COMMAND(ID_CMD_REMOVE_ALL, &CMainFrame::OnCmdRemoveAll)
 
+    ON_COMMAND(ID_CMD_SELECT_OUTPUT_DIR, &CMainFrame::OnCmdSelectOutputDir)
+
     //update UI
-    ON_UPDATE_COMMAND_UI(ID_COMBO_OUTPUT_DIR, OnUpdateUI)
+    ON_UPDATE_COMMAND_UI(ID_COMBO_OUTPUT_DIR, &CMainFrame::OnUpdateUI)
     //ON_UPDATE_COMMAND_UI(ID_CMD_PROFILE_ADD, OnUpdateUI)
     //ON_UPDATE_COMMAND_UI(ID_CMD_PROFILE_SAVE, OnUpdateUI)
     //ON_UPDATE_COMMAND_UI(ID_CMD_PROFILE_DELETE, OnUpdateUI)
     //ON_UPDATE_COMMAND_UI(ID_CMD_PROFILE_PREVIEW, OnUpdateUI)
 
-    ON_UPDATE_COMMAND_UI(ID_CMD_OPEN_VIDEO, OnUpdateUI)
-    ON_UPDATE_COMMAND_UI(ID_CMD_OPEN_PREVIEW, OnUpdateUI)
-    ON_UPDATE_COMMAND_UI(ID_CMD_BROWSE_TO_VIDEO, OnUpdateUI)
-    ON_UPDATE_COMMAND_UI(ID_CMD_BROWSE_TO_PREVIEW, OnUpdateUI)
+    ON_UPDATE_COMMAND_UI(ID_CMD_OPEN_VIDEO, &CMainFrame::OnUpdateUI)
+    ON_UPDATE_COMMAND_UI(ID_CMD_OPEN_PREVIEW, &CMainFrame::OnUpdateUI)
+    ON_UPDATE_COMMAND_UI(ID_CMD_BROWSE_TO_VIDEO, &CMainFrame::OnUpdateUI)
+    ON_UPDATE_COMMAND_UI(ID_CMD_BROWSE_TO_PREVIEW, &CMainFrame::OnUpdateUI)
 
-    ON_UPDATE_COMMAND_UI(ID_CMD_PROCESS_ALL, OnUpdateUI)
-    ON_UPDATE_COMMAND_UI(ID_CMD_PROCESS_SELECTED, OnUpdateUI)
-    ON_UPDATE_COMMAND_UI(ID_CMD_STOP_PROCESSING, OnUpdateUI)
+    ON_UPDATE_COMMAND_UI(ID_CMD_PROCESS_ALL, &CMainFrame::OnUpdateUI)
+    ON_UPDATE_COMMAND_UI(ID_CMD_PROCESS_SELECTED, &CMainFrame::OnUpdateUI)
+    ON_UPDATE_COMMAND_UI(ID_CMD_STOP_PROCESSING, &CMainFrame::OnUpdateUI)
 
-    ON_UPDATE_COMMAND_UI(ID_CMD_RESET_SELECTED, OnUpdateUI)
-    ON_UPDATE_COMMAND_UI(ID_CMD_RESET_ALL, OnUpdateUI)
+    ON_UPDATE_COMMAND_UI(ID_CMD_RESET_SELECTED, &CMainFrame::OnUpdateUI)
+    ON_UPDATE_COMMAND_UI(ID_CMD_RESET_ALL, &CMainFrame::OnUpdateUI)
 
-    ON_UPDATE_COMMAND_UI(ID_CMD_REMOVE_FAILED, OnUpdateUI)
-    ON_UPDATE_COMMAND_UI(ID_CMD_REMOVE_COMPLETED, OnUpdateUI)
-    ON_UPDATE_COMMAND_UI(ID_CMD_REMOVE_SELECTED, OnUpdateUI)
-    ON_UPDATE_COMMAND_UI(ID_CMD_REMOVE_ALL, OnUpdateUI)
+    ON_UPDATE_COMMAND_UI(ID_CMD_REMOVE_FAILED, &CMainFrame::OnUpdateUI)
+    ON_UPDATE_COMMAND_UI(ID_CMD_REMOVE_COMPLETED, &CMainFrame::OnUpdateUI)
+    ON_UPDATE_COMMAND_UI(ID_CMD_REMOVE_SELECTED, &CMainFrame::OnUpdateUI)
+    ON_UPDATE_COMMAND_UI(ID_CMD_REMOVE_ALL, &CMainFrame::OnUpdateUI)
+
+    ON_UPDATE_COMMAND_UI(ID_CMD_SELECT_OUTPUT_DIR, OnUpdateUI)
 END_MESSAGE_MAP()
 
 CMainFrame::CMainFrame()
@@ -254,17 +353,11 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	// prevent the menu bar from taking the focus on activation
 	CMFCPopupMenu::SetForceMenuFocus(FALSE);
 
-    //TEST
-	ToolBar.Create(this, AFX_DEFAULT_TOOLBAR_STYLE, ID_TOOLBAR_MAIN);
-	ToolBar.LoadToolBar(ID_TOOLBAR_MAIN, 0, 0, TRUE /* Is locked */);
-	ToolBar.SetPaneStyle(ToolBar.GetPaneStyle() | CBRS_TOOLTIPS | CBRS_FLYBY);
-	ToolBar.SetPaneStyle(ToolBar.GetPaneStyle() & ~(CBRS_GRIPPER | CBRS_SIZE_DYNAMIC | CBRS_BORDER_TOP | CBRS_BORDER_BOTTOM | CBRS_BORDER_LEFT | CBRS_BORDER_RIGHT));
-
-	//if(!ToolBar.CreateEx(this, TBSTYLE_FLAT, WS_CHILD | WS_VISIBLE | CBRS_TOP | CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_SIZE_DYNAMIC) || !ToolBar.LoadToolBar(ID_TOOLBAR_MAIN))
-	//{
-	//	TRACE0("Failed to create toolbar\n");
-	//	return -1;      // fail to create
-	//}
+	if(!ToolBar.CreateEx(this, TBSTYLE_FLAT, WS_CHILD | WS_VISIBLE | CBRS_TOP | CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_SIZE_DYNAMIC) || !ToolBar.LoadToolBar(ID_TOOLBAR_MAIN))
+	{
+		TRACE0("Failed to create toolbar\n");
+		return -1;      // fail to create
+	}
 
 	CString strToolBarName;
 	bNameValid = strToolBarName.LoadString(IDS_TOOLBAR_STANDARD);
@@ -288,7 +381,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	CString strPropertiesWnd;
 	bNameValid = strPropertiesWnd.LoadString(IDS_PROPERTIES_WND);
 	ASSERT(bNameValid);
-    if(!SettingsPane.Create(strPropertiesWnd, this, CRect(0, 0, Options.ProfilePaneWidth, 200), FALSE, ID_VIEW_PROPERTIESWND, 
+    if(!SettingsPane.Create(strPropertiesWnd, this, CRect(0, 0, Options.ProfilePaneWidth, 200), FALSE, ID_SETTINGS_PANE, 
         WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |  CBRS_LEFT, AFX_CBRS_REGULAR_TABS, AFX_CBRS_RESIZE)) 
 	{
 		TRACE0("Failed to create SettingsPane window\n");
@@ -312,16 +405,19 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
     if(NULL == profile) profile = &TempProfile;
     SettingsPane.SetOutputProfile(profile);
 
-
-    //ToolBar.AdjustLayout();
-    UpdateOutputDirCombo();
+    theApp.GetObject(_T("OutputDirs"), *CBOutputDir);
+    CBOutputDir->InitialUpdate();
 
     ItemsListState.Update();
+    SettingsPane.SetSettings();
+
     return 0;
 }
 void CMainFrame::OnClose()
 {
-    SettingsPane.PromtSaveCurrentProfile();
+    //BUG:
+    //SettingsPane.PromtSaveCurrentProfile();
+
     CFrameWndEx::OnClose();
 }
 void CMainFrame::OnDestroy()
@@ -331,6 +427,8 @@ void CMainFrame::OnDestroy()
     CRect rect;
     SettingsPane.GetClientRect(&rect);
     Options.ProfilePaneWidth = rect.Width();
+
+    theApp.WriteObject(_T("OutputDirs"), *CBOutputDir);
 
     CFrameWndEx::OnDestroy();
 }
@@ -380,10 +478,14 @@ LRESULT CMainFrame::OnResetToolbar(WPARAM wp,LPARAM lp)
 {
     if(ID_TOOLBAR_MAIN == wp)
     {
-        CMFCToolBarComboBoxButton profile_combo(ID_COMBO_OUTPUT_DIR, 0, CBS_DROPDOWNLIST, 0);
+        //CMFCToolBarComboBoxButton profile_combo(ID_COMBO_OUTPUT_DIR, 0, CBS_DROPDOWNLIST, 0);
+        CComboOutputDirs profile_combo(ID_COMBO_OUTPUT_DIR);
         ToolBar.ReplaceButton(ID_COMBO_OUTPUT_DIR, profile_combo);
-        CBOutputDir = GetOutputDirCombo();
         ToolBar.AdjustLayout();
+
+        const int out_dir_combo_index = ToolBar.CommandToIndex(ID_COMBO_OUTPUT_DIR);
+        CBOutputDir = static_cast<CComboOutputDirs*>(ToolBar.GetButton(out_dir_combo_index));
+        ASSERT(CBOutputDir);
     }
     else if(ID_TOOLBAR_SETTINGS == wp)
     {
@@ -392,12 +494,11 @@ LRESULT CMainFrame::OnResetToolbar(WPARAM wp,LPARAM lp)
     }
     return 0;
 }
-CMFCToolBarComboBoxButton* CMainFrame::GetOutputDirCombo()
+CComboOutputDirs* CMainFrame::GetOutputDirCombo()
 {
     static int profile_combo_index = -1;
     if(profile_combo_index < 0) profile_combo_index = ToolBar.CommandToIndex(ID_COMBO_OUTPUT_DIR);
-    //return static_cast<CMFCToolBarComboBoxButton*>(ToolBar.GetButton(profile_combo_index));
-    return static_cast<CMFCToolBarComboBoxButton*>(ToolBar.GetButton(profile_combo_index));
+    return static_cast<CComboOutputDirs*>(ToolBar.GetButton(profile_combo_index));
 }
 // CMainFrame diagnostics
 #ifdef _DEBUG
@@ -430,7 +531,6 @@ void CMainFrame::OnCmdAbout()
 }
 void CMainFrame::OnCmdAddFiles()
 {
-    const int FILE_LIST_BUFFER_SIZE = ((255 * (MAX_PATH + 1)) + 1);
     CString filter = SourceFileTypes.GetFilterString();
     CFileDialog fd(TRUE, NULL, NULL, OFN_ALLOWMULTISELECT | OFN_ENABLESIZING | OFN_EXPLORER, filter, this, sizeof(OPENFILENAME), TRUE);
     OPENFILENAME& ofn = fd.GetOFN();
@@ -479,7 +579,6 @@ void CMainFrame::OnCmdAddFiles()
 void CMainFrame::OnCmdAddFolder()
 {
     CFolderPickerDialog fpd(NULL, OFN_ALLOWMULTISELECT | OFN_ENABLESIZING | OFN_EXPLORER, this, sizeof(OPENFILENAME));
-    const int FILE_LIST_BUFFER_SIZE = ((255 * (MAX_PATH + 1)) + 1);
     OPENFILENAME& ofn = fpd.GetOFN();
     ofn.lpstrTitle = _T("Add Video Files");
     if(IDCANCEL == fpd.DoModal())
@@ -546,6 +645,17 @@ void CMainFrame::AddFolder(CString root_dir)
             AddItem(pi);
         }
     }
+}
+void CMainFrame::OnCmdSelectOutputDir()
+{
+    CFolderPickerDialog fpd(NULL, OFN_ENABLESIZING | OFN_EXPLORER, this, sizeof(OPENFILENAME));
+    OPENFILENAME& ofn = fpd.GetOFN();
+    ofn.lpstrTitle = _T("Select Ouput Directory");
+    if(IDCANCEL == fpd.DoModal())
+        return;
+
+    CString dir(ofn.lpstrFile);
+    CBOutputDir->AddDir(dir);
 }
 LRESULT CMainFrame::OnProcessingThread(WPARAM wp, LPARAM lp)
 {
@@ -799,11 +909,6 @@ void CMainFrame::OnCmdProfileDelete()
     SettingsPane.SetOutputProfile(GetCurrentProfile());
     SettingsPane.UpdateProfileCombo();
 }
-void CMainFrame::UpdateOutputDirCombo()
-{
-    //OutputProfiles.Fill(SettingsPane.CBProfiles);
-    //ToolBar.Invalidate();
-}
 void CMainFrame::OnProfilePreview()
 {
     //TODO:
@@ -812,46 +917,15 @@ void CMainFrame::OnProfilePreview()
 void CMainFrame::OnCmdTest()
 {
     //TEST:
-    //COutputProfile profile;
-    //profile.SetDefault();
-    //SettingsPane.SetOutputProfile(&profile);
-    //UpdateDialogControls(this, FALSE);
-    //MessageBox(L"OnCmdTest", L"DEBUG", MB_OK | MB_ICONINFORMATION);
-    
-    //TEST:
-    //RemoveAllItems();
-    //AddItem(PProcessingItem(new CProcessingItem(_T("d:\\projects\\VideoPreview\\videos\\Three Cute Golden Retrievers Hug Over Tennis Ball.mp4"))));
-    //AddItem(PProcessingItem(new CProcessingItem(_T("d:\\projects\\VideoPreview\\videos\\Chicken_Techno_by_Oli_Chang.mp4"))));
-    //AddItem(PProcessingItem(new CProcessingItem(_T("d:\\projects\\VideoPreview\\videos\\Frankie the pug walking on his front legs!.mp4"))));
-
-    //SettingsPane.PGProfile.ResetOriginalValues();
-
-    //CRect cb_rect = CBOutputDir->Rect();
-
-    //profiles combo
- //   CRect rectClient;
-	//GetClientRect(rectClient); 
-
- //   ToolBar.GetClientRect(rectClient);
- //   
- //   cb_rect = CBOutputDir->Rect();
- //   cb_rect.right = rectClient.right;
-
- //   //cb_rect.right = ToolBar.CalcFixedLayout(FALSE, TRUE).cx;
- //   //GetFileListView()->GetListCtrl().GetClientRect(rectClient);
- //   cb_rect.right = rectClient.right;
-
- //   CBOutputDir->SetRect(cb_rect);
- //   ToolBar.Invalidate(FALSE);  
-
- //   cb_rect = CBOutputDir->Rect();
-
-    ToolBar.AdjustLayout();
+    //CBOutputDir->AddDir(_T("test"));
+    //CMFCToolBarButton* cmb = MainMenu.GetMenuItem(6);
+    //cmb->SetImage(2);
 }
 void CMainFrame::OnUpdateUI(CCmdUI* pCmdUI)
 {
     switch(pCmdUI->m_nID)
     {
+    case ID_CMD_SELECT_OUTPUT_DIR:
     case ID_COMBO_OUTPUT_DIR:
     case ID_CMD_OPTIONS:
     //case ID_CMD_PROFILE_ADD: 

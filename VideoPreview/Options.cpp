@@ -82,9 +82,7 @@ void CProcessingItemListSerial::Serialize(CArchive& archive)
             (*ProcessingItemList)[pi.get()] = pi;
         }
     }
-
 }
-
 bool COptions::Read()
 {
     //main

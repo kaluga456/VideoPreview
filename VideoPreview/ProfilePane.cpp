@@ -2,6 +2,7 @@
 #pragma hdrstop
 #include "app_thread.h"
 #include "Resource.h"
+#include "Options.h"
 #include "OutputProfile.h"
 #include "OutputProfileList.h"
 #include "ScreenshotGenerator.h"
@@ -46,6 +47,11 @@ enum
     ID_PROP_OUTPUT_FILE_NAME,
     ID_PROP_OUTPUT_FILE_FORMAT,
 
+    //common settings
+    ID_SETTINGS_ACTION_ON_ERROR,
+    ID_SETTINGS_OVERWRITE_OUTPUT_FILES,
+    ID_SETTINGS_SAVE_FILELIST_ON_EXIT,
+
     PROFILE_PROP_COUNT
 };
 
@@ -80,6 +86,10 @@ LPCTSTR PROPERTY_DESCR[] =
 
     _T("TODO"), //ID_PROP_OUTPUT_FILE_NAME,
     _T("TODO"), //ID_PROP_OUTPUT_FILE_FORMAT,
+
+    _T("TODO"), //ID_SETTINGS_ACTION_ON_ERROR
+    _T("TODO"), //ID_SETTINGS_OVERWRITE_OUTPUT_FILES
+    _T("TODO"), //ID_SETTINGS_SAVE_FILELIST_ON_EXIT
 };
 static_assert(sizeof(PROPERTY_DESCR) / sizeof(LPCTSTR) == PROFILE_PROP_COUNT, "Invalid PROPERTY_DESCR size");
 /////////////////////////////////////////////////////////////////////////////
@@ -169,32 +179,13 @@ BEGIN_MESSAGE_MAP(CProfilePane, CDockablePane)
     ON_UPDATE_COMMAND_UI(ID_CMD_PROFILE_SAVE, OnUpdateUI)
     ON_UPDATE_COMMAND_UI(ID_CMD_PROFILE_DELETE, OnUpdateUI)
 
-    ON_REGISTERED_MESSAGE(AFX_WM_PROPERTY_CHANGED, OnProfilePropertyChanged)    
+    ON_REGISTERED_MESSAGE(AFX_WM_PROPERTY_CHANGED, OnPropertyChanged)    
 END_MESSAGE_MAP()
-CProfilePane::CProfilePane()
+CProfilePane::CProfilePane() : ProfileChanged(false)
 {
 }
 CProfilePane::~CProfilePane()
 {
-}
-void CProfilePane::AdjustLayout()
-{
-	if(GetSafeHwnd() == NULL || (AfxGetMainWnd() != NULL && AfxGetMainWnd()->IsIconic()))
-		return;
-
-	CRect rectClient;
-	GetClientRect(rectClient);
-
-    //toolbar and grid
-	const int cyTlb = ToolBar.CalcFixedLayout(FALSE, TRUE).cy;
-	ToolBar.SetWindowPos(NULL, rectClient.left, rectClient.top, rectClient.Width(), cyTlb, SWP_NOACTIVATE | SWP_NOZORDER);
-	PGProfile.SetWindowPos(NULL, rectClient.left, rectClient.top + cyTlb, rectClient.Width(), rectClient.Height() - cyTlb, SWP_NOACTIVATE | SWP_NOZORDER);
-
-    //profiles combo
-    CRect cb_rect = CBProfiles->Rect();
-    cb_rect.right = rectClient.right;
-    CBProfiles->SetRect(cb_rect);
-    ToolBar.Invalidate(FALSE);
 }
 int CProfilePane::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
@@ -340,26 +331,140 @@ void CProfilePane::InitPropList()
 
     //output file
     CMFCPropertyGridProperty* pgp_output_file = new CMFCPropertyGridProperty(_T("Output File"));
-    pgpOutputFileName = new CMFCPropertyGridProperty(_T("Name"), _T("%n"), PROPERTY_DESCR[ID_PROP_OUTPUT_FILE_NAME], ID_PROP_OUTPUT_FILE_NAME);
+    //pgpOutputFileName = new CMFCPropertyGridProperty(_T("Name"), _T("%n"), PROPERTY_DESCR[ID_PROP_OUTPUT_FILE_NAME], ID_PROP_OUTPUT_FILE_NAME);
     pgpOutputFileFormat = new CPGPCombo(_T("Format"), _T("JPG"), PROPERTY_DESCR[ID_PROP_OUTPUT_FILE_FORMAT], ID_PROP_OUTPUT_FILE_FORMAT);    
     pgpOutputFileFormat->AddItem(_T("BMP"), OUTPUT_FILE_FORMAT_BMP);
     pgpOutputFileFormat->AddItem(_T("JPG"), OUTPUT_FILE_FORMAT_JPG);
     pgpOutputFileFormat->AddItem(_T("PNG"), OUTPUT_FILE_FORMAT_PNG);
-    pgp_output_file->AddSubItem(pgpOutputFileName);
+    //pgp_output_file->AddSubItem(pgpOutputFileName);
     pgp_output_file->AddSubItem(pgpOutputFileFormat);
     pgp_profile_root->AddSubItem(pgp_output_file);
 
     PGProfile.AddProperty(pgp_profile_root);
 
     //TODO:
-    //CMFCPropertyGridProperty* pgp_settings_root = new CMFCPropertyGridProperty(_T("Common Settings"));
+    CMFCPropertyGridProperty* pgp_settings_root = new CMFCPropertyGridProperty(_T("Common Settings"));
+    pgpActionOnError = new CPGPCombo(_T("Action On Error"), _T("Skip"), PROPERTY_DESCR[ID_SETTINGS_ACTION_ON_ERROR], ID_SETTINGS_ACTION_ON_ERROR);    
+    pgpActionOnError->AddItem(_T("Skip"), COptions::ACTION_ON_ERROR_SKIP);
+    pgpActionOnError->AddItem(_T("Stop"), COptions::ACTION_ON_ERROR_STOP);
+    pgpActionOnError->AddItem(_T("Promt"), COptions::ACTION_ON_ERROR_PROMT);
+    pgpOverwriteFiles = new CMFCPropertyGridProperty(_T("Overwrite Output Files"), (_variant_t)false, _T("TODO"), ID_SETTINGS_OVERWRITE_OUTPUT_FILES);
+    pgpSaveFileListOnExit = new CMFCPropertyGridProperty(_T("Save File List"), (_variant_t)false, _T("TODO"), ID_SETTINGS_SAVE_FILELIST_ON_EXIT);
+    pgp_settings_root->AddSubItem(pgpActionOnError);
+    pgp_settings_root->AddSubItem(pgpOverwriteFiles);
+    pgp_settings_root->AddSubItem(pgpSaveFileListOnExit);
 
+    PGProfile.AddProperty(pgp_settings_root);
 
     //TODO:
 	//static const TCHAR szFilter[] = _T("Icon Files(*.ico)|*.ico|All Files(*.*)|*.*||");
 	//pGroup3->AddSubItem(new CMFCPropertyGridFileProperty(_T("Icon"), TRUE, _T(""), _T("ico"), 0, szFilter, _T("Specifies the window icon")));
 	//pGroup3->AddSubItem(new CMFCPropertyGridFileProperty(_T("Folder"), _T("c:\\")));
 	//PGProfile.AddProperty(pGroup3);
+}
+void CProfilePane::SetSettings()
+{
+    pgpActionOnError->SetItem(Options.ActionOnError);
+    pgpOverwriteFiles->SetValue(_variant_t(bool(Options.OverwriteOutputFiles != 0)));
+    pgpSaveFileListOnExit->SetValue(_variant_t(bool(Options.SaveFileListOnExit != 0)));
+}
+bool CProfilePane::OnSettingsChanged(const DWORD_PTR property_id)
+{
+    switch(property_id)
+    {
+    case ID_SETTINGS_ACTION_ON_ERROR:
+        Options.ActionOnError = pgpActionOnError->GetItem();
+        return true;
+    case ID_SETTINGS_OVERWRITE_OUTPUT_FILES:
+        Options.OverwriteOutputFiles = pgpOverwriteFiles->GetValue().boolVal;
+        return true;
+    case ID_SETTINGS_SAVE_FILELIST_ON_EXIT:
+        Options.SaveFileListOnExit = pgpSaveFileListOnExit->GetValue().boolVal;
+        return true;
+    }
+    return false;
+}
+LRESULT CProfilePane::OnPropertyChanged(WPARAM wp, LPARAM lp)
+{
+    CMFCPropertyGridProperty* property = reinterpret_cast<CMFCPropertyGridProperty*>(lp);
+    const DWORD_PTR property_id = property->GetData();
+
+    //common settings
+    if(OnSettingsChanged(property_id))
+        return 0;
+
+    //profile settings
+    switch(property_id)
+    {
+    case ID_PROP_BACKGROUND_COLOR: break;
+    case ID_PROP_WRITE_HEADER:
+    {
+        const BOOL enable = pgpWriteHeader->GetValue().boolVal;
+        pgpHeaderFont->Enable(enable);
+        pgpHeaderFontColor->Enable(enable);
+        break;
+    }
+    case ID_PROP_HEADER_TEXT: break;
+    case ID_PROP_HEADER_FONT: break;
+    case ID_PROP_HEADER_FONT_COLOR: break;
+
+    case ID_PROP_FRAME_COLUMNS: break;
+    case ID_PROP_FRAME_ROWS: break;
+
+    //TODO:
+    case ID_PROP_USE_TIME_INTERVAL: break;
+    case ID_PROP_FRAME_TIME_INTERVAL: break;
+
+    case ID_PROP_OUTPUT_SIZE_METHOD: 
+    {
+        const BOOL enable = (OUTPUT_IMAGE_WIDTH_BY_ORIGINAL_FRAME_WIDTH != pgpOutputSizeMethod->GetItem());
+        pgpOutputSize->Enable(enable);
+        break;
+    }
+    case ID_PROP_OUTPUT_IMAGE_SIZE: break;
+
+    //TODO:
+    case ID_PROP_BORDER_PADDING: break;
+    case ID_PROP_FRAME_PADDING: break;
+
+    case ID_PROP_TIMESTAMP_TYPE: 
+    {
+        const BOOL enable = (TIMESTAMP_TYPE_DISABLED != pgpTimestampType->GetItem());
+        pgpTimestampFont->Enable(enable);
+        pgpTimestampFontColor->Enable(enable);
+        break;
+    }
+    case ID_PROP_TIMESTAMP_FONT: break;
+    case ID_PROP_TIMESTAMP_FONT_COLOR: break;
+
+    case ID_PROP_OUTPUT_FILE_NAME: break;
+    case ID_PROP_OUTPUT_FILE_FORMAT: break;
+
+    default:
+        ASSERT(0);
+    }
+
+    ProfileChanged = true;
+    return 0;
+}
+void CProfilePane::AdjustLayout()
+{
+	if(GetSafeHwnd() == NULL || (AfxGetMainWnd() != NULL && AfxGetMainWnd()->IsIconic()))
+		return;
+
+	CRect rectClient;
+	GetClientRect(rectClient);
+
+    //toolbar and grid
+	const int cyTlb = ToolBar.CalcFixedLayout(FALSE, TRUE).cy;
+	ToolBar.SetWindowPos(NULL, rectClient.left, rectClient.top, rectClient.Width(), cyTlb, SWP_NOACTIVATE | SWP_NOZORDER);
+	PGProfile.SetWindowPos(NULL, rectClient.left, rectClient.top + cyTlb, rectClient.Width(), rectClient.Height() - cyTlb, SWP_NOACTIVATE | SWP_NOZORDER);
+
+    //profiles combo
+    CRect cb_rect = CBProfiles->Rect();
+    cb_rect.right = rectClient.right;
+    CBProfiles->SetRect(cb_rect);
+    ToolBar.Invalidate(FALSE);
 }
 void CProfilePane::OnSize(UINT nType, int cx, int cy)
 {
@@ -462,9 +567,6 @@ void CProfilePane::SetVSDotNetLook(BOOL bSet)
 }
 void CProfilePane::SetOutputProfile(const COutputProfile* profile)
 {
-    //TEST:
-    TRACE1("GetOutputProfile: %s\r\n", profile->OutputFileName);
-
     ASSERT(profile);
 
     LOGFONT lf;
@@ -495,7 +597,7 @@ void CProfilePane::SetOutputProfile(const COutputProfile* profile)
     pgpTimestampFont->Enable(enable);
     pgpTimestampFontColor->Enable(enable);
 
-    pgpOutputFileName->SetValue(COleVariant(profile->OutputFileName));
+    //pgpOutputFileName->SetValue(COleVariant(profile->OutputFileName));
     pgpOutputFileFormat->SetItem(profile->OutputFileFormat);
 
     ProfileChanged = false;
@@ -503,9 +605,6 @@ void CProfilePane::SetOutputProfile(const COutputProfile* profile)
 }
 void CProfilePane::GetOutputProfile(COutputProfile* profile)
 {
-    //TEST:
-    TRACE1("GetOutputProfile: %s\r\n", profile->OutputFileName);
-
     //TODO: value checks
     //TODO: try catch ?
     ASSERT(profile);
@@ -527,69 +626,11 @@ void CProfilePane::GetOutputProfile(COutputProfile* profile)
     COLORREF timestamp_font_clor = pgpTimestampFontColor->GetColor();
     profile->TimestampFont.Set(*timestamp_logfont, timestamp_font_clor);
 
-    const COleVariant& output_file_name = pgpOutputFileName->GetValue();
-    profile->OutputFileName = output_file_name;
+    //const COleVariant& output_file_name = pgpOutputFileName->GetValue();
+    //profile->OutputFileName = output_file_name;
 
     int output_format = pgpOutputFileFormat->GetItem();
     ASSERT(0 <= output_format && output_format <= OUTPUT_FILE_FORMAT_COUNT);
     if(output_format < 0 && OUTPUT_FILE_FORMAT_COUNT < output_format) output_format = OUTPUT_FILE_FORMAT_JPG;
     profile->OutputFileFormat = output_format;
-}
-LRESULT CProfilePane::OnProfilePropertyChanged(WPARAM wp, LPARAM lp)
-{
-    //TODO:
-    CMFCPropertyGridProperty* property = reinterpret_cast<CMFCPropertyGridProperty*>(lp);
-    const DWORD_PTR property_id = property->GetData();
-    switch(property_id)
-    {
-    case ID_PROP_BACKGROUND_COLOR: break;
-    case ID_PROP_WRITE_HEADER:
-    {
-        const BOOL enable = pgpWriteHeader->GetValue().boolVal;
-        pgpHeaderFont->Enable(enable);
-        pgpHeaderFontColor->Enable(enable);
-        break;
-    }
-    case ID_PROP_HEADER_TEXT: break;
-    case ID_PROP_HEADER_FONT: break;
-    case ID_PROP_HEADER_FONT_COLOR: break;
-
-    case ID_PROP_FRAME_COLUMNS: break;
-    case ID_PROP_FRAME_ROWS: break;
-
-    //TODO:
-    case ID_PROP_USE_TIME_INTERVAL: break;
-    case ID_PROP_FRAME_TIME_INTERVAL: break;
-
-    case ID_PROP_OUTPUT_SIZE_METHOD: 
-    {
-        const BOOL enable = (OUTPUT_IMAGE_WIDTH_BY_ORIGINAL_FRAME_WIDTH != pgpOutputSizeMethod->GetItem());
-        pgpOutputSize->Enable(enable);
-        break;
-    }
-    case ID_PROP_OUTPUT_IMAGE_SIZE: break;
-
-    //TODO:
-    case ID_PROP_BORDER_PADDING: break;
-    case ID_PROP_FRAME_PADDING: break;
-
-    case ID_PROP_TIMESTAMP_TYPE: 
-    {
-        const BOOL enable = (TIMESTAMP_TYPE_DISABLED != pgpTimestampType->GetItem());
-        pgpTimestampFont->Enable(enable);
-        pgpTimestampFontColor->Enable(enable);
-        break;
-    }
-    case ID_PROP_TIMESTAMP_FONT: break;
-    case ID_PROP_TIMESTAMP_FONT_COLOR: break;
-
-    case ID_PROP_OUTPUT_FILE_NAME: break;
-    case ID_PROP_OUTPUT_FILE_FORMAT: break;
-
-    default:
-        ASSERT(0);
-    }
-
-    ProfileChanged = true;
-    return 0;
 }
