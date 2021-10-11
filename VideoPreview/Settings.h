@@ -1,7 +1,7 @@
 #pragma once
 
-//COptions - main settings
-class COptions
+//CSettings - main settings
+class CSettings
 {
 public:
     //profile pane
@@ -35,11 +35,11 @@ public:
     int ActionOnError;
 
     //ctor/dtor
-    COptions() {}
+    CSettings() {}
 
     //init, if file_name not NULL, then it is import/export settings call
     bool Read();
     bool Write();
 };
 
-extern COptions Options;
+extern CSettings Settings;

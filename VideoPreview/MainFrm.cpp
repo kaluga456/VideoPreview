@@ -4,7 +4,7 @@
 #include "app_thread.h"
 #include "Resource.h"
 #include "About.h"
-#include "Options.h"
+#include "Settings.h"
 #include "SourceFileTypes.h"
 #include "OutputProfile.h"
 #include "OutputProfileList.h"
@@ -347,10 +347,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
     MainMenu.SetRecentlyUsedMenus(FALSE);
     MainMenu.SetShowAllCommands(TRUE);
 
-    //TODO: need that?
-	//MainMenu.SetPaneStyle(MainMenu.GetPaneStyle() /*| CBRS_SIZE_DYNAMIC | CBRS_TOOLTIPS | CBRS_FLYBY*/);
-
-	// prevent the menu bar from taking the focus on activation
+	//prevent the menu bar from taking the focus on activation
 	CMFCPopupMenu::SetForceMenuFocus(FALSE);
 
 	if(!ToolBar.CreateEx(this, TBSTYLE_FLAT, WS_CHILD | WS_VISIBLE | CBRS_TOP | CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_SIZE_DYNAMIC) || !ToolBar.LoadToolBar(ID_TOOLBAR_MAIN))
@@ -358,6 +355,13 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 		TRACE0("Failed to create toolbar\n");
 		return -1;      // fail to create
 	}
+
+    //this enables main menu to show images from ID_TOOLBAR_SETTINGS
+    CMFCToolBar::AddToolBarForImageCollection(ID_TOOLBAR_SETTINGS);
+
+    //TODO: set system font
+    //ToolBar.SetFont(theApp.GetMenuFont(), TRUE);
+
 
 	CString strToolBarName;
 	bNameValid = strToolBarName.LoadString(IDS_TOOLBAR_STANDARD);
@@ -381,7 +385,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	CString strPropertiesWnd;
 	bNameValid = strPropertiesWnd.LoadString(IDS_PROPERTIES_WND);
 	ASSERT(bNameValid);
-    if(!SettingsPane.Create(strPropertiesWnd, this, CRect(0, 0, Options.ProfilePaneWidth, 200), FALSE, ID_SETTINGS_PANE, 
+    if(!SettingsPane.Create(strPropertiesWnd, this, CRect(0, 0, Settings.ProfilePaneWidth, 200), FALSE, ID_SETTINGS_PANE, 
         WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN |  CBRS_LEFT, AFX_CBRS_REGULAR_TABS, AFX_CBRS_RESIZE)) 
 	{
 		TRACE0("Failed to create SettingsPane window\n");
@@ -426,7 +430,7 @@ void CMainFrame::OnDestroy()
 
     CRect rect;
     SettingsPane.GetClientRect(&rect);
-    Options.ProfilePaneWidth = rect.Width();
+    Settings.ProfilePaneWidth = rect.Width();
 
     theApp.WriteObject(_T("OutputDirs"), *CBOutputDir);
 
@@ -722,9 +726,9 @@ void CMainFrame::SetProcessingState(bool Value)
 }
 bool CMainFrame::IsProceedOnError()
 {
-    if(COptions::ACTION_ON_ERROR_SKIP == Options.ActionOnError)
+    if(CSettings::ACTION_ON_ERROR_SKIP == Settings.ActionOnError)
         return true;
-    if(COptions::ACTION_ON_ERROR_PROMT == Options.ActionOnError)
+    if(CSettings::ACTION_ON_ERROR_PROMT == Settings.ActionOnError)
         return true; //TODO: promt
     return false;
 }
@@ -920,6 +924,17 @@ void CMainFrame::OnCmdTest()
     //CBOutputDir->AddDir(_T("test"));
     //CMFCToolBarButton* cmb = MainMenu.GetMenuItem(6);
     //cmb->SetImage(2);
+
+    //NONCLIENTMETRICS ncm;
+    //ncm.cbSize = sizeof(ncm);
+    //SystemParametersInfo(SPI_GETNONCLIENTMETRICS, NULL, &ncm, NULL);
+
+    //CFont font;
+    ////ncm.lfMenuFont.lfHeight = -18;
+    //font.CreateFontIndirect(&ncm.lfMenuFont);
+    //ToolBar.SetFont(&font, TRUE);
+    //MainMenu.SetMenuFont(&ncm.lfMenuFont,  TRUE);
+    //GetFileListView()->SetFont(&font, TRUE);
 }
 void CMainFrame::OnUpdateUI(CCmdUI* pCmdUI)
 {

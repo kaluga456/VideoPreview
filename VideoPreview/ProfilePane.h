@@ -49,7 +49,6 @@ public:
     virtual ~CProfilePane();
 
 	void AdjustLayout();
-	void SetVSDotNetLook(BOOL bSet);
 
     void SetOutputProfile(const COutputProfile* profile);
     void GetOutputProfile(COutputProfile* profile);
@@ -66,7 +65,6 @@ protected:
 	afx_msg void OnSize(UINT nType, int cx, int cy);
 	afx_msg void OnUpdateUI(CCmdUI* pCmdUI);
 	afx_msg void OnSetFocus(CWnd* pOldWnd);
-	afx_msg void OnSettingChange(UINT uFlags, LPCTSTR lpszSection);
     afx_msg void OnProfileComboChanged();
     afx_msg LRESULT OnPropertyChanged(WPARAM wp, LPARAM lp);
 	DECLARE_MESSAGE_MAP()
@@ -74,10 +72,8 @@ protected:
 	CFont m_fntPropList;
     bool ProfileChanged;
 
-    CMFCToolBarComboBoxButton* GetProfileCombo();
     COutputProfile* GetComboProfile();
 
-    void SetPropListFont();
     void InitPropList();
 
     //output profile

@@ -1,14 +1,14 @@
 #include "stdafx.h"
 #pragma hdrstop
 #include "SourceFileTypes.h"
+#include "Settings.h"
 #include "OutputProfile.h"
 #include "OutputProfileList.h"
 #include "ProcessingItem.h"
 #include "VideoPreview.h"
-#include "Options.h"
 
 extern CProcessingItemList ProcessingItemList;
-COptions Options;
+CSettings Settings;
 
 //deafults
 const int DEFAULT_LAYOUT_X = CW_USEDEFAULT;
@@ -19,7 +19,7 @@ const int DEFAULT_LAYOUT_WINDOWS_TATE = SW_SHOWDEFAULT;
 const int DEFAULT_USE_EXPLORER_CONTEXT_MENU = FALSE;
 const int DEFAULT_USE_SOURCE_FILE_LOCATION = TRUE;
 const int DEFAULT_OVERWRITE_OUTPUT_FILES = FALSE;
-const int DEFAULT_ACTION_ON_ERROR = COptions::ACTION_ON_ERROR_SKIP;
+const int DEFAULT_ACTION_ON_ERROR = CSettings::ACTION_ON_ERROR_SKIP;
 const int DEFAULT_SAVE_FILE_LIST_ON_EXIT = true;
 const int DEFAULT_FILE_LIST_COLUMN_WIDTH = 100;
 const int DEFAULT_FILE_LIST_SORTED_COLUMN = 0;
@@ -83,7 +83,7 @@ void CProcessingItemListSerial::Serialize(CArchive& archive)
         }
     }
 }
-bool COptions::Read()
+bool CSettings::Read()
 {
     //main
     OutputDirectory = theApp.GetString(_T("OutputPath")); //TODO: defaults to "My Documents"
@@ -119,7 +119,7 @@ bool COptions::Read()
 
     return true;
 }
-bool COptions::Write()
+bool CSettings::Write()
 {
     //main
     theApp.WriteString(_T("OutputPath"), OutputDirectory);

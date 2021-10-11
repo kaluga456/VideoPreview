@@ -9,7 +9,7 @@
 #include "OutputProfile.h"
 #include "OutputProfileList.h"
 #include "ProcessingItem.h"
-#include "Options.h"
+#include "Settings.h"
 #include "ScreenshotGenerator.h"
 #include "ProcessingThread.h"
 #include "VideoPreview.h"
@@ -85,17 +85,23 @@ BOOL CMainApp::InitInstance()
     SetRegistryBase(_T(""));
 	//LoadStdProfileSettings(4);  // Load standard INI file options (including MRU)
     
-    Options.Read();
+    Settings.Read();
 
 	InitContextMenuManager();
 	InitShellManager();
-
 	InitKeyboardManager();
 
 	InitTooltipManager();
 	CMFCToolTipInfo ttParams;
 	ttParams.m_bVislManagerTheme = TRUE;
 	theApp.GetTooltipManager()->SetTooltipParams(AFX_TOOLTIP_TYPE_ALL, RUNTIME_CLASS(CMFCToolTipCtrl), &ttParams);
+
+    //use system menu font as common font for all controls
+    NONCLIENTMETRICS ncm;
+    ncm.cbSize = sizeof(ncm);
+    SystemParametersInfo(SPI_GETNONCLIENTMETRICS, NULL, &ncm, NULL);
+    AppFont.CreateFontIndirect(&ncm.lfMenuFont);
+    CMFCMenuBar::SetMenuFont(&ncm.lfMenuFont,  TRUE);
 
 	// Register the application's document templates.  Document templates
 	//  serve as the connection between documents, frame windows and views
@@ -108,7 +114,7 @@ BOOL CMainApp::InitInstance()
 		return FALSE;
 	AddDocTemplate(pDocTemplate);
 
-	// Parse command line for standard shell commands, DDE, file open
+	//TODO: Parse command line for standard shell commands, DDE, file open
 	CCommandLineInfo cmdInfo;
 	ParseCommandLine(cmdInfo);
 
@@ -125,7 +131,7 @@ BOOL CMainApp::InitInstance()
 }
 int CMainApp::ExitInstance()
 {
-    Options.Write();
+    Settings.Write();
     
     return CWinAppEx::ExitInstance();
 }

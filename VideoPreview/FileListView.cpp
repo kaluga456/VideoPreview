@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #pragma hdrstop
 #include "Resource.h"
-#include "Options.h"
+#include "Settings.h"
 #include "ProcessingItem.h"
 
 // SHARED_HANDLERS can be defined in an ATL project implementing preview, thumbnail
@@ -83,9 +83,9 @@ BOOL CFileListView::PreCreateWindow(CREATESTRUCT& cs)
 void CFileListView::OnDestroy()
 {
     CListCtrl& listCtrl = GetListCtrl();
-    Options.ColumnWidth1 = listCtrl.GetColumnWidth(0);
-    Options.ColumnWidth2 = listCtrl.GetColumnWidth(1);
-    Options.ColumnWidth3 = listCtrl.GetColumnWidth(2);   
+    Settings.ColumnWidth1 = listCtrl.GetColumnWidth(0);
+    Settings.ColumnWidth2 = listCtrl.GetColumnWidth(1);
+    Settings.ColumnWidth3 = listCtrl.GetColumnWidth(2);   
 
     CListView::OnDestroy();
 }
@@ -114,8 +114,8 @@ void CFileListView::OnInitialUpdate()
     const int client_width = rect.Width();
 
     //column widths
-    const int column_width1 = Options.ColumnWidth1 <= 0 ? 10 : Options.ColumnWidth1;
-    const int column_width2 = Options.ColumnWidth2 <= 0 ? 10 : Options.ColumnWidth2;
+    const int column_width1 = Settings.ColumnWidth1 <= 0 ? 10 : Settings.ColumnWidth1;
+    const int column_width2 = Settings.ColumnWidth2 <= 0 ? 10 : Settings.ColumnWidth2;
     const int column_width3 = client_width - column_width1 - column_width2;
     listCtrl.SetColumnWidth(FLV_COLUMN_VIDEO, column_width1);
     listCtrl.SetColumnWidth(FLV_COLUMN_STATE, column_width2);
@@ -175,19 +175,19 @@ CProcessingItem* CFileListView::FindItem(const CPoint& point)
 void CFileListView::Sort()
 {
     CListCtrl& list_ctrl = GetListCtrl();
-    if(FLV_COLUMN_VIDEO == Options.SortedColumn)
-        list_ctrl.SortItems(FileListViewSortBySource, Options.SortOrder);
-    else if(FLV_COLUMN_STATE == Options.SortedColumn)
-        list_ctrl.SortItems(FileListViewSortByState, Options.SortOrder);
+    if(FLV_COLUMN_VIDEO == Settings.SortedColumn)
+        list_ctrl.SortItems(FileListViewSortBySource, Settings.SortOrder);
+    else if(FLV_COLUMN_STATE == Settings.SortedColumn)
+        list_ctrl.SortItems(FileListViewSortByState, Settings.SortOrder);
 }
 void CFileListView::OnColumnClick(int column_index)
 {
     if(column_index != FLV_COLUMN_VIDEO && column_index != FLV_COLUMN_STATE)
         return;
-    if(column_index == Options.SortedColumn)
-        Options.SortOrder = !Options.SortOrder;
+    if(column_index == Settings.SortedColumn)
+        Settings.SortOrder = !Settings.SortOrder;
     else
-        Options.SortedColumn = column_index;
+        Settings.SortedColumn = column_index;
     Sort();
 }
 void CFileListView::UpdateItems()

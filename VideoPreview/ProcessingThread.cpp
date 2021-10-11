@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #pragma hdrstop
 #include "app_thread.h"
-#include "Options.h"
+#include "Settings.h"
 #include "OutputProfile.h"
 #include "ScreenshotGenerator.h"
 #include "ProcessingItem.h"
@@ -12,7 +12,7 @@
 #define SHALLOW_PROCESSING
 #endif //_DEBUG
 
-extern COptions Options;
+extern CSettings Settings;
 CProcessingThread ProcessingThread;
 
 DWORD CProcessingThread::Start(HWND message_target, const COutputProfile* output_profile, LPCTSTR source_file_name)
@@ -82,7 +82,7 @@ DWORD CProcessingThread::Run()
 #else //SHALLOW_PROCESSING
     //TODO: processing procedure
     CString result_string;
-    const int result = GenerateScreenshots(SourceFileName, OutputProfile, Options.UseSourceFileLocation ? NULL : Options.OutputDirectory, result_string, this);
+    const int result = GenerateScreenshots(SourceFileName, OutputProfile, Settings.UseSourceFileLocation ? NULL : Settings.OutputDirectory, result_string, this);
     if(SNAPSHOTS_RESULT_SUCCESS == result)
         NotifyResult(PTM_DONE, result_string);
     else if(SNAPSHOTS_RESULT_TERMINATED == result)

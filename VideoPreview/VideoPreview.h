@@ -14,6 +14,7 @@ public:
 
 class CMainApp : public CWinAppEx
 {
+    DECLARE_MESSAGE_MAP()
 public:
 	CMainApp();
 
@@ -21,7 +22,11 @@ public:
     int ExitInstance();
 	virtual void PreLoadState();
 
-	DECLARE_MESSAGE_MAP()
+    //common font for controls
+    CFont* GetAppFont() {return &AppFont;}
+
+private:
+    CFont AppFont;
 };
 
 extern bool IsProcessing; //true - while there are files to process and command 'stop' not executed

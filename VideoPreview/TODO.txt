@@ -1,36 +1,25 @@
 TODO:
-- output profiles save/load
-? default output directory option
-- file types option
-- default output profile
-- selected output profile option
-? export/import settings commands
-- save/load settings file in user directory
+~ video file types
+? export/import settings/profiles commands (save/load settings file in user directory)
 ? one program instance
-- choose default output location if no defined
 - output preview, save as temp file and show it to user
 
 TODO GUI:
-- combobox with saved strings for output dir in settings dialog
-- output profiles editor
 - dragndrop files/folders to file list view
-- update user commands state
-- explorer context menu
-? cascaded explorer context menu
-- images on file list columns
-- progress bar for state in file list view
-- images for state in file list view (LVS_EX_SUBITEMIMAGES?)
-- icons for source files in file list view
-- output profile combobox on toolbar
-- open source/output file dir commands
-- process double click over item in file list view
-- draw brief output profile description (in combo box or toolbar?)
+- explorer context menu (? cascaded explorer context menu)
+? images on file list columns
+? progress bar for state in file list view
+? images for state in file list view (LVS_EX_SUBITEMIMAGES?)
+? icons for source files in file list view
+? file list keyboard commands
+
+MINOR:
+- CWnd::OnSettingChange()
 
 BUG:
-- copy to clipboard, invalid code page?
-+ dbl click don`t work for top item in file list view
+
 
 NOTES:
 - AFX_GLOBAL_DATA
 - AfxMessageBox()
-- CMFCShellTreeCtrl 
+- CMFCShellTreeCtrl

@@ -62,7 +62,6 @@
 #define IDD_OUTPUT_PROFILE              308
 #define IDC_EDIT_OUTPUT_PROFILE_NAME    309
 #define IDC_CBTN_COPY_FROM_OUTPUT_PROFILE 310
-#define IDC_CBOX_OUTPUT_PROFILES        311
 #define IDC_COMBO_OUTPUT_PROFILES       311
 #define IDC_EDIT_OUTPUT_LOCATION        313
 #define IDC_BTN_OUTPUT_DIRECTORY        314
@@ -78,7 +77,7 @@
 #define IDC_CBTN_USE_SOURCE_FILE_LOCATION 324
 #define IDC_CBTN_OVERWRITE_OUTPUT_FILES 325
 #define IDC_BTN_DEFAULT_SOURCE_FILE_TYPE 326
-#define IDD_OPTIONS                     329
+#define IDD_SETTINGS                    329
 #define ID_SETTINGS_PANE                330
 #define IDC_STATIC_VERSION              1000
 #define IDC_STATIC_APP_URL              1001
@@ -93,8 +92,6 @@
 #define ID_FILE_REMOVEALL               32785
 #define ID_CMD_PROFILE_SAVE             32788
 #define ID_CMD_PROFILE_PREVIEW          32789
-#define ID_PROFILE_SAVECURRENT          32790
-#define ID_PROFILE_PREVIEW32791         32791
 #define ID_CMD_PROFILE_DELETE           32792
 #define ID_PROFILE_COMBO                32793
 #define ID_PROFILE_DELETE32794          32794

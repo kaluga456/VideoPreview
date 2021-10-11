@@ -64,9 +64,6 @@
     <ClInclude Include="ProfilePane.h">
       <Filter>gui</Filter>
     </ClInclude>
-    <ClInclude Include="Options.h">
-      <Filter>core</Filter>
-    </ClInclude>
     <ClInclude Include="ProcessingThread.h">
       <Filter>core</Filter>
     </ClInclude>
@@ -109,6 +106,9 @@
     <ClInclude Include="OutputProfileList.h">
       <Filter>gui</Filter>
     </ClInclude>
+    <ClInclude Include="Settings.h">
+      <Filter>core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FileListView.cpp">
@@ -144,9 +144,6 @@
     <ClCompile Include="ProfilePane.cpp">
       <Filter>gui</Filter>
     </ClCompile>
-    <ClCompile Include="Options.cpp">
-      <Filter>core</Filter>
-    </ClCompile>
     <ClCompile Include="ProcessingThread.cpp">
       <Filter>core</Filter>
     </ClCompile>
@@ -164,6 +161,9 @@
     </ClCompile>
     <ClCompile Include="OutputProfileList.cpp">
       <Filter>gui</Filter>
+    </ClCompile>
+    <ClCompile Include="Settings.cpp">
+      <Filter>core</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
