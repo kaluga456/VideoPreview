@@ -74,6 +74,7 @@
 #define IDC_EDIT_SOURCE_FILE_TYPE       321
 #define IDC_BTN_REMOVE_SOURCE_FILE_TYPE 322
 #define IDC_CBTN_USE_EXPLORER_CONTEXT_MENU 323
+#define IDA_FILE_LIST                   323
 #define IDC_CBTN_USE_SOURCE_FILE_LOCATION 324
 #define IDC_CBTN_OVERWRITE_OUTPUT_FILES 325
 #define IDC_BTN_DEFAULT_SOURCE_FILE_TYPE 326
@@ -137,13 +138,14 @@
 #define ID_PROFILE_ADD                  32844
 #define ID_COMBO_OUTPUT_DIR             32848
 #define ID_CMD_SELECT_OUTPUT_DIR        32849
+#define ID_CMD_SELECT_ALL_FILES         32855
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        323
-#define _APS_NEXT_COMMAND_VALUE         32850
+#define _APS_NEXT_RESOURCE_VALUE        324
+#define _APS_NEXT_COMMAND_VALUE         32857
 #define _APS_NEXT_CONTROL_VALUE         1002
 #define _APS_NEXT_SYMED_VALUE           331
 #endif

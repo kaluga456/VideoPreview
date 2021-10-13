@@ -64,6 +64,18 @@ END
 
 #endif    // APSTUDIO_INVOKED
 
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+IDA_FILE_LIST ACCELERATORS
+BEGIN
+    VK_DELETE,      ID_CMD_REMOVE_SELECTED, VIRTKEY, NOINVERT
+    "A",            ID_CMD_SELECT_ALL_FILES, VIRTKEY, CONTROL, NOINVERT
+END
+
 #endif    // Russian (Russia) resources
 /////////////////////////////////////////////////////////////////////////////
 
@@ -117,7 +129,7 @@ ID_TOOLBAR_MAIN         BITMAP                  "res\\Toolbar256.bmp"
 // Toolbar
 //
 
-ID_TOOLBAR_MAIN TOOLBAR 16, 15
+ID_TOOLBAR_MAIN TOOLBAR 16, 16
 BEGIN
     BUTTON      ID_CMD_ADD_FILES
     BUTTON      ID_CMD_ADD_FOLDER
@@ -134,7 +146,7 @@ BEGIN
     BUTTON      ID_COMBO_OUTPUT_DIR
 END
 
-ID_TOOLBAR_SETTINGS TOOLBAR 16, 15
+ID_TOOLBAR_SETTINGS TOOLBAR 16, 16
 BEGIN
     BUTTON      ID_CMD_PROFILE_ADD
     BUTTON      ID_CMD_PROFILE_DELETE
@@ -219,15 +231,15 @@ END
 
 IDR_MAINFRAME ACCELERATORS
 BEGIN
-    "Q",            ID_CMD_TEST,            VIRTKEY, CONTROL, NOINVERT
     VK_INSERT,      ID_CMD_ADD_FILES,       VIRTKEY, NOINVERT
     VK_INSERT,      ID_CMD_ADD_FOLDER,      VIRTKEY, CONTROL, NOINVERT
     "O",            ID_CMD_OPTIONS,         VIRTKEY, CONTROL, NOINVERT
-    VK_DELETE,      ID_CMD_REMOVE_COMPLETED, VIRTKEY, SHIFT, NOINVERT
-    VK_DELETE,      ID_CMD_REMOVE_ALL,      VIRTKEY, CONTROL, NOINVERT
-    "S",            ID_CMD_PROFILE_SAVE,    VIRTKEY, CONTROL, NOINVERT
     "D",            ID_CMD_PROFILE_DELETE,  VIRTKEY, CONTROL, NOINVERT
     "P",            ID_CMD_PROFILE_PREVIEW, VIRTKEY, CONTROL, NOINVERT
+    "S",            ID_CMD_PROFILE_SAVE,    VIRTKEY, CONTROL, NOINVERT
+    VK_DELETE,      ID_CMD_REMOVE_ALL,      VIRTKEY, CONTROL, NOINVERT
+    VK_DELETE,      ID_CMD_REMOVE_COMPLETED, VIRTKEY, SHIFT, NOINVERT
+    "Q",            ID_CMD_TEST,            VIRTKEY, CONTROL, NOINVERT
 END
 
 
@@ -487,9 +499,9 @@ END
 
 STRINGTABLE
 BEGIN
-    ID_CMD_PROFILE_SAVE     "Save Selected Profile\nSave"
+    ID_CMD_PROFILE_SAVE     "Save Selected Profile\nSave Profile"
     ID_CMD_PROFILE_PREVIEW  "Preview Selected Profile\nPreview Profile"
-    ID_CMD_PROFILE_DELETE   "Delete Selected Profile\nDelete"
+    ID_CMD_PROFILE_DELETE   "Delete Selected Profile\nDelete Profile"
 END
 
 STRINGTABLE
@@ -497,6 +509,11 @@ BEGIN
     ID_CMD_REMOVE_ALL       "Remove All Source Files From List\nRemove All"
     ID_CMD_REMOVE_COMPLETED "Remove Completed Files From List\nRemove Completed"
     ID_CMD_REMOVE_FAILED    "Remove Failed Files From List\nRemove Failed"
+END
+
+STRINGTABLE
+BEGIN
+    ID_CMD_SELECT_OUTPUT_DIR "Select Output Directory\nOutput Directory"
 END
 
 #endif    // English (United States) resources

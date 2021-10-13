@@ -12,23 +12,7 @@ enum
 
 class CFileListView : public CListView
 {
-private:
-    CMenu PopupMenu;
-    CProcessingItem* FindItem(const CPoint& point); 
-    void AddItem(const CProcessingItem* item);
-
-protected: // create from serialization only
-	CFileListView();
-	DECLARE_DYNCREATE(CFileListView)
-
-// Generated message map functions
-protected:
-    afx_msg void OnDestroy();
-	afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
-	DECLARE_MESSAGE_MAP()
-
-    virtual void OnInitialUpdate(); // called first time after construct
-
+    DECLARE_MESSAGE_MAP()
 public:
     virtual ~CFileListView();
 
@@ -54,6 +38,24 @@ public:
     void UpdateItem(const CProcessingItem* item, int item_index);
     void UpdateItems();
     void Sort();
+
+private:
+    CProcessingItem* FindItem(const CPoint& point); 
+    void AddItem(const CProcessingItem* item);
+
+protected: 
+	CFileListView(); //create from serialization only
+	DECLARE_DYNCREATE(CFileListView)
+
+protected:
+    afx_msg void OnDestroy();
+	afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
+	
+    //custom events for file list
+    BOOL CFileListView::PreTranslateMessage(MSG* msg);
+    HACCEL Accel;
+
+    virtual void OnInitialUpdate(); // called first time after construct
 };
 
 #ifndef _DEBUG  // debug version in FileListView.cpp

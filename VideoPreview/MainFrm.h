@@ -68,10 +68,7 @@ protected:
 
     //controls
 	CMFCMenuBar MainMenu;
-
-    //TEST:
     CMainToolbar ToolBar;
-	//CMFCToolBar ToolBar;
 
 	CProfilePane SettingsPane;
     CMFCStatusBar StatusBar; //TODO: need status bar?
@@ -82,6 +79,9 @@ protected:
 
     //overrides
     virtual void AdjustDockingLayout(HDWP hdwp /*= NULL*/);
+
+    //TEST:
+    //virtual BOOL PreTranslateMessage(MSG* pMsg);
 
     //message handlers
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);

@@ -446,6 +446,10 @@ void CMainFrame::AdjustDockingLayout(HDWP hdwp /*= NULL*/)
     CFrameWndEx::AdjustDockingLayout(hdwp);
     if(ToolBar.GetSafeHwnd()) ToolBar.AdjustLayout();
 }
+//BOOL CMainFrame::PreTranslateMessage(MSG* pMsg)
+//{
+//    return FALSE;
+//}
 void CMainFrame::OnUpdateFrameTitle(BOOL bAddToTitle)
 {
     //NOTE: in default method frame title is first name from IDR_MAINFRAME
@@ -935,6 +939,15 @@ void CMainFrame::OnCmdTest()
     //ToolBar.SetFont(&font, TRUE);
     //MainMenu.SetMenuFont(&ncm.lfMenuFont,  TRUE);
     //GetFileListView()->SetFont(&font, TRUE);
+
+
+    //TEST
+    //CMFCPopupMenu mpm;
+    CMFCPopupMenu* mpm = new CMFCPopupMenu;
+    mpm->SetAutoDestroy(FALSE);
+    BOOL res = mpm->Create(this, 100, 100, ::LoadMenu(theApp.m_hInstance, MAKEINTRESOURCE(IDR_POPUP_MENU)), TRUE, FALSE);
+    
+    //CMFCPopupMenu::ActivatePopupMenu(this, &mpm);
 }
 void CMainFrame::OnUpdateUI(CCmdUI* pCmdUI)
 {

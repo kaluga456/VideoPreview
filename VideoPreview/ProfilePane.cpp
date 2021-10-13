@@ -260,7 +260,7 @@ void CProfilePane::InitPropList()
     CMFCPropertyGridProperty* pgp_header = new CMFCPropertyGridProperty(_T("Header"));
     pgpWriteHeader = new CMFCPropertyGridProperty(_T("Write Header"), (_variant_t)false, SETTING_DESCR[IDP_WRITE_HEADER], IDP_WRITE_HEADER);
     pgp_header->AddSubItem(pgpWriteHeader);
-    pgpHeaderFont = new CPGPFont(_T("Font"), sample_logfont, CF_EFFECTS | CF_SCREENFONTS, SETTING_DESCR[IDP_HEADER_FONT], IDP_HEADER_FONT);
+    pgpHeaderFont = new CPGPFont(_T("Font"), sample_logfont, CF_SCREENFONTS, SETTING_DESCR[IDP_HEADER_FONT], IDP_HEADER_FONT);
     pgpHeaderFontColor = new CMFCPropertyGridColorProperty(_T("Font Color"), RGB(0, 0, 0), NULL, SETTING_DESCR[IDP_HEADER_FONT_COLOR], IDP_HEADER_FONT_COLOR);
     pgpHeaderFontColor->EnableOtherButton(_T("Other..."));
     pgp_header->AddSubItem(pgpHeaderFont);
@@ -314,7 +314,7 @@ void CProfilePane::InitPropList()
     pgpTimestampType->AddItem(_T("Bottom-Center"), TIMESTAMP_TYPE_BOTTOM_CENTER);
     pgpTimestampType->AddItem(_T("Bottom-Right"), TIMESTAMP_TYPE_BOTTOM_RIGHT);
     pgpTimestampType->AllowEdit(FALSE);
-    pgpTimestampFont = new CPGPFont(_T("Font"), sample_logfont, CF_EFFECTS | CF_SCREENFONTS, SETTING_DESCR[IDP_TIMESTAMP_FONT], IDP_TIMESTAMP_FONT);
+    pgpTimestampFont = new CPGPFont(_T("Font"), sample_logfont, CF_SCREENFONTS, SETTING_DESCR[IDP_TIMESTAMP_FONT], IDP_TIMESTAMP_FONT);
     pgpTimestampFontColor = new CMFCPropertyGridColorProperty(_T("Font Color"), RGB(0, 0, 0), NULL, SETTING_DESCR[IDP_TIMESTAMP_FONT_COLOR], IDP_TIMESTAMP_FONT_COLOR);
     pgpTimestampFontColor->EnableOtherButton(_T("Other..."));
     pgp_timestamp->AddSubItem(pgpTimestampType);

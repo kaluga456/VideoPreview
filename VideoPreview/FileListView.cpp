@@ -71,9 +71,11 @@ END_MESSAGE_MAP()
 // CFileListView construction/destruction
 CFileListView::CFileListView()
 {
+    Accel = ::LoadAccelerators(AfxGetResourceHandle(), MAKEINTRESOURCE(IDA_FILE_LIST));
 }
 CFileListView::~CFileListView()
 {
+    ::DestroyAcceleratorTable(Accel);
 }
 BOOL CFileListView::PreCreateWindow(CREATESTRUCT& cs)
 {
@@ -93,7 +95,7 @@ void CFileListView::OnInitialUpdate()
 {
 	CListView::OnInitialUpdate();
 
-    PopupMenu.LoadMenu(IDR_POPUP_MENU);
+    theApp.GetContextMenuManager()->AddMenu(_T("Context Menu"), IDR_POPUP_MENU);
 
     //set view styles
     CListCtrl& listCtrl = GetListCtrl();
@@ -159,9 +161,32 @@ void CFileListView::OnContextMenu(CWnd* /* pWnd */, CPoint point)
     if(hti.flags & HHT_ONHEADER) //header control click
         return;
 
-    CMenu* pm = PopupMenu.GetSubMenu(0);
-    const BOOL result = pm->TrackPopupMenu(TPM_LEFTALIGN |TPM_RIGHTBUTTON /*| TPM_RETURNCMD*/, point.x, point.y, GetParent());
+    theApp.GetContextMenuManager()->ShowPopupMenu(IDR_POPUP_MENU, point.x, point.y, this);
 #endif
+}
+BOOL CFileListView::PreTranslateMessage(MSG* msg)
+{
+    if(::TranslateAccelerator(m_hWnd, Accel, msg))
+    {
+        //Delete
+        if(VK_DELETE == msg->wParam)
+        {
+            ::SendMessage(GetParent()->m_hWnd, WM_COMMAND, ID_CMD_REMOVE_SELECTED, NULL);
+            return TRUE;
+        }
+
+        //Ctrl+A
+        if(0x41 == msg->wParam)
+        {
+            CListCtrl& lc = GetListCtrl();
+            const int count = lc.GetItemCount();
+            for(int i = 0; i < count; ++i)
+                lc.SetItemState(i, LVNI_SELECTED, LVIS_SELECTED);
+            return TRUE;
+        }
+        return FALSE;
+    }
+    return FALSE;
 }
 CProcessingItem* CFileListView::FindItem(const CPoint& point)
 {
