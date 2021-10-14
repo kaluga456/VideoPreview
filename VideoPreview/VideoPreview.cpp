@@ -60,14 +60,16 @@ BOOL CMainApp::InitInstance()
 	// visual styles.  Otherwise, any window creation will fail.
 	INITCOMMONCONTROLSEX InitCtrls;
 	InitCtrls.dwSize = sizeof(InitCtrls);
-	// Set this to include all the common control classes you want to use
-	// in your application.
+	//Set this to include all the common control classes you want to use in your application.
 	InitCtrls.dwICC = ICC_WIN95_CLASSES;
 	InitCommonControlsEx(&InitCtrls);
 
 	CWinAppEx::InitInstance();
 
 	EnableTaskbarInteraction(FALSE);
+
+    //TODO: for drag`n`drop
+    AfxOleInit();
 
 	// AfxInitRichEdit2() is required to use RichEdit control	
 	// AfxInitRichEdit2();

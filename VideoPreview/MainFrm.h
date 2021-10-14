@@ -80,9 +80,6 @@ protected:
     //overrides
     virtual void AdjustDockingLayout(HDWP hdwp /*= NULL*/);
 
-    //TEST:
-    //virtual BOOL PreTranslateMessage(MSG* pMsg);
-
     //message handlers
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
     afx_msg void OnDestroy();
@@ -90,6 +87,7 @@ protected:
 	afx_msg void OnViewPropertiesWindow();
     afx_msg void OnCmdAddFiles();
     afx_msg void OnCmdAddFolder();
+    afx_msg void OnCmdPasteFiles();
     afx_msg void OnCmdProcessAll();
     afx_msg void OnCmdStopProcessing();
     afx_msg void OnCmdRemoveFailed();

@@ -5,13 +5,14 @@ TODO:
 - output preview, save as temp file and show it to user
 
 TODO GUI:
+- clipboard
 - dragndrop files/folders to file list view
 - explorer context menu (? cascaded explorer context menu)
 ? images on file list columns
 ? progress bar for state in file list view
 ? images for state in file list view (LVS_EX_SUBITEMIMAGES?)
 ? icons for source files in file list view
-? file list keyboard commands
+
 
 MINOR:
 - CWnd::OnSettingChange()

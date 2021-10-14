@@ -23,26 +23,29 @@ LPCTSTR CSourceFileType::Init(LPCTSTR extension)
     int size = 0;
     for(LPCTSTR pos = extension; ; ++pos, ++size)
     {
-        if(';' == *pos) //delimiter
+        if(_T(';') == *pos) //delimiter
         {
             Extension[size] = 0;
+            ::_tcslwr_s(Extension, size + 1);
             return pos + 1;
         }
         if(0 == *pos) //end of string
         {
             Extension[size] = 0;
+            ::_tcslwr_s(Extension, size + 1);
             return NULL;
         }
         if(size == SOURCE_FILE_TYPE_MAX_SIZE - 1) //length limit
         {
-            Extension[size] = 0;
+            Extension[0] = 0;
+            ::_tcslwr_s(Extension, size);
             return pos + 1;
         }
         if(::isalnum(*pos))
             Extension[size] = *pos;
         else //invalid character
         {
-            Extension[size] = 0;
+            Extension[0] = 0;
             return pos + 1;
         }
     }
@@ -105,8 +108,10 @@ bool CSourceFileTypes::GetFilterString(LPTSTR filter_string, UINT size)
 }
 CString CSourceFileTypes::GetFilterString() const
 {
-    CString result = _T("Video Files|");
     CString all_files = _T("All Files (*.*)|*.*||");
+    if(SourceFileTypeList.empty()) return all_files;
+
+    CString result = _T("Video Files|");
     for(CSourceFileTypeList::const_iterator i = SourceFileTypeList.begin(); i != SourceFileTypeList.end(); ++i)
     {
         ASSERT(i->IsValid());
@@ -130,11 +135,8 @@ bool CSourceFileTypes::AddType(LPCTSTR extension)
         return false;
 
     if(SourceFileTypeList.end() == SourceFileTypeList.find(file_type))
-    {
-        SourceFileTypeList.insert(file_type);
-        return true;
-    }
-    return false;
+        SourceFileTypeList.insert(file_type);  
+    return true;
 }
 bool CSourceFileTypes::RemoveType(LPCTSTR extension)
 {
@@ -158,4 +160,15 @@ bool CSourceFileTypes::HasType(LPCTSTR ext) const
     CSourceFileType sft(ext);
     CSourceFileTypeList::const_iterator i = SourceFileTypeList.find(sft);
     return i != SourceFileTypeList.end();
+}
+bool CSourceFileTypes::CheckName(LPCTSTR file_name) const
+{
+    if(NULL == file_name) 
+        return false;
+    LPCTSTR dot_pos = _tcsrchr(file_name, _T('.'));
+    if(NULL == dot_pos) 
+        return false;
+    CString ext = dot_pos + 1;
+    ext.MakeLower();
+    return HasType(ext);
 }

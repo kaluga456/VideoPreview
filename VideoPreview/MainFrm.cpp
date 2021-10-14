@@ -3,6 +3,7 @@
 #include "app_error.h"
 #include "app_thread.h"
 #include "Resource.h"
+#include "ClipboardFiles.h"
 #include "About.h"
 #include "Settings.h"
 #include "SourceFileTypes.h"
@@ -266,6 +267,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWndEx)
 
     ON_COMMAND(ID_CMD_ADD_FILES, &CMainFrame::OnCmdAddFiles)
     ON_COMMAND(ID_CMD_ADD_FOLDER, &CMainFrame::OnCmdAddFolder)
+    ON_COMMAND(ID_CMD_PASTE_FILES, &CMainFrame::OnCmdPasteFiles)
     
     //output profiles
     ON_COMMAND(ID_CMD_PROFILE_ADD, &CMainFrame::OnCmdProfileAdd)
@@ -446,10 +448,6 @@ void CMainFrame::AdjustDockingLayout(HDWP hdwp /*= NULL*/)
     CFrameWndEx::AdjustDockingLayout(hdwp);
     if(ToolBar.GetSafeHwnd()) ToolBar.AdjustLayout();
 }
-//BOOL CMainFrame::PreTranslateMessage(MSG* pMsg)
-//{
-//    return FALSE;
-//}
 void CMainFrame::OnUpdateFrameTitle(BOOL bAddToTitle)
 {
     //NOTE: in default method frame title is first name from IDR_MAINFRAME
@@ -643,16 +641,41 @@ void CMainFrame::AddFolder(CString root_dir)
         }
 
         //check file extension
-        LPCTSTR dot_pos = ::wcsrchr(found_name, _T('.'));
-        if(NULL == dot_pos) continue;
-        CString ext = dot_pos + 1;
-        ext.MakeLower();
-        if(SourceFileTypes.HasType(ext))
+        if(SourceFileTypes.CheckName(found_name))
         {
             PProcessingItem pi(new CProcessingItem(PIS_WAIT, root_dir + _T("\\") + found_name));
             AddItem(pi);
         }
     }
+}
+void CMainFrame::OnCmdPasteFiles()
+{
+    CClipboardFiles cf(m_hWnd);
+
+    const int items_count = GetFileListView()->GetListCtrl().GetItemCount();
+    for(int index = 0;; ++index)
+    {
+        CString file_name = cf.GetFileName(index);
+        if(file_name.IsEmpty())
+            break;
+
+        if(false == SourceFileTypes.CheckName(file_name))
+            continue;
+
+        const DWORD file_attr = ::GetFileAttributes(file_name);
+        if(file_attr & FILE_ATTRIBUTE_DIRECTORY)
+            continue;
+
+        PProcessingItem pi(new CProcessingItem(PIS_WAIT, file_name));
+        AddItem(pi);
+    }
+
+    if(items_count < GetFileListView()->GetListCtrl().GetItemCount())
+    {
+        GetFileListView()->Sort();
+        ItemsListState.SetReady(true);
+        UpdateDialogControls(this, FALSE);
+    }   
 }
 void CMainFrame::OnCmdSelectOutputDir()
 {
@@ -925,29 +948,8 @@ void CMainFrame::OnProfilePreview()
 void CMainFrame::OnCmdTest()
 {
     //TEST:
-    //CBOutputDir->AddDir(_T("test"));
-    //CMFCToolBarButton* cmb = MainMenu.GetMenuItem(6);
-    //cmb->SetImage(2);
-
-    //NONCLIENTMETRICS ncm;
-    //ncm.cbSize = sizeof(ncm);
-    //SystemParametersInfo(SPI_GETNONCLIENTMETRICS, NULL, &ncm, NULL);
-
-    //CFont font;
-    ////ncm.lfMenuFont.lfHeight = -18;
-    //font.CreateFontIndirect(&ncm.lfMenuFont);
-    //ToolBar.SetFont(&font, TRUE);
-    //MainMenu.SetMenuFont(&ncm.lfMenuFont,  TRUE);
-    //GetFileListView()->SetFont(&font, TRUE);
 
 
-    //TEST
-    //CMFCPopupMenu mpm;
-    CMFCPopupMenu* mpm = new CMFCPopupMenu;
-    mpm->SetAutoDestroy(FALSE);
-    BOOL res = mpm->Create(this, 100, 100, ::LoadMenu(theApp.m_hInstance, MAKEINTRESOURCE(IDR_POPUP_MENU)), TRUE, FALSE);
-    
-    //CMFCPopupMenu::ActivatePopupMenu(this, &mpm);
 }
 void CMainFrame::OnUpdateUI(CCmdUI* pCmdUI)
 {

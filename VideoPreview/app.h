@@ -39,7 +39,7 @@ enum
 
 //static array size
 #ifndef APP_ARRAY_SIZE
-    #define APP_ARRAY_SIZE(array)   (sizeof(array)/sizeof(array[0]))
+    #define APP_ARRAY_SIZE(array) (sizeof(array)/sizeof(array[0]))
 #endif //GET_ARRAY_SIZE
 
 //common sizes

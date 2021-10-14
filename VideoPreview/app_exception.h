@@ -89,10 +89,16 @@ private:
         throw app::exception_string(_T("APP_VERIFY(") _T(#expression) _T(") failed"), TEXT(__FILE__), __LINE__);}
 
 #define APP_VERIFY_WINAPI(error_code) \
-    {const DWORD r = (error_code); \
+    {const DWORD r(error_code); \
     if(r != ERROR_SUCCESS) \
         throw app::exception_winapi_error(r, TEXT(__FILE__), __LINE__);}
 
+#define APP_VERIFY_WINAPI_BOOL(ret_val) \
+    {if(FALSE == ret_val) \
+        throw app::exception_winapi_error(::GetLastError(), TEXT(__FILE__), __LINE__);}
+
+#define APP_THROW_WINAPI_LAST() \
+    {throw app::exception_winapi_error(::GetLastError(), TEXT(__FILE__), __LINE__);}
 } //namespace app
 
 #endif //_APP_EXCEPTION_H_

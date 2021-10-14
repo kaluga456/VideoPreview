@@ -113,11 +113,11 @@
     <ClInclude Include="app_gdi.h" />
     <ClInclude Include="app_string.h" />
     <ClInclude Include="app_thread.h" />
+    <ClInclude Include="ClipboardFiles.h" />
     <ClInclude Include="DialogAbout.h" />
     <ClInclude Include="DialogOutputProfile.h" />
     <ClInclude Include="DialogSettings.h" />
     <ClInclude Include="FileListView.h" />
-    <ClInclude Include="FontView.h" />
     <ClInclude Include="MainFrm.h" />
     <ClInclude Include="OutputProfile.h" />
     <ClInclude Include="OutputProfileList.h" />
@@ -133,13 +133,14 @@
     <ClInclude Include="VideoFile.h" />
     <ClInclude Include="VideoPreview.h" />
     <ClInclude Include="VideoPreviewDoc.h" />
+    <ClInclude Include="VPError.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ClipboardFiles.cpp" />
     <ClCompile Include="DialogAbout.cpp" />
     <ClCompile Include="DialogOutputProfile.cpp" />
     <ClCompile Include="DialogSettings.cpp" />
     <ClCompile Include="FileListView.cpp" />
-    <ClCompile Include="FontView.cpp" />
     <ClCompile Include="MainFrm.cpp" />
     <ClCompile Include="OutputProfile.cpp" />
     <ClCompile Include="OutputProfileList.cpp" />
@@ -156,6 +157,7 @@
     <ClCompile Include="VideoFile.cpp" />
     <ClCompile Include="VideoPreview.cpp" />
     <ClCompile Include="VideoPreviewDoc.cpp" />
+    <ClCompile Include="VPError.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="VideoPreview.rc" />

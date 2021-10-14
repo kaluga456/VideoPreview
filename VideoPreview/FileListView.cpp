@@ -1,5 +1,9 @@
 #include "stdafx.h"
 #pragma hdrstop
+#include "app.h"
+#include "app_error.h"
+#include "app_exception.h"
+#include "VPError.h"
 #include "Resource.h"
 #include "Settings.h"
 #include "ProcessingItem.h"
@@ -69,7 +73,7 @@ BEGIN_MESSAGE_MAP(CFileListView, CListView)
 END_MESSAGE_MAP()
 
 // CFileListView construction/destruction
-CFileListView::CFileListView()
+CFileListView::CFileListView() : m_prevDropEffect(DROPEFFECT_NONE)
 {
     Accel = ::LoadAccelerators(AfxGetResourceHandle(), MAKEINTRESOURCE(IDA_FILE_LIST));
 }
@@ -94,6 +98,9 @@ void CFileListView::OnDestroy()
 void CFileListView::OnInitialUpdate()
 {
 	CListView::OnInitialUpdate();
+
+    //TODO: From your view class's function that handles the WM_CREATE message
+    OleDropTarget.Register(this);
 
     theApp.GetContextMenuManager()->AddMenu(_T("Context Menu"), IDR_POPUP_MENU);
 
@@ -166,26 +173,141 @@ void CFileListView::OnContextMenu(CWnd* /* pWnd */, CPoint point)
 }
 BOOL CFileListView::PreTranslateMessage(MSG* msg)
 {
-    if(::TranslateAccelerator(m_hWnd, Accel, msg))
-    {
-        //Delete
-        if(VK_DELETE == msg->wParam)
-        {
-            ::SendMessage(GetParent()->m_hWnd, WM_COMMAND, ID_CMD_REMOVE_SELECTED, NULL);
-            return TRUE;
-        }
-
-        //Ctrl+A
-        if(0x41 == msg->wParam)
-        {
-            CListCtrl& lc = GetListCtrl();
-            const int count = lc.GetItemCount();
-            for(int i = 0; i < count; ++i)
-                lc.SetItemState(i, LVNI_SELECTED, LVIS_SELECTED);
-            return TRUE;
-        }
+    if(FALSE == ::TranslateAccelerator(m_hWnd, Accel, msg))
         return FALSE;
+
+    //Delete
+    if(VK_DELETE == msg->wParam)
+    {
+        ::SendMessage(GetParent()->m_hWnd, WM_COMMAND, ID_CMD_REMOVE_SELECTED, NULL);
+        return TRUE;
     }
+
+    //Ctrl+A
+    if(0x41 == msg->wParam)
+    {
+        CListCtrl& lc = GetListCtrl();
+        const int count = lc.GetItemCount();
+        for(int i = 0; i < count; ++i)
+            lc.SetItemState(i, LVNI_SELECTED, LVIS_SELECTED);
+        return TRUE;
+    }
+
+    //Ctrl+V
+    if(0x56 == msg->wParam)
+    {
+        ::SendMessage(GetParent()->m_hWnd, WM_COMMAND, ID_CMD_PASTE_FILES, NULL);
+        return TRUE;
+    }
+    return FALSE;
+}
+BOOL CFileListView::GetObjectInfo(COleDataObject* pDataObject, CSize* pSize, CSize* pOffset)
+{
+	ENSURE(pSize != NULL);
+	
+	//get object descriptor data
+	HGLOBAL hObjDesc = pDataObject->GetGlobalData(m_cfObjectDescriptor);
+	if (hObjDesc == NULL)
+	{
+		if (pOffset != NULL)
+			*pOffset = CSize(0, 0); // fill in defaults instead
+		*pSize = CSize(0, 0);
+		return FALSE;
+	}
+	ASSERT(hObjDesc != NULL);
+	
+	//otherwise, got CF_OBJECTDESCRIPTOR ok.  Lock it down and extract size.
+	LPOBJECTDESCRIPTOR pObjDesc = (LPOBJECTDESCRIPTOR)GlobalLock(hObjDesc);
+	ENSURE(pObjDesc != NULL);
+	pSize->cx = (int)pObjDesc->sizel.cx;
+	pSize->cy = (int)pObjDesc->sizel.cy;
+	if (pOffset != NULL)
+	{
+		pOffset->cx = (int)pObjDesc->pointl.x;
+		pOffset->cy = (int)pObjDesc->pointl.y;
+	}
+	GlobalUnlock(hObjDesc);
+	GlobalFree(hObjDesc);
+	
+	// successfully retrieved pSize & pOffset info
+	return TRUE;
+}
+DROPEFFECT CFileListView::OnDragEnter(COleDataObject* pDataObject, DWORD grfKeyState, CPoint point)
+{
+	ASSERT(m_prevDropEffect == DROPEFFECT_NONE);
+	
+	GetObjectInfo(pDataObject, &m_dragSize, &m_dragOffset);
+	CClientDC dc(NULL);
+	dc.HIMETRICtoDP(&m_dragSize);
+	dc.HIMETRICtoDP(&m_dragOffset);
+	
+	return OnDragOver(pDataObject, grfKeyState, point);
+}
+DROPEFFECT CFileListView::OnDragOver(COleDataObject* ole_object, DWORD grfKeyState, CPoint point)
+{
+    //TODO:
+    HGLOBAL hObjDesc = ole_object->GetGlobalData(m_cfObjectDescriptor);
+    CLIPFORMAT cf = CF_TEXT;
+
+
+    return DROPEFFECT_COPY;
+	//point -= m_dragOffset;  // adjust target rect by original cursor offset
+	//
+	//// check for point outside logical area -- i.e. in hatched region
+	//// GetTotalSize() returns the size passed to SetScrollSizes
+	//CRect rectScroll(CPoint(0, 0), GetTotalSize());
+	//
+	//CRect rectItem(point,m_dragSize);
+	//if (rectItem.IsRectEmpty())
+	//{
+	//	// some apps might have a null size in the object descriptor...
+	//	rectItem.InflateRect(1,1);
+	//}
+	//rectItem.OffsetRect(GetDeviceScrollPosition());
+	//
+	//DROPEFFECT de = DROPEFFECT_NONE;
+	//CRect rectTemp;
+	//if (rectTemp.IntersectRect(rectScroll, rectItem))
+	//{
+	//	// check for force link
+	//	if ((grfKeyState & (MK_CONTROL|MK_SHIFT)) == (MK_CONTROL|MK_SHIFT))
+	//		de = DROPEFFECT_LINK;
+	//	// check for force copy
+	//	else if ((grfKeyState & MK_CONTROL) == MK_CONTROL)
+	//		de = DROPEFFECT_COPY;
+	//	// check for force move
+	//	else if ((grfKeyState & MK_ALT) == MK_ALT)
+	//		de = DROPEFFECT_MOVE;
+	//	// default -- recommended action is move
+	//	else
+	//		de = DROPEFFECT_MOVE;
+	//}
+	//
+	//if(point == m_dragPoint)
+	//	return de;
+	//
+	//// otherwise, cursor has moved -- need to update the drag feedback
+	//CClientDC dc(this);
+	//if (m_prevDropEffect != DROPEFFECT_NONE)
+	//{
+	//	// erase previous focus rect
+	//	dc.DrawFocusRect(CRect(m_dragPoint, m_dragSize));
+	//}
+	//m_prevDropEffect = de;
+	//if (m_prevDropEffect != DROPEFFECT_NONE)
+	//{
+	//	m_dragPoint = point;
+	//	dc.DrawFocusRect(CRect(point, m_dragSize));
+	//}
+	//return de;
+}
+BOOL CFileListView::OnDrop(COleDataObject* pDataObject, DROPEFFECT dropEffect, CPoint point)
+{
+    ASSERT_VALID(this);
+
+    // clean up focus rect
+    OnDragLeave();
+
     return FALSE;
 }
 CProcessingItem* CFileListView::FindItem(const CPoint& point)

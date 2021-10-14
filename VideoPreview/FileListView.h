@@ -39,15 +39,10 @@ public:
     void UpdateItems();
     void Sort();
 
-private:
-    CProcessingItem* FindItem(const CPoint& point); 
-    void AddItem(const CProcessingItem* item);
-
 protected: 
 	CFileListView(); //create from serialization only
 	DECLARE_DYNCREATE(CFileListView)
 
-protected:
     afx_msg void OnDestroy();
 	afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
 	
@@ -56,6 +51,22 @@ protected:
     HACCEL Accel;
 
     virtual void OnInitialUpdate(); // called first time after construct
+
+    //drag'n'drop
+    CSize m_dragSize;
+    CSize m_dragOffset;
+    DROPEFFECT m_prevDropEffect;
+    CLIPFORMAT m_cfObjectDescriptor;
+    BOOL GetObjectInfo(COleDataObject* pDataObject, CSize* pSize, CSize* pOffset);
+    virtual DROPEFFECT OnDragEnter(COleDataObject* pDataObject, DWORD grfKeyState, CPoint point);
+    virtual DROPEFFECT OnDragOver(COleDataObject*, DWORD grfKeyState, CPoint point);
+    virtual BOOL OnDrop(COleDataObject* pDataObject, DROPEFFECT dropEffect, CPoint point);
+
+private:
+    COleDropTarget OleDropTarget;
+
+    CProcessingItem* FindItem(const CPoint& point); 
+    void AddItem(const CProcessingItem* item);
 };
 
 #ifndef _DEBUG  // debug version in FileListView.cpp

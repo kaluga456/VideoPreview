@@ -96,8 +96,7 @@ void CDialogSettings::OnBtnAddSourceFileType()
     if(true == SrcTypes.AddType(text))
         UpdateSourceFileTypesListBox();
     else
-        ASSERT(FALSE);
-        //::AfxMessageBox(_T("Fail to add source file type. Unexpected character in file extension."), MB_OK | MB_ICONERROR);
+        ::AfxMessageBox(_T("Fail to add source file type. Unexpected character in file extension."), MB_OK | MB_ICONERROR);
 }
 void CDialogSettings::OnBtnRemoveSourceFileType()
 {

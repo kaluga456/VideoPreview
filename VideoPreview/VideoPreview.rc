@@ -74,6 +74,7 @@ IDA_FILE_LIST ACCELERATORS
 BEGIN
     VK_DELETE,      ID_CMD_REMOVE_SELECTED, VIRTKEY, NOINVERT
     "A",            ID_CMD_SELECT_ALL_FILES, VIRTKEY, CONTROL, NOINVERT
+    "V",            ID_CMD_PASTE_FILES,     VIRTKEY, CONTROL, NOINVERT
 END
 
 #endif    // Russian (Russia) resources
@@ -217,9 +218,9 @@ BEGIN
         MENUITEM "Reset All",                   ID_CMD_RESET_ALL
         MENUITEM SEPARATOR
         MENUITEM "Remove Selected",             ID_CMD_REMOVE_SELECTED
-        MENUITEM "Remove Completed",            ID_ROOT_REMOVECOMPLETED
-        MENUITEM "Remove Failed",               ID_ROOT_REMOVEFAILED
-        MENUITEM "Remove All\tCtrl+Delete",     ID_ROOT_REMOVEALL
+        MENUITEM "Remove Completed",            ID_CMD_REMOVE_COMPLETED
+        MENUITEM "Remove Failed",               ID_CMD_REMOVE_FAILED
+        MENUITEM "Remove All\tCtrl+Delete",     ID_CMD_REMOVE_ALL
     END
 END
 
@@ -509,6 +510,7 @@ BEGIN
     ID_CMD_REMOVE_ALL       "Remove All Source Files From List\nRemove All"
     ID_CMD_REMOVE_COMPLETED "Remove Completed Files From List\nRemove Completed"
     ID_CMD_REMOVE_FAILED    "Remove Failed Files From List\nRemove Failed"
+    ID_CMD_REMOVE_SELECTED  "Remove selected files from list\nRemove Selected Files"
 END
 
 STRINGTABLE

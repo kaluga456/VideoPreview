@@ -139,13 +139,15 @@
 #define ID_COMBO_OUTPUT_DIR             32848
 #define ID_CMD_SELECT_OUTPUT_DIR        32849
 #define ID_CMD_SELECT_ALL_FILES         32855
+#define ID_ROOT_REMOVE_ALL              32857
+#define ID_CMD_PASTE_FILES              32858
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        324
-#define _APS_NEXT_COMMAND_VALUE         32857
+#define _APS_NEXT_COMMAND_VALUE         32860
 #define _APS_NEXT_CONTROL_VALUE         1002
 #define _APS_NEXT_SYMED_VALUE           331
 #endif
