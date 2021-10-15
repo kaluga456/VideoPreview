@@ -3,10 +3,11 @@
 #include "app_error.h"
 #include "app_thread.h"
 #include "Resource.h"
+#include "VPError.h"
 #include "ClipboardFiles.h"
 #include "About.h"
 #include "Settings.h"
-#include "SourceFileTypes.h"
+#include "VideoFileTypes.h"
 #include "OutputProfile.h"
 #include "OutputProfileList.h"
 #include "ProcessingItem.h"
@@ -25,7 +26,7 @@
 #define new DEBUG_NEW
 #endif
 
-CProcessingItemList ProcessingItemList;
+bool IsProcessSelected; //true process only selected items
 //////////////////////////////////////////////////////////////////////////////
 //CComboOutputDirs
 IMPLEMENT_SERIAL(CComboOutputDirs, CObject, VERSIONABLE_SCHEMA | 1)
@@ -138,50 +139,6 @@ void CMainToolbar::AdjustLayout()
     cbb->SetRect(cb_rect);
 
     Invalidate();
-}
-//////////////////////////////////////////////////////////////////////////////
-//items list state CMainFrame::ItemsListState
-class CItemsListState
-{
-public:
-    CItemsListState() : State(NULL) {}
-    void Update();
-
-    int HasReady() const {return State & PILS_HAS_READY;}
-    int HasDone() const {return State & PILS_HAS_DONE;}
-    int HasFailed() const {return State & PILS_HAS_FAILED;}
-
-    void SetReady(bool value) {SetBit(PILS_HAS_READY, value);}
-    void SetDone(bool value) {SetBit(PILS_HAS_DONE, value);}
-    void SetFailed(bool value) {SetBit(PILS_HAS_FAILED, value);}
-
-private:
-    enum
-    {
-        PILS_HAS_READY = 0x00000001,
-        PILS_HAS_DONE = 0x00000002,
-        PILS_HAS_FAILED = 0x00000004
-    };
-
-    int State;
-    void SetBit(int bit, bool value = true);
-} ItemsListState;
-
-void CItemsListState::SetBit(int bit, bool value /*= true*/)
-{
-    if(value) State |= bit;
-    else State &= ~bit;
-}
-void CItemsListState::Update()
-{
-    State = 0;
-    for(CProcessingItemList::iterator i = ProcessingItemList.begin(); i != ProcessingItemList.end(); ++i)
-    {
-        PProcessingItem pi = i->second;
-        if(PIS_WAIT == pi->State) SetBit(PILS_HAS_READY);
-        if(PIS_DONE == pi->State) SetBit(PILS_HAS_DONE);
-        if(PIS_FAILED == pi->State) SetBit(PILS_HAS_FAILED);
-    }
 }
 //////////////////////////////////////////////////////////////////////////////
 static CString GetLParamString(LPARAM value)
@@ -325,7 +282,7 @@ END_MESSAGE_MAP()
 
 CMainFrame::CMainFrame()
 {
-    ::IsProcessing = false;
+    ::ProcessingState = PTS_NONE;
 }
 CMainFrame::~CMainFrame()
 {
@@ -414,7 +371,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
     theApp.GetObject(_T("OutputDirs"), *CBOutputDir);
     CBOutputDir->InitialUpdate();
 
-    ItemsListState.Update();
+    FileList.UpdateTypes();
     SettingsPane.SetSettings();
 
     return 0;
@@ -519,13 +476,6 @@ void CMainFrame::Dump(CDumpContext& dc) const
 }
 #endif //_DEBUG
 
-void CMainFrame::OnViewPropertiesWindow()
-{
-	// Show or activate the pane, depending on current state.  The
-	// pane can only be closed via the [x] button on the pane frame.
-	//SettingsPane.ShowPane(TRUE, FALSE, TRUE);
-	//SettingsPane.SetFocus();
-}
 void CMainFrame::OnCmdGitHub()
 {
     ShellOpenFile(APP_URL, m_hWnd);
@@ -549,9 +499,9 @@ void CMainFrame::OnCmdAddFiles()
     int name_size = root_dir.GetLength();
     if(0 == name_size)
         return;
-    const int items_count = GetFileListView()->GetListCtrl().GetItemCount();
 
-    //multiple files were selected, so first string is root dir
+    //multiple files selected, so first string is root dir
+    const size_t items_count = FileList.Items.size();
     if(ofn.nFileOffset > name_size)
     {
         root_dir += _T("\\");
@@ -562,23 +512,20 @@ void CMainFrame::OnCmdAddFiles()
             if(0 == name_size)
                 break;
 
-            PProcessingItem pi(new CProcessingItem(PIS_WAIT, root_dir + file_name));
-            AddItem(pi);
+            FileList.AddFile(root_dir + file_name);
         }
     }
 
     //one file selected
     else
     {
-        PProcessingItem pi(new CProcessingItem(PIS_WAIT, ofn.lpstrFile));
-        AddItem(pi);
+        FileList.AddFile(ofn.lpstrFile);
     }
 
     //if has new items in list
-    if(items_count < GetFileListView()->GetListCtrl().GetItemCount())
+    if(items_count < FileList.Items.size())
     {
-        GetFileListView()->Sort();
-        ItemsListState.SetReady(true);
+        GetFileListView()->UpdateItems();
         UpdateDialogControls(this, FALSE);
     }
 }
@@ -596,15 +543,21 @@ void CMainFrame::OnCmdAddFolder()
     if(0 == name_size)
         return;
 
+    const size_t items_count = FileList.Items.size();
+
     //if only one directory selected
     if(0 == *(ofn.lpstrFile + name_size + 1))
     {
         AddFolder(root_dir);
+        if(items_count < FileList.Items.size())
+        {
+            GetFileListView()->UpdateItems();
+            UpdateDialogControls(this, FALSE);
+        }
         return;
     }
 
     root_dir += _T("\\");
-    const int items_count = GetFileListView()->GetListCtrl().GetItemCount();
     for(LPCTSTR file_names = ofn.lpstrFile + name_size + 1; ;file_names += name_size + 1)
     {
         CString file_name = file_names;
@@ -616,10 +569,9 @@ void CMainFrame::OnCmdAddFolder()
     }
 
     //if has new items in list
-    if(items_count < GetFileListView()->GetListCtrl().GetItemCount())
+    if(items_count < FileList.Items.size())
     {
-        GetFileListView()->Sort();
-        ItemsListState.SetReady(true);
+        GetFileListView()->UpdateItems();
         UpdateDialogControls(this, FALSE);
     }
 }
@@ -641,39 +593,19 @@ void CMainFrame::AddFolder(CString root_dir)
         }
 
         //check file extension
-        if(SourceFileTypes.CheckName(found_name))
+        if(SourceFileTypes.IsVideoFileName(found_name))
         {
-            PProcessingItem pi(new CProcessingItem(PIS_WAIT, root_dir + _T("\\") + found_name));
-            AddItem(pi);
+            CString file_name = root_dir + _T("\\") + found_name;
+            FileList.AddFile(file_name);
         }
     }
 }
 void CMainFrame::OnCmdPasteFiles()
 {
     CClipboardFiles cf(m_hWnd);
-
-    const int items_count = GetFileListView()->GetListCtrl().GetItemCount();
-    for(int index = 0;; ++index)
+    if(FileList.AddFiles(&cf))
     {
-        CString file_name = cf.GetFileName(index);
-        if(file_name.IsEmpty())
-            break;
-
-        if(false == SourceFileTypes.CheckName(file_name))
-            continue;
-
-        const DWORD file_attr = ::GetFileAttributes(file_name);
-        if(file_attr & FILE_ATTRIBUTE_DIRECTORY)
-            continue;
-
-        PProcessingItem pi(new CProcessingItem(PIS_WAIT, file_name));
-        AddItem(pi);
-    }
-
-    if(items_count < GetFileListView()->GetListCtrl().GetItemCount())
-    {
-        GetFileListView()->Sort();
-        ItemsListState.SetReady(true);
+        GetFileListView()->UpdateItems();
         UpdateDialogControls(this, FALSE);
     }   
 }
@@ -705,7 +637,7 @@ LRESULT CMainFrame::OnProcessingThread(WPARAM wp, LPARAM lp)
         CurrentItem->State = PIS_DONE;
         CurrentItem->ResultString = GetLParamString(lp);
         file_list_view->UpdateItem(CurrentItem.get());
-        ItemsListState.SetDone(true);
+        FileList.SetDone(true);
         CurrentItem.reset();
         ProcessNextItem();
         break;
@@ -713,53 +645,45 @@ LRESULT CMainFrame::OnProcessingThread(WPARAM wp, LPARAM lp)
         CurrentItem->State = PIS_WAIT;
         CurrentItem->ResultString = _T("");
         file_list_view->UpdateItem(CurrentItem.get());
-        ItemsListState.SetReady(true);
-        CurrentItem.reset();        
+        FileList.SetReady(true);
+        CurrentItem.reset();   
+        ProcessNextItem();
         break;
     case PTM_FAILED:      //LPARAM - error description (LPTSTR)
         CurrentItem->State = PIS_FAILED;
         CurrentItem->ResultString = GetLParamString(lp);
         file_list_view->UpdateItem(CurrentItem.get());
-        ItemsListState.SetFailed(true);
-        if(IsProceedOnError())
-        {
-            CurrentItem.reset();
-            ProcessNextItem();
-        }
+        FileList.SetFailed(true);
+        CurrentItem.reset();
+        ProcessNextItem();
         break;
+    case PTM_CRIT_FAIL:
+    {
+        CurrentItem->State = PIS_FAILED;
+        CurrentItem->ResultString = GetLParamString(lp);
+        file_list_view->UpdateItem(CurrentItem.get());
+        FileList.SetFailed(true);
+
+        CString msg(_T("Failed to process\n"));
+        msg += CurrentItem->SourceFileName;
+        msg += _T("\n");
+        msg += CurrentItem->ResultString;
+        ::AfxMessageBox(msg, MB_ICONSTOP | MB_OK);
+
+        CurrentItem.reset();
+        ProcessingState = PTS_NONE;
+        GetFileListView()->UpdateItemStates();
+        break;
+    }
+
     default:
         ASSERT(FALSE);
-        CurrentItem.reset();
-        IsProcessing = false;
     }
 
     UpdateDialogControls(this, FALSE);
     return 0;
 }
-void CMainFrame::SetProcessingState(bool Value)
-{
-    if(Value == IsProcessing) return;
-    if(Value)
-    {       
-        IsProcessing = true;
-    }
-    else
-    {
-        //TODO: get actual state from thread message
-        ProcessingThread.Stop();
-        IsProcessing = false;
-    }
-    UpdateDialogControls(this, FALSE);
-}
-bool CMainFrame::IsProceedOnError()
-{
-    if(CSettings::ACTION_ON_ERROR_SKIP == Settings.ActionOnError)
-        return true;
-    if(CSettings::ACTION_ON_ERROR_PROMT == Settings.ActionOnError)
-        return true; //TODO: promt
-    return false;
-}
-bool CMainFrame::ProcessNextItem()
+void CMainFrame::ProcessNextItem()
 {
     for(;;)
     {
@@ -767,102 +691,136 @@ bool CMainFrame::ProcessNextItem()
         if(CurrentItem.get()) 
             break;
 
-        PProcessingItem pi = GetFileListView()->GetUnprocessedItem();
-        if(NULL == pi) 
-            break; //no more items to process
+        //user has stopped processing
+        if(PTS_WAITNG_STOP == ProcessingState)
+        {
+            ProcessingState = PTS_NONE;
+            GetFileListView()->UpdateItemStates();
+            return;
+        }
 
+        //no more items to process
+        PProcessingItem pi = GetFileListView()->GetUnprocessedItem(IsProcessSelected);
+        if(NULL == pi) 
+        {
+            ProcessingState = PTS_NONE;
+            GetFileListView()->UpdateItemStates();
+            return;
+        }
+
+        //check output dir
+        LPCTSTR output_dir = GetCurrentOutputDir();
+        if(output_dir)
+        {
+            const DWORD file_attr = ::GetFileAttributes(output_dir);
+            if(INVALID_FILE_ATTRIBUTES == file_attr)
+            {
+                CString error_string(VPGetLastErrorStr());
+                CString msg = _T("Output directory failed");
+                msg += _T("\n");
+                msg += output_dir;
+                msg += _T("\n");
+                msg += error_string;
+                ::AfxMessageBox(msg, MB_OK | MB_ICONSTOP);
+                break;
+            }
+
+            if(0 == (file_attr & FILE_ATTRIBUTE_DIRECTORY))
+            {
+                CString msg = _T("Output directory failed");
+                msg += _T("\n");
+                msg += output_dir;
+                ::AfxMessageBox(msg, MB_OK | MB_ICONSTOP);
+                break;
+            }
+        }
+
+        //try to process next item
         SettingsPane.GetOutputProfile(&TempProfile);
-        const DWORD result = ProcessingThread.Start(m_hWnd, &TempProfile, pi->SourceFileName);
+        const DWORD result = ProcessingThread.Start(m_hWnd, &TempProfile, pi->SourceFileName, output_dir);
         if(ERROR_SUCCESS == result)
         {
             CurrentItem = pi;
-            SetProcessingState(true);
-            return true;
-        }
-        else
-        {
-            //TODO: message
-            //::AfxMessageBox(_T(""), MB_ICONWARNING | MB_OK
+            ProcessingState = PTS_RUNNING;
+            GetFileListView()->UpdateItemStates();
+            return;
         }
 
-        if(false == IsProceedOnError())
-            break;
+        CurrentItem->State = PIS_FAILED;
+        CurrentItem->ResultString = VPGetErrorStr(result);
+
+        //proceed to next item after error
+        CurrentItem.reset();
     }
 
+    //fail
     CurrentItem.reset();
-    SetProcessingState(false);
-    return false;
+    ProcessingState = PTS_NONE;
+    GetFileListView()->UpdateItemStates();
 }
 void CMainFrame::OnCmdProcessSelected()
 {
-    //TODO:
+    IsProcessSelected = true;
+    GetFileListView()->SaveSelection();
+    ProcessNextItem();
 }
 void CMainFrame::OnCmdProcessAll()
 {
+    IsProcessSelected = false;
     ProcessNextItem();
 }
 void CMainFrame::OnCmdStopProcessing()
 {
-    //TODO: confirm
-    SetProcessingState(false);
+    if(PTS_NONE == ProcessingState)
+        return;
+
+    //TODO: confirm?
+    ProcessingState = PTS_WAITNG_STOP;
+    ProcessingThread.Stop();
 }
 void CMainFrame::OnCmdRemoveFailed()
 {
     const int result = ::AfxMessageBox(_T("Remove failed files from list?"), MB_OKCANCEL | MB_ICONEXCLAMATION | MB_DEFBUTTON1);
     if(result != IDOK) return;
 
-    for(CProcessingItemList::iterator i = ProcessingItemList.begin(); i != ProcessingItemList.end();)
+    if(FileList.RemoveItems(PIS_FAILED))
     {
-        PProcessingItem pi = i->second;
-        if(PIS_FAILED == pi->State) 
-            i = ProcessingItemList.erase(i);
-        else
-            ++i;     
+        GetFileListView()->UpdateItems();
+        FileList.SetFailed(false);
+        UpdateDialogControls(this, FALSE);
     }
-    CFileListView* flv = GetFileListView();
-    flv->UpdateItems();
-    ItemsListState.SetFailed(false);
-    UpdateDialogControls(this, FALSE);
 }
 void CMainFrame::OnCmdRemoveCompleted()
 {
     const int result = ::AfxMessageBox(_T("Remove completed files from list?"), MB_OKCANCEL | MB_ICONEXCLAMATION | MB_DEFBUTTON1);
     if(result != IDOK) return;
 
-    for(CProcessingItemList::iterator i = ProcessingItemList.begin(); i != ProcessingItemList.end();)
+    if(FileList.RemoveItems(PIS_DONE))
     {
-        PProcessingItem pi = i->second;
-        if(PIS_DONE == pi->State) 
-            i = ProcessingItemList.erase(i);
-        else
-            ++i;     
+        GetFileListView()->UpdateItems();
+        FileList.SetDone(false);
+        UpdateDialogControls(this, FALSE);
     }
-    CFileListView* flv = GetFileListView();
-    flv->UpdateItems();
-    ItemsListState.SetDone(false);
-    UpdateDialogControls(this, FALSE);
 }
-void CMainFrame::RemoveAllItems()
+void CMainFrame::OnCmdRemoveAll()
 {
+    if(IDOK != ::AfxMessageBox(_T("Remove all files from list?"), MB_OKCANCEL | MB_ICONEXCLAMATION | MB_DEFBUTTON1)) 
+        return;
+
     //remove all items...
     CFileListView* flv = GetFileListView();
     flv->GetListCtrl().DeleteAllItems();
-    ProcessingItemList.clear();
+    FileList.Items.clear();
 
     //...excluding current item
     if(CurrentItem.get())
     {
-        ProcessingItemList[CurrentItem.get()] = CurrentItem;
+        FileList.Items[CurrentItem.get()] = CurrentItem;
         flv->UpdateItem(CurrentItem.get());
     }
 
-    ItemsListState.Update();
+    FileList.UpdateTypes();
     UpdateDialogControls(this, FALSE);
-}
-void CMainFrame::OnCmdRemoveAll()
-{
-    if(IDOK != ::AfxMessageBox(_T("Remove all files from list?"), MB_OKCANCEL | MB_ICONEXCLAMATION | MB_DEFBUTTON1)) return;
-    RemoveAllItems();
 }
 void CMainFrame::OnCmdSettings()
 {
@@ -959,12 +917,12 @@ void CMainFrame::OnUpdateUI(CCmdUI* pCmdUI)
     case ID_COMBO_OUTPUT_DIR:
     case ID_CMD_OPTIONS:
     //case ID_CMD_PROFILE_ADD: 
-        pCmdUI->Enable(false == IsProcessing);
+        pCmdUI->Enable(PTS_NONE == ProcessingState);
         break;
     //case ID_CMD_PROFILE_PREVIEW:
     //case ID_CMD_PROFILE_SAVE:
     //case ID_CMD_PROFILE_DELETE:
-    //    pCmdUI->Enable(false == IsProcessing && false == OutputProfiles.IsEmpty() && OutputProfiles.GetSelectedProfile());
+    //    pCmdUI->Enable(PTS_NONE == ProcessingState && false == OutputProfiles.IsEmpty() && OutputProfiles.GetSelectedProfile());
     //    break;
 
     //src and out files
@@ -984,26 +942,26 @@ void CMainFrame::OnUpdateUI(CCmdUI* pCmdUI)
     
     //processing
     case ID_CMD_PROCESS_ALL:     
-        pCmdUI->Enable(ItemsListState.HasReady() && false == IsProcessing);
+        pCmdUI->Enable(FileList.HasReady() && PTS_NONE == ProcessingState);
         break;
     case ID_CMD_PROCESS_SELECTED:     
-        pCmdUI->Enable(ItemsListState.HasReady() && false == IsProcessing && GetFileListView()->GetListCtrl().GetSelectedCount());
+        pCmdUI->Enable(FileList.HasReady() && PTS_NONE == ProcessingState && GetFileListView()->GetListCtrl().GetSelectedCount());
         break;
     case ID_CMD_STOP_PROCESSING:
-        pCmdUI->Enable(IsProcessing);
+        pCmdUI->Enable(PTS_RUNNING == ProcessingState);
         break;
 
     //reset items
     case ID_CMD_RESET_SELECTED:
-        pCmdUI->Enable((ItemsListState.HasDone() || ItemsListState.HasFailed()) && GetFileListView()->GetListCtrl().GetSelectedCount());
+        pCmdUI->Enable((FileList.HasDone() || FileList.HasFailed()) && GetFileListView()->GetListCtrl().GetSelectedCount());
         break;
 
     //remove
     case ID_CMD_REMOVE_COMPLETED:
-        pCmdUI->Enable(ItemsListState.HasDone());
+        pCmdUI->Enable(FileList.HasDone());
         break;
     case ID_CMD_REMOVE_FAILED:
-        pCmdUI->Enable(ItemsListState.HasFailed());
+        pCmdUI->Enable(FileList.HasFailed());
         break;
     case ID_CMD_REMOVE_SELECTED:
         pCmdUI->Enable(GetFileListView()->GetListCtrl().GetSelectedCount());
@@ -1027,23 +985,6 @@ CFileListView* CMainFrame::GetFileListView()
     CFileListView* result = static_cast<CFileListView*>(GetActiveView());
     ASSERT(result);
     return result;
-}
-void CMainFrame::AddItem(PProcessingItem item)
-{
-    //ignore duplicates
-    for(CProcessingItemList::iterator i = ProcessingItemList.begin(); i != ProcessingItemList.end(); ++i)
-    {
-        PProcessingItem pi = i->second;
-        if(0 == pi->SourceFileName.CompareNoCase(item->SourceFileName))
-            return;
-    }
-    ProcessingItemList[item.get()] = item;
-    GetFileListView()->UpdateItem(item.get());
-}
-void CMainFrame::RemoveItem(PProcessingItem item)
-{
-    //TODO: confirm
-    GetFileListView()->RemoveItem(item.get());
 }
 void CMainFrame::OnCmdOpenVideo()
 {
@@ -1092,19 +1033,19 @@ void CMainFrame::OnCmdResetSelected()
         CProcessingItem* pi = flv->FindItem(found_index);
         if(pi == CurrentItem.get()) continue;
 
-        pi->Reset(false);
+        pi->Reset();
     }
 
-    ItemsListState.Update();
     flv->UpdateItems();
+    FileList.SetTypes(CFileList::PILS_HAS_READY);
     UpdateDialogControls(this, FALSE);
 }
 void CMainFrame::OnCmdResetAll()
 {
     CFileListView* flv = GetFileListView();
     CListCtrl& lc = flv->GetListCtrl();
-    const int sel_count = lc.GetItemCount();
-    if(0 == sel_count)
+    const int count = lc.GetItemCount();
+    if(0 == count)
         return;
 
     const int result = ::AfxMessageBox(_T("Reset all files?"), MB_OKCANCEL | MB_ICONEXCLAMATION | MB_DEFBUTTON1);
@@ -1120,11 +1061,11 @@ void CMainFrame::OnCmdResetAll()
         CProcessingItem* pi = flv->FindItem(found_index);
         if(pi == CurrentItem.get()) continue;
 
-        pi->Reset(false);
+        pi->Reset();
     }
 
-    ItemsListState.Update();
     flv->UpdateItems();
+    FileList.SetTypes(CFileList::PILS_HAS_READY);
     UpdateDialogControls(this, FALSE);
 }
 void CMainFrame::OnCmdRemoveSelected()
@@ -1148,13 +1089,13 @@ void CMainFrame::OnCmdRemoveSelected()
         CProcessingItem* pi = flv->FindItem(found_index);
         if(pi == CurrentItem.get()) continue;
 
-        CProcessingItemList::iterator i = ProcessingItemList.find(pi);
-        if(i != ProcessingItemList.end())
-            ProcessingItemList.erase(i);
+        CProcessingItemList::iterator i = FileList.Items.find(pi);
+        if(i != FileList.Items.end())
+            FileList.Items.erase(i);
     }
 
-    ItemsListState.Update();
     flv->UpdateItems();
+    FileList.UpdateTypes();
     UpdateDialogControls(this, FALSE);
 }
 //////////////////////////////////////////////////////////////////////////////

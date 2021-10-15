@@ -127,10 +127,10 @@
     <ClInclude Include="Resource.h" />
     <ClInclude Include="ScreenshotGenerator.h" />
     <ClInclude Include="Settings.h" />
-    <ClInclude Include="SourceFileTypes.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="VideoFile.h" />
+    <ClInclude Include="VideoFileTypes.h" />
     <ClInclude Include="VideoPreview.h" />
     <ClInclude Include="VideoPreviewDoc.h" />
     <ClInclude Include="VPError.h" />
@@ -149,12 +149,12 @@
     <ClCompile Include="ProfilePane.cpp" />
     <ClCompile Include="ScreenshotGenerator.cpp" />
     <ClCompile Include="Settings.cpp" />
-    <ClCompile Include="SourceFileTypes.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="VideoFile.cpp" />
+    <ClCompile Include="VideoFileTypes.cpp" />
     <ClCompile Include="VideoPreview.cpp" />
     <ClCompile Include="VideoPreviewDoc.cpp" />
     <ClCompile Include="VPError.cpp" />

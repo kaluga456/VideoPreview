@@ -4,6 +4,15 @@
 	#error "include 'stdafx.h' before including this file for PCH"
 #endif
 
+//processing thread state
+enum
+{
+    PTS_NONE = 0,   //processing thread not running
+    PTS_RUNNING,    //process next item after processing thread teminates
+    PTS_WAITNG_STOP //stop after processing thread teminates
+};
+extern int ProcessingState;
+
 //dialog control helper
 template<class T> class CDlgItem : public T
 {
@@ -29,5 +38,4 @@ private:
     CFont AppFont;
 };
 
-extern bool IsProcessing; //true - while there are files to process and command 'stop' not executed
 extern CMainApp theApp;

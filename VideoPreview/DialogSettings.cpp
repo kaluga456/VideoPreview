@@ -2,7 +2,7 @@
 #pragma hdrstop
 #include "resource.h"
 #include "VideoPreview.h"
-#include "SourceFileTypes.h"
+#include "VideoFileTypes.h"
 #include "OutputProfile.h"
 #include "Settings.h"
 #include "DialogSettings.h"
@@ -30,7 +30,7 @@ BOOL CDialogSettings::OnInitDialog()
 
     //init controls
     CDlgItem<CEdit> edit_src_file(m_hWnd, IDC_EDIT_SOURCE_FILE_TYPE);
-    edit_src_file.SetLimitText(SOURCE_FILE_TYPE_MAX_SIZE - 1);
+    edit_src_file.SetLimitText(VIDEO_FILE_TYPE_MAX_SIZE - 1);
 
     //TOOD:
     //const int use_explorer_context = theApp.GetInt(_T("UseExplorerContext"), FALSE);
@@ -45,7 +45,7 @@ BOOL CDialogSettings::OnInitDialog()
         hwnd = ::GetNextWindow(hwnd, GW_HWNDNEXT);
     }
 
-    SrcTypes.SourceFileTypeList = ::SourceFileTypes.SourceFileTypeList;
+    SrcTypes.VideoFileTypeList = ::SourceFileTypes.VideoFileTypeList;
     UpdateSourceFileTypesListBox();
 
 	return TRUE;
@@ -54,8 +54,8 @@ void CDialogSettings::UpdateSourceFileTypesListBox()
 {
     CDlgItem<CListBox> list_box(m_hWnd, IDC_LIST_SOURCE_FILE_TYPES);
     list_box.ResetContent();
-    const CSourceFileTypeList& list = SrcTypes.SourceFileTypeList;
-    for(CSourceFileTypeList::const_iterator i = list.begin(); i != list.end(); ++i)
+    const CVideoFileTypesList& list = SrcTypes.VideoFileTypeList;
+    for(CVideoFileTypesList::const_iterator i = list.begin(); i != list.end(); ++i)
     {
         ASSERT(i->IsValid());
         if(false == i->IsValid())
@@ -69,7 +69,7 @@ void CDialogSettings::OnOK()
     //TODO:
 //    Settings.UseExplorerContextMenu = GetButtonChek(IDC_CBTN_USE_EXPLORER_CONTEXT_MENU);
 
-    ::SourceFileTypes.SourceFileTypeList = SrcTypes.SourceFileTypeList;
+    ::SourceFileTypes.VideoFileTypeList = SrcTypes.VideoFileTypeList;
     EndDialog(IDOK);
 }
 void CDialogSettings::OnCancel()
@@ -83,16 +83,16 @@ void CDialogSettings::OnSourceFileTypesSelChange()
 }
 void CDialogSettings::OnEnChangeEditSourceFileType()
 {
-    TCHAR text[SOURCE_FILE_TYPE_MAX_SIZE];
-    GetDlgItemText(IDC_EDIT_SOURCE_FILE_TYPE, text, SOURCE_FILE_TYPE_MAX_SIZE);
+    TCHAR text[VIDEO_FILE_TYPE_MAX_SIZE];
+    GetDlgItemText(IDC_EDIT_SOURCE_FILE_TYPE, text, VIDEO_FILE_TYPE_MAX_SIZE);
 
     CDlgItem<CButton> btn(m_hWnd, IDC_BTN_ADD_SOURCE_FILE_TYPE);
     btn.EnableWindow(text[0] != 0);
 }
 void CDialogSettings::OnBtnAddSourceFileType()
 {
-    TCHAR text[SOURCE_FILE_TYPE_MAX_SIZE];
-    GetDlgItemText(IDC_EDIT_SOURCE_FILE_TYPE, text, SOURCE_FILE_TYPE_MAX_SIZE);
+    TCHAR text[VIDEO_FILE_TYPE_MAX_SIZE];
+    GetDlgItemText(IDC_EDIT_SOURCE_FILE_TYPE, text, VIDEO_FILE_TYPE_MAX_SIZE);
     if(true == SrcTypes.AddType(text))
         UpdateSourceFileTypesListBox();
     else
@@ -108,7 +108,7 @@ void CDialogSettings::OnBtnRemoveSourceFileType()
         {
             if(0 == list_box.GetSel(i)) continue;
 
-            TCHAR text[2 * SOURCE_FILE_TYPE_MAX_SIZE];
+            TCHAR text[2 * VIDEO_FILE_TYPE_MAX_SIZE];
             list_box.GetText(i, text);
             SrcTypes.RemoveType(text);
         }
@@ -125,6 +125,6 @@ void CDialogSettings::OnBtnDefaultSourceFileType()
     if(IDCANCEL == ::AfxMessageBox(_T("Restore default source file types?"), MB_OKCANCEL | MB_DEFBUTTON1 | MB_ICONWARNING))
         return;
 
-    SrcTypes.SetString(DEFAULT_SOURCE_FILE_TYPES);
+    SrcTypes.SetString(DEFAULT_VIDEO_FILE_TYPES);
     UpdateSourceFileTypesListBox();
 }

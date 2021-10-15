@@ -1,13 +1,13 @@
 #include "stdafx.h"
 #pragma hdrstop
-#include "SourceFileTypes.h"
+#include "ClipboardFiles.h"
+#include "VideoFileTypes.h"
 #include "Settings.h"
 #include "OutputProfile.h"
 #include "OutputProfileList.h"
 #include "ProcessingItem.h"
 #include "VideoPreview.h"
 
-extern CProcessingItemList ProcessingItemList;
 CSettings Settings;
 
 //deafults
@@ -33,11 +33,11 @@ class CProcessingItemListSerial : public CObject
      DECLARE_SERIAL(CProcessingItemListSerial)
 
 private:
-    CProcessingItemList* ProcessingItemList;
-    CProcessingItemListSerial() : ProcessingItemList(NULL) {}
+    CProcessingItemList* Items;
+    CProcessingItemListSerial() : Items(NULL) {}
 
 public:  
-    explicit CProcessingItemListSerial(CProcessingItemList* item_list) : ProcessingItemList(item_list) {}
+    explicit CProcessingItemListSerial(CProcessingItemList* item_list) : Items(item_list) {}
 
     void Serialize(CArchive& archive);
 };
@@ -47,14 +47,14 @@ void CProcessingItemListSerial::Serialize(CArchive& archive)
 {
     CObject::Serialize(archive);
 
-    ASSERT(ProcessingItemList);
-    if(NULL == ProcessingItemList) return;
+    ASSERT(Items);
+    if(NULL == Items) return;
 
     if(archive.IsStoring())
     {
-        const int count = ProcessingItemList->size();
+        const int count = Items->size();
         archive << count;
-        for(CProcessingItemList::const_iterator i = ProcessingItemList->begin(); i != ProcessingItemList->end(); ++i)
+        for(CProcessingItemList::const_iterator i = Items->begin(); i != Items->end(); ++i)
         {
             CProcessingItem* pi = i->second.get();
             archive << pi->State;
@@ -64,7 +64,7 @@ void CProcessingItemListSerial::Serialize(CArchive& archive)
     }
     else
     {
-        ProcessingItemList->clear();
+        Items->clear();
 
         int count = 0;
         archive >> count;
@@ -79,7 +79,7 @@ void CProcessingItemListSerial::Serialize(CArchive& archive)
             archive >> result_string;
 
             PProcessingItem pi(new CProcessingItem(state, src_file_name, result_string));
-            (*ProcessingItemList)[pi.get()] = pi;
+            (*Items)[pi.get()] = pi;
         }
     }
 }
@@ -90,7 +90,7 @@ bool CSettings::Read()
     UseSourceFileLocation = theApp.GetInt(_T("UseSourceLocation"), DEFAULT_USE_SOURCE_FILE_LOCATION);
     OverwriteOutputFiles = theApp.GetInt(_T("OverwriteFiles"), DEFAULT_OVERWRITE_OUTPUT_FILES);
 
-    CString s = theApp.GetString(_T("SourceFileTypes"), DEFAULT_SOURCE_FILE_TYPES);
+    CString s = theApp.GetString(_T("SourceFileTypes"), DEFAULT_VIDEO_FILE_TYPES);
     SourceFileTypes.SetString(s);
 
     ActionOnError = theApp.GetInt(_T("ActionOnError"), DEFAULT_ACTION_ON_ERROR);
@@ -113,7 +113,7 @@ bool CSettings::Read()
     //processing items
     if(SaveFileListOnExit)
     {
-        CProcessingItemListSerial pils(&ProcessingItemList);
+        CProcessingItemListSerial pils(&FileList.Items);
         theApp.GetObject(_T("Items"), pils);
     }
 
@@ -145,7 +145,7 @@ bool CSettings::Write()
     //processing items
     if(SaveFileListOnExit)
     {
-        CProcessingItemListSerial pils(&ProcessingItemList);
+        CProcessingItemListSerial pils(&FileList.Items);
         theApp.WriteObject(_T("Items"), pils);
     }
 

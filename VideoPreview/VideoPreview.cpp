@@ -5,7 +5,8 @@
 #include "app_thread.h"
 #include "About.h"
 #include "Resource.h"
-#include "SourceFileTypes.h"
+#include "ClipboardFiles.h"
+#include "VideoFileTypes.h"
 #include "OutputProfile.h"
 #include "OutputProfileList.h"
 #include "ProcessingItem.h"
@@ -22,7 +23,7 @@
 #define new DEBUG_NEW
 #endif
 
-bool IsProcessing; //true - while there are files to process and command 'stop' not executed
+int ProcessingState;
 
 // CMainApp
 BEGIN_MESSAGE_MAP(CMainApp, CWinAppEx)

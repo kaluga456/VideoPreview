@@ -25,6 +25,7 @@ public:
     int UseSourceFileLocation;
     int OverwriteOutputFiles;
 
+    //DEPRECATE:
     //action on error
     enum
     {

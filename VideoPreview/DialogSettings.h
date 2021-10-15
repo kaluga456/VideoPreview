@@ -17,7 +17,7 @@ public:
     afx_msg void OnBtnDefaultSourceFileType();
 
 private:
-    CSourceFileTypes SrcTypes;
+    CVideoFileTypes SrcTypes;
     void SetButtonChek(int control_id, BOOL value = TRUE);
     BOOL GetButtonChek(int control_id);
     void UpdateSourceFileTypesListBox();

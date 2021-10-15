@@ -1,18 +1,18 @@
 #include "stdafx.h"
 #pragma hdrstop
-#include "SourceFileTypes.h"
+#include "VideoFileTypes.h"
 
-CSourceFileTypes SourceFileTypes;
+CVideoFileTypes SourceFileTypes;
 
-CSourceFileType::CSourceFileType()
+CVideoFileType::CVideoFileType()
 {
     Extension[0] = 0;
 }
-CSourceFileType::CSourceFileType(LPCTSTR extension)
+CVideoFileType::CVideoFileType(LPCTSTR extension)
 {
     Init(extension);
 }
-LPCTSTR CSourceFileType::Init(LPCTSTR extension)
+LPCTSTR CVideoFileType::Init(LPCTSTR extension)
 {
     if(NULL == extension)
     {
@@ -35,7 +35,7 @@ LPCTSTR CSourceFileType::Init(LPCTSTR extension)
             ::_tcslwr_s(Extension, size + 1);
             return NULL;
         }
-        if(size == SOURCE_FILE_TYPE_MAX_SIZE - 1) //length limit
+        if(size == VIDEO_FILE_TYPE_MAX_SIZE - 1) //length limit
         {
             Extension[0] = 0;
             ::_tcslwr_s(Extension, size);
@@ -51,23 +51,23 @@ LPCTSTR CSourceFileType::Init(LPCTSTR extension)
     }
     return NULL;
 }
-void CSourceFileTypes::SetString(LPCTSTR source_file_types_string)
+void CVideoFileTypes::SetString(LPCTSTR source_file_types_string)
 {
-    SourceFileTypeList.clear();
+    VideoFileTypeList.clear();
     if(NULL == source_file_types_string)
         return;
 
-    CSourceFileType file_type;
+    CVideoFileType file_type;
     for(LPCTSTR pos = source_file_types_string; pos != NULL; pos = file_type.Init(pos))
     {
         if(true == file_type.IsValid())
-            SourceFileTypeList.insert(file_type);
+            VideoFileTypeList.insert(file_type);
     }
 }
-CString CSourceFileTypes::GetString()
+CString CVideoFileTypes::GetString()
 {
     CString result;
-    for(CSourceFileTypeList::const_iterator i = SourceFileTypeList.begin(); i != SourceFileTypeList.end(); ++i)
+    for(CVideoFileTypesList::const_iterator i = VideoFileTypeList.begin(); i != VideoFileTypeList.end(); ++i)
     {
         ASSERT(i->IsValid());
         if(false == i->IsValid())
@@ -76,7 +76,7 @@ CString CSourceFileTypes::GetString()
     }
     return result;
 }
-bool CSourceFileTypes::GetFilterString(LPTSTR filter_string, UINT size)
+bool CVideoFileTypes::GetFilterString(LPTSTR filter_string, UINT size)
 {
     //e.g. "Video files\0*.avi;*.mkv;*.mp4;*.mpg;*.wmv\0All Files\0*.*\0\0";
     filter_string[0] = 0;
@@ -87,7 +87,7 @@ bool CSourceFileTypes::GetFilterString(LPTSTR filter_string, UINT size)
     if(result < 0)
         return false;
     pos = result + 1;
-    for(CSourceFileTypeList::const_iterator i = SourceFileTypeList.begin(); i != SourceFileTypeList.end(); ++i)
+    for(CVideoFileTypesList::const_iterator i = VideoFileTypeList.begin(); i != VideoFileTypeList.end(); ++i)
     {
         ASSERT(i->IsValid());
         if(false == i->IsValid())
@@ -106,13 +106,13 @@ bool CSourceFileTypes::GetFilterString(LPTSTR filter_string, UINT size)
     memcpy(filter_string + pos, _T("|All Files (*.*)|*.*||"), 15 * sizeof(TCHAR));
     return true;
 }
-CString CSourceFileTypes::GetFilterString() const
+CString CVideoFileTypes::GetFilterString() const
 {
     CString all_files = _T("All Files (*.*)|*.*||");
-    if(SourceFileTypeList.empty()) return all_files;
+    if(VideoFileTypeList.empty()) return all_files;
 
     CString result = _T("Video Files|");
-    for(CSourceFileTypeList::const_iterator i = SourceFileTypeList.begin(); i != SourceFileTypeList.end(); ++i)
+    for(CVideoFileTypesList::const_iterator i = VideoFileTypeList.begin(); i != VideoFileTypeList.end(); ++i)
     {
         ASSERT(i->IsValid());
         if(false == i->IsValid())
@@ -125,43 +125,43 @@ CString CSourceFileTypes::GetFilterString() const
     result += _T("|");
     return result + all_files;
 }
-bool CSourceFileTypes::AddType(LPCTSTR extension)
+bool CVideoFileTypes::AddType(LPCTSTR extension)
 {
     if(NULL == extension)
         return false;
 
-    CSourceFileType file_type(extension);
+    CVideoFileType file_type(extension);
     if(false == file_type.IsValid())
         return false;
 
-    if(SourceFileTypeList.end() == SourceFileTypeList.find(file_type))
-        SourceFileTypeList.insert(file_type);  
+    if(VideoFileTypeList.end() == VideoFileTypeList.find(file_type))
+        VideoFileTypeList.insert(file_type);  
     return true;
 }
-bool CSourceFileTypes::RemoveType(LPCTSTR extension)
+bool CVideoFileTypes::RemoveType(LPCTSTR extension)
 {
     if(NULL == extension)
         return false;
 
-    CSourceFileType file_type(extension);
+    CVideoFileType file_type(extension);
     if(false == file_type.IsValid())
         return false;
 
-    CSourceFileTypeList::iterator i = SourceFileTypeList.find(file_type);
-    if(i != SourceFileTypeList.end())
+    CVideoFileTypesList::iterator i = VideoFileTypeList.find(file_type);
+    if(i != VideoFileTypeList.end())
     {
-        SourceFileTypeList.erase(i);
+        VideoFileTypeList.erase(i);
         return true;
     }
     return false;
 }
-bool CSourceFileTypes::HasType(LPCTSTR ext) const
+bool CVideoFileTypes::HasType(LPCTSTR ext) const
 {
-    CSourceFileType sft(ext);
-    CSourceFileTypeList::const_iterator i = SourceFileTypeList.find(sft);
-    return i != SourceFileTypeList.end();
+    CVideoFileType sft(ext);
+    CVideoFileTypesList::const_iterator i = VideoFileTypeList.find(sft);
+    return i != VideoFileTypeList.end();
 }
-bool CSourceFileTypes::CheckName(LPCTSTR file_name) const
+bool CVideoFileTypes::IsVideoFileName(LPCTSTR file_name) const
 {
     if(NULL == file_name) 
         return false;

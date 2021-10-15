@@ -12,6 +12,11 @@ enum
 };
 const UINT WM_PROCESSING_THREAD = WM_APP + 1; 
 
+//DEBUG:
+#ifdef _DEBUG
+//#define SHALLOW_PROCESSING
+#endif //_DEBUG
+
 //processing thread
 class CProcessingThread : public IScreenshotsCallback, private boost::noncopyable
 {
@@ -21,7 +26,7 @@ public:
     ~CProcessingThread() {Stop();}
 
     //init
-    DWORD Start(HWND message_target, const COutputProfile* output_profile, LPCTSTR source_file_name);
+    DWORD Start(HWND message_target, const COutputProfile* output_profile, LPCTSTR source_file_name, LPCTSTR output_dir);
     void Stop();
 
 private:
@@ -31,6 +36,7 @@ private:
     //params
     HWND MessageTarget;
     CString SourceFileName;
+    CString OutputDir;
     COutputProfile OutputProfile;
 
     volatile bool TerminateSignal;
@@ -39,6 +45,10 @@ private:
     void NotifyResult(WPARAM message_type, LPCTSTR error_description);
     DWORD Run(); //thread procedure
     void ProcessItem();
+
+#ifdef SHALLOW_PROCESSING
+    void ShallowProcedure();
+#endif //SHALLOW_PROCESSING
 
     //callbacks
     virtual bool IsTerminate() const {return TerminateSignal;}

@@ -1,21 +1,16 @@
 #include "stdafx.h"
 #pragma hdrstop
 #include "app_thread.h"
+#include "ClipboardFiles.h"
 #include "Settings.h"
 #include "OutputProfile.h"
 #include "ScreenshotGenerator.h"
 #include "ProcessingItem.h"
 #include "ProcessingThread.h"
 
-//DEBUG:
-#ifdef _DEBUG
-#define SHALLOW_PROCESSING
-#endif //_DEBUG
-
-extern CSettings Settings;
 CProcessingThread ProcessingThread;
 
-DWORD CProcessingThread::Start(HWND message_target, const COutputProfile* output_profile, LPCTSTR source_file_name)
+DWORD CProcessingThread::Start(HWND message_target, const COutputProfile* output_profile, LPCTSTR source_file_name, LPCTSTR output_dir)
 {
     ASSERT(message_target);
     ASSERT(source_file_name);
@@ -28,6 +23,8 @@ DWORD CProcessingThread::Start(HWND message_target, const COutputProfile* output
     MessageTarget = message_target;
     SourceFileName = source_file_name;
     OutputProfile = *output_profile; 
+    OutputDir = output_dir ? output_dir : _T("");
+    OutputDir.Trim();
 
     //run
     return Thread.create(this);
@@ -50,11 +47,9 @@ void CProcessingThread::SetProgress(size_t progress)
 {
     NotifyMessageTarget(PTM_PROGRESS, progress);
 }
-DWORD CProcessingThread::Run()
-{
-    TerminateSignal = false;
-
 #ifdef SHALLOW_PROCESSING
+void CProcessingThread::ShallowProcedure()
+{
     //TEST: shallow procedure
     ::srand(::GetTickCount());
     NotifyMessageTarget(PTM_PROGRESS, 0);
@@ -64,14 +59,14 @@ DWORD CProcessingThread::Run()
         if(TerminateSignal)
         {
             NotifyResult(PTM_STOP, NULL);
-            return 0;
+            return;
         }
 
         //error simulation
-        if(0 == ::rand() % 100)
+        if(0 == ::rand() % 10)
         {
-            NotifyResult(PTM_FAILED, _T("<test error happen>"));
-            return 0;
+            NotifyResult(PTM_CRIT_FAIL, _T("<test error happen>"));
+            return;
         }
 
         //process
@@ -79,17 +74,27 @@ DWORD CProcessingThread::Run()
         ::Sleep(300);
     }
     NotifyResult(PTM_DONE, _T("<output file name>"));
+}
+#endif //SHALLOW_PROCESSING
+DWORD CProcessingThread::Run()
+{
+    TerminateSignal = false;
+
+    //DEBUG
+#ifdef SHALLOW_PROCESSING
+    ShallowProcedure();
 #else //SHALLOW_PROCESSING
+
     //TODO: processing procedure
     CString result_string;
-    const int result = GenerateScreenshots(SourceFileName, OutputProfile, Settings.UseSourceFileLocation ? NULL : Settings.OutputDirectory, result_string, this);
+    const int result = GenerateScreenshots(SourceFileName, OutputDir.IsEmpty() ? NULL : OutputDir, OutputProfile, result_string, this);
     if(SNAPSHOTS_RESULT_SUCCESS == result)
         NotifyResult(PTM_DONE, result_string);
     else if(SNAPSHOTS_RESULT_TERMINATED == result)
         NotifyResult(PTM_STOP, NULL);
     else
         NotifyResult(PTM_FAILED, result_string);
-#endif //SHALLOW_PROCESSING
 
+#endif //SHALLOW_PROCESSING
     return 0;
 }

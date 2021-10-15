@@ -49,9 +49,6 @@
     <ClInclude Include="OutputProfile.h">
       <Filter>core</Filter>
     </ClInclude>
-    <ClInclude Include="SourceFileTypes.h">
-      <Filter>core</Filter>
-    </ClInclude>
     <ClInclude Include="ProcessingItem.h">
       <Filter>core</Filter>
     </ClInclude>
@@ -112,6 +109,9 @@
     <ClInclude Include="ClipboardFiles.h">
       <Filter>gui</Filter>
     </ClInclude>
+    <ClInclude Include="VideoFileTypes.h">
+      <Filter>core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FileListView.cpp">
@@ -130,9 +130,6 @@
       <Filter>core</Filter>
     </ClCompile>
     <ClCompile Include="OutputProfile.cpp">
-      <Filter>core</Filter>
-    </ClCompile>
-    <ClCompile Include="SourceFileTypes.cpp">
       <Filter>core</Filter>
     </ClCompile>
     <ClCompile Include="ProcessingItem.cpp">
@@ -170,6 +167,9 @@
     </ClCompile>
     <ClCompile Include="ClipboardFiles.cpp">
       <Filter>gui</Filter>
+    </ClCompile>
+    <ClCompile Include="VideoFileTypes.cpp">
+      <Filter>core</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -62,31 +62,37 @@ static CString GenerateHeaderText(LPCTSTR video_file_name, const COutputProfile&
     return result;
 }
 
-static CString GenerateOutputFileName(LPCTSTR video_file_name, const COutputProfile& output_profile, LPCTSTR output_dir) 
+static CString GenerateOutputFileName(LPCTSTR video_file_name, LPCTSTR output_dir, const COutputProfile& output_profile) 
 {
     ASSERT(video_file_name);
 
-    //TODO: force create dirs
-    //if(output_dir)
-    //{        
-    //}
+    if(output_dir)
+    {
+        LPCTSTR path_del = _tcsrchr(video_file_name, _T('\\'));
+        CString file_name(path_del ? path_del + 1 : video_file_name);
+        file_name += _T(".");
+        file_name += GetImageFileExt(output_profile.OutputFileFormat);
 
-    //TODO: generate from COutputProfile::OutputFileFormat
+        CString result(output_dir);
+        result += _T("\\");
+        result += file_name;
+        return result;
+    }
+
     CString result(video_file_name);
     result += _T(".");
     result += GetImageFileExt(output_profile.OutputFileFormat);
-    //result.Format(_T("%s.%s")), video_file_name, GetImageFileExt(output_profile.OutputFileFormat);
-    return result; 
+    return result;
 }
 
-int GenerateScreenshots(LPCTSTR video_file_name, const COutputProfile& output_profile, LPCTSTR output_dir, CString& result_string, IScreenshotsCallback* callback /*= NULL*/)
+int GenerateScreenshots(LPCTSTR video_file_name, LPCTSTR output_dir, const COutputProfile& output_profile, CString& result_string, IScreenshotsCallback* callback /*= NULL*/)
 {
     if(NULL == video_file_name)
         return SNAPSHOTS_RESULT_FAIL;
 
     try
     {
-        //TODO: check output dir, check output file
+        //TODO: check output file
         //init COM
         app::com com(COINIT_MULTITHREADED);
 
@@ -97,6 +103,8 @@ int GenerateScreenshots(LPCTSTR video_file_name, const COutputProfile& output_pr
         CVideoFile video_file;
         APP_VERIFY(video_file.Open(video_file_name));
 
+        //TODO: write header
+        //TODO: file size
         //get video file attr
         const size_t duration = video_file.GetDuration();
         const size_t video_width = video_file.GetVideoWidth();
@@ -143,22 +151,8 @@ int GenerateScreenshots(LPCTSTR video_file_name, const COutputProfile& output_pr
             app::verify_gdi(graphics.DrawImage(snapshot.get(), thumb_x, thumb_y, tile_width, tile_height));
         }
 
-        //TODO:
-        //make output file name
-        //app::string output_file_name;
-        //if(NULL == output_dir || 0 == *output_dir)
-        //    output_file_name = video_file_name;
-        //else
-        //{
-        //    output_file_name.assign(output_dir);
-        //    output_file_name.append(_T("\\"));
-        //    output_file_name.append(GetRelativeFileName(video_file_name));
-        //}   
-        //output_file_name.append(_T("."));
-        //output_file_name.append(GetImageFileExt(output_profile.OutputFileFormat));
-
         //save
-        CString output_file_name = GenerateOutputFileName(video_file_name, output_profile, output_dir);
+        CString output_file_name(GenerateOutputFileName(video_file_name, output_dir, output_profile));
         app::verify_gdi(output_image.Save(output_file_name, &encoder_clsid));
         result_string = output_file_name;
     }

@@ -1,12 +1,11 @@
 TODO:
-~ video file types
+~ enum video files extensions
 ? export/import settings/profiles commands (save/load settings file in user directory)
 ? one program instance
 - output preview, save as temp file and show it to user
 
 TODO GUI:
-- clipboard
-- dragndrop files/folders to file list view
+- staus bar
 - explorer context menu (? cascaded explorer context menu)
 ? images on file list columns
 ? progress bar for state in file list view

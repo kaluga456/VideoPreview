@@ -32,12 +32,16 @@ public:
     int FindItem(const CProcessingItem* item);
     CProcessingItem* FindItem(int item_index);
     CProcessingItem* GetFocusedItem(int* index = NULL);
-    PProcessingItem GetUnprocessedItem();
     void RemoveItem(const CProcessingItem* item);
     void UpdateItem(const CProcessingItem* item);
     void UpdateItem(const CProcessingItem* item, int item_index);
     void UpdateItems();
+    void UpdateItemStates();
     void Sort();
+
+    //processing
+    void SaveSelection();
+    PProcessingItem GetUnprocessedItem(bool selected_only);
 
 protected: 
 	CFileListView(); //create from serialization only
@@ -47,20 +51,17 @@ protected:
 	afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
 	
     //custom events for file list
-    BOOL CFileListView::PreTranslateMessage(MSG* msg);
+    BOOL PreTranslateMessage(MSG* msg);
     HACCEL Accel;
 
     virtual void OnInitialUpdate(); // called first time after construct
 
     //drag'n'drop
-    CSize m_dragSize;
-    CSize m_dragOffset;
-    DROPEFFECT m_prevDropEffect;
-    CLIPFORMAT m_cfObjectDescriptor;
-    BOOL GetObjectInfo(COleDataObject* pDataObject, CSize* pSize, CSize* pOffset);
+    DROPEFFECT DropEffect;
     virtual DROPEFFECT OnDragEnter(COleDataObject* pDataObject, DWORD grfKeyState, CPoint point);
     virtual DROPEFFECT OnDragOver(COleDataObject*, DWORD grfKeyState, CPoint point);
     virtual BOOL OnDrop(COleDataObject* pDataObject, DROPEFFECT dropEffect, CPoint point);
+    virtual void OnDragLeave();
 
 private:
     COleDropTarget OleDropTarget;

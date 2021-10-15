@@ -4,6 +4,8 @@
 #include "app_error.h"
 #include "app_exception.h"
 #include "VPError.h"
+#include "ClipboardFiles.h"
+#include "VideoFileTypes.h"
 #include "Resource.h"
 #include "Settings.h"
 #include "ProcessingItem.h"
@@ -21,13 +23,19 @@
 #define new DEBUG_NEW
 #endif
 
-extern CProcessingItemList ProcessingItemList;
+extern bool IsProcessSelected; //true process only selected items
 
-static CString GetItemStateText(int item_state)
+static CString GetItemStateText(const CProcessingItem* pi)
 {
+    int item_state = pi->State;
     switch(item_state)
     {
-    case PIS_WAIT: return _T("Waiting");                
+    case PIS_WAIT: 
+    {
+        if(PTS_NONE == ProcessingState || (IsProcessSelected && false == pi->Selected))
+            return _T("");
+        return _T("Waiting...");
+    }
     case PIS_DONE: return _T("Done");                 
     case PIS_FAILED: return _T("Failed");                
     }
@@ -73,7 +81,7 @@ BEGIN_MESSAGE_MAP(CFileListView, CListView)
 END_MESSAGE_MAP()
 
 // CFileListView construction/destruction
-CFileListView::CFileListView() : m_prevDropEffect(DROPEFFECT_NONE)
+CFileListView::CFileListView() : DropEffect(DROPEFFECT_NONE)
 {
     Accel = ::LoadAccelerators(AfxGetResourceHandle(), MAKEINTRESOURCE(IDA_FILE_LIST));
 }
@@ -196,119 +204,53 @@ BOOL CFileListView::PreTranslateMessage(MSG* msg)
     //Ctrl+V
     if(0x56 == msg->wParam)
     {
-        ::SendMessage(GetParent()->m_hWnd, WM_COMMAND, ID_CMD_PASTE_FILES, NULL);
+        CClipboardFiles cf(m_hWnd);
+        if(FileList.AddFiles(&cf))
+        {
+            UpdateItems();
+            UpdateDialogControls(this, FALSE);
+        }   
         return TRUE;
     }
     return FALSE;
 }
-BOOL CFileListView::GetObjectInfo(COleDataObject* pDataObject, CSize* pSize, CSize* pOffset)
+DROPEFFECT CFileListView::OnDragEnter(COleDataObject* ole_object, DWORD grfKeyState, CPoint point)
 {
-	ENSURE(pSize != NULL);
+	ASSERT(DropEffect == DROPEFFECT_NONE);
 	
-	//get object descriptor data
-	HGLOBAL hObjDesc = pDataObject->GetGlobalData(m_cfObjectDescriptor);
-	if (hObjDesc == NULL)
-	{
-		if (pOffset != NULL)
-			*pOffset = CSize(0, 0); // fill in defaults instead
-		*pSize = CSize(0, 0);
-		return FALSE;
-	}
-	ASSERT(hObjDesc != NULL);
+    HGLOBAL hObjDesc = ole_object->GetGlobalData(CF_HDROP);
+    if(NULL == hObjDesc)
+        DropEffect = DROPEFFECT_NONE;
+    else
+        DropEffect = DROPEFFECT_COPY;
 	
-	//otherwise, got CF_OBJECTDESCRIPTOR ok.  Lock it down and extract size.
-	LPOBJECTDESCRIPTOR pObjDesc = (LPOBJECTDESCRIPTOR)GlobalLock(hObjDesc);
-	ENSURE(pObjDesc != NULL);
-	pSize->cx = (int)pObjDesc->sizel.cx;
-	pSize->cy = (int)pObjDesc->sizel.cy;
-	if (pOffset != NULL)
-	{
-		pOffset->cx = (int)pObjDesc->pointl.x;
-		pOffset->cy = (int)pObjDesc->pointl.y;
-	}
-	GlobalUnlock(hObjDesc);
-	GlobalFree(hObjDesc);
-	
-	// successfully retrieved pSize & pOffset info
-	return TRUE;
-}
-DROPEFFECT CFileListView::OnDragEnter(COleDataObject* pDataObject, DWORD grfKeyState, CPoint point)
-{
-	ASSERT(m_prevDropEffect == DROPEFFECT_NONE);
-	
-	GetObjectInfo(pDataObject, &m_dragSize, &m_dragOffset);
-	CClientDC dc(NULL);
-	dc.HIMETRICtoDP(&m_dragSize);
-	dc.HIMETRICtoDP(&m_dragOffset);
-	
-	return OnDragOver(pDataObject, grfKeyState, point);
+	return DropEffect;
 }
 DROPEFFECT CFileListView::OnDragOver(COleDataObject* ole_object, DWORD grfKeyState, CPoint point)
 {
-    //TODO:
-    HGLOBAL hObjDesc = ole_object->GetGlobalData(m_cfObjectDescriptor);
-    CLIPFORMAT cf = CF_TEXT;
-
-
-    return DROPEFFECT_COPY;
-	//point -= m_dragOffset;  // adjust target rect by original cursor offset
-	//
-	//// check for point outside logical area -- i.e. in hatched region
-	//// GetTotalSize() returns the size passed to SetScrollSizes
-	//CRect rectScroll(CPoint(0, 0), GetTotalSize());
-	//
-	//CRect rectItem(point,m_dragSize);
-	//if (rectItem.IsRectEmpty())
-	//{
-	//	// some apps might have a null size in the object descriptor...
-	//	rectItem.InflateRect(1,1);
-	//}
-	//rectItem.OffsetRect(GetDeviceScrollPosition());
-	//
-	//DROPEFFECT de = DROPEFFECT_NONE;
-	//CRect rectTemp;
-	//if (rectTemp.IntersectRect(rectScroll, rectItem))
-	//{
-	//	// check for force link
-	//	if ((grfKeyState & (MK_CONTROL|MK_SHIFT)) == (MK_CONTROL|MK_SHIFT))
-	//		de = DROPEFFECT_LINK;
-	//	// check for force copy
-	//	else if ((grfKeyState & MK_CONTROL) == MK_CONTROL)
-	//		de = DROPEFFECT_COPY;
-	//	// check for force move
-	//	else if ((grfKeyState & MK_ALT) == MK_ALT)
-	//		de = DROPEFFECT_MOVE;
-	//	// default -- recommended action is move
-	//	else
-	//		de = DROPEFFECT_MOVE;
-	//}
-	//
-	//if(point == m_dragPoint)
-	//	return de;
-	//
-	//// otherwise, cursor has moved -- need to update the drag feedback
-	//CClientDC dc(this);
-	//if (m_prevDropEffect != DROPEFFECT_NONE)
-	//{
-	//	// erase previous focus rect
-	//	dc.DrawFocusRect(CRect(m_dragPoint, m_dragSize));
-	//}
-	//m_prevDropEffect = de;
-	//if (m_prevDropEffect != DROPEFFECT_NONE)
-	//{
-	//	m_dragPoint = point;
-	//	dc.DrawFocusRect(CRect(point, m_dragSize));
-	//}
-	//return de;
+    return DropEffect;
 }
-BOOL CFileListView::OnDrop(COleDataObject* pDataObject, DROPEFFECT dropEffect, CPoint point)
+BOOL CFileListView::OnDrop(COleDataObject* ole_object, DROPEFFECT dropEffect, CPoint point)
 {
-    ASSERT_VALID(this);
+    if(dropEffect != DROPEFFECT_COPY)
+    {
+        DropEffect = DROPEFFECT_NONE;
+        return FALSE;
+    }
 
-    // clean up focus rect
-    OnDragLeave();
+    DropEffect = DROPEFFECT_NONE;
 
-    return FALSE;
+    COleObjectFiles oof(ole_object);
+    if(FileList.AddFiles(&oof))
+    {
+        UpdateItems();
+        UpdateDialogControls(GetParent(), FALSE);
+    }
+    return TRUE;
+}
+void CFileListView::OnDragLeave()
+{
+    DropEffect = DROPEFFECT_NONE;
 }
 CProcessingItem* CFileListView::FindItem(const CPoint& point)
 {
@@ -341,10 +283,33 @@ void CFileListView::UpdateItems()
 {
     CListCtrl& list_ctrl = GetListCtrl();
     list_ctrl.DeleteAllItems();
-    for(CProcessingItemList::const_iterator i = ProcessingItemList.begin(); i != ProcessingItemList.end(); ++i)
+    for(CProcessingItemList::const_iterator i = FileList.Items.begin(); i != FileList.Items.end(); ++i)
         AddItem(i->second.get());
 
     Sort();
+}
+void CFileListView::UpdateItemStates()
+{
+    CListCtrl& lc = GetListCtrl();
+    const int count = lc.GetItemCount();
+    for(int index = 0; index < count; ++index)
+    {
+        LVITEM li;
+        ::ZeroMemory(&li, sizeof(li));
+        li.iItem = index;
+        li.mask = LVIF_PARAM;
+        lc.GetItem(&li); 
+
+        CProcessingItem* pi = reinterpret_cast<CProcessingItem*>(li.lParam);
+        ASSERT(pi);
+        if(NULL == pi)
+            continue;
+
+        if(pi->State != PIS_WAIT)
+            continue;
+        lc.SetItemText(index, FLV_COLUMN_STATE, GetItemStateText(pi)); 
+    }
+
 }
 void CFileListView::UpdateItem(const CProcessingItem* item)
 {
@@ -355,7 +320,7 @@ void CFileListView::UpdateItem(const CProcessingItem* item, int item_index)
 {
     ASSERT(item_index >= 0);
     CListCtrl& list_ctrl = GetListCtrl();
-    list_ctrl.SetItemText(item_index, FLV_COLUMN_STATE, GetItemStateText(item->State)); 
+    list_ctrl.SetItemText(item_index, FLV_COLUMN_STATE, GetItemStateText(item)); 
     list_ctrl.SetItemText(item_index, FLV_COLUMN_RESULT, item->ResultString);
 }
 void CFileListView::AddItem(const CProcessingItem* item)
@@ -381,7 +346,29 @@ void CFileListView::RemoveItem(const CProcessingItem* item)
     if(item_index < 0) return;
     GetListCtrl().DeleteItem(item_index);
 }
-PProcessingItem CFileListView::GetUnprocessedItem()
+void CFileListView::SaveSelection()
+{
+    CListCtrl& lc = GetListCtrl();
+    const int count = lc.GetItemCount();
+    for(int index = 0; index < count; ++index)
+    {
+        LVITEM li;
+        ::ZeroMemory(&li, sizeof(li));
+        li.iItem = index;
+        li.mask = LVIF_PARAM | LVIF_STATE;
+        li.stateMask = LVIS_SELECTED;
+
+        lc.GetItem(&li); 
+
+        CProcessingItem* pi = reinterpret_cast<CProcessingItem*>(li.lParam);
+        ASSERT(pi);
+        if(NULL == pi)
+            continue;
+
+        pi->Selected = (li.state & LVIS_SELECTED) ? TRUE : FALSE;
+    }
+}
+PProcessingItem CFileListView::GetUnprocessedItem(bool selected_only)
 {
     CListCtrl& list_ctrl = GetListCtrl();
     for(int index = -1;; ++index)
@@ -397,10 +384,14 @@ PProcessingItem CFileListView::GetUnprocessedItem()
         if(0 == list_ctrl.GetItem(&lvi)) 
             continue;
 
-        CProcessingItemList::iterator i = ProcessingItemList.find(reinterpret_cast<CProcessingItem*>(lvi.lParam));
+        CProcessingItemList::iterator i = FileList.Items.find(reinterpret_cast<CProcessingItem*>(lvi.lParam));
         PProcessingItem pi = i->second;
-        if(PIS_WAIT == pi->State)
-            return pi;
+        if(PIS_WAIT != pi->State)
+            continue;
+        if(selected_only && false == pi->Selected)
+            continue;
+
+        return pi;
     }
     return NULL;
 }

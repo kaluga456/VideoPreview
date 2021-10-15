@@ -33,8 +33,6 @@ private:
 class CMainFrame : public CFrameWndEx
 {
 public:
-	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
-    virtual void OnUpdateFrameTitle(BOOL bAddToTitle);
 	virtual ~CMainFrame();
 
 #ifdef _DEBUG
@@ -42,36 +40,16 @@ public:
 	virtual void Dump(CDumpContext& dc) const;
 #endif
 
-private:
-    //processing
-    PProcessingItem CurrentItem; //current item in processing thread
-    CProcessingThread ProcessingThread;
-    bool ProcessNextItem();
-    bool IsProceedOnError();
-    void SetProcessingState(bool Value); //true - processing items now
-
-    //output profiles
-    COutputProfile* GetCurrentProfile(); //selected profile on toolbar or TempProfile
-
-    //file list
-    CFileListView* GetFileListView();
-    void AddItem(PProcessingItem item);
-    void AddFolder(CString root_dir);
-    void RemoveItem(PProcessingItem item);
-    void RemoveAllItems();
-
-    //settings
-    LPCTSTR GetCurrentOutputDir();
-
 protected:
+    //output profiles
     COutputProfile TempProfile;
+    COutputProfile* GetCurrentProfile(); //selected profile or TempProfile
 
     //controls
 	CMFCMenuBar MainMenu;
     CMainToolbar ToolBar;
-
 	CProfilePane SettingsPane;
-    CMFCStatusBar StatusBar; //TODO: need status bar?
+    CMFCStatusBar StatusBar;
 
     //output dir
     CComboOutputDirs* CBOutputDir;
@@ -79,12 +57,13 @@ protected:
 
     //overrides
     virtual void AdjustDockingLayout(HDWP hdwp /*= NULL*/);
+	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
+    virtual void OnUpdateFrameTitle(BOOL bAddToTitle);
 
     //message handlers
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
     afx_msg void OnDestroy();
     afx_msg void OnClose();
-	afx_msg void OnViewPropertiesWindow();
     afx_msg void OnCmdAddFiles();
     afx_msg void OnCmdAddFolder();
     afx_msg void OnCmdPasteFiles();
@@ -120,6 +99,19 @@ protected:
 
 	CMainFrame();
 	DECLARE_DYNCREATE(CMainFrame)
+
+private:
+    //processing
+    PProcessingItem CurrentItem; //current item in processing thread
+    CProcessingThread ProcessingThread;
+    void ProcessNextItem();
+
+    //file list
+    CFileListView* GetFileListView();
+    void AddFolder(CString root_dir);
+ 
+    //settings
+    LPCTSTR GetCurrentOutputDir();
 };
 
 

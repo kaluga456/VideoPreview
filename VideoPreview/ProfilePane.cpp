@@ -457,12 +457,12 @@ void CProfilePane::OnUpdateUI(CCmdUI* pCmdUI)
     {
     case ID_PROFILE_COMBO:
     case ID_CMD_PROFILE_ADD: 
-        pCmdUI->Enable(false == ::IsProcessing);
+        pCmdUI->Enable(PTS_NONE == ::ProcessingState);
         break;
     case ID_CMD_PROFILE_PREVIEW:
     case ID_CMD_PROFILE_SAVE:
     case ID_CMD_PROFILE_DELETE:
-        pCmdUI->Enable(false == ::IsProcessing && false == OutputProfiles.IsEmpty() && OutputProfiles.GetSelectedProfile());
+        pCmdUI->Enable(PTS_NONE == ::ProcessingState && false == OutputProfiles.IsEmpty() && OutputProfiles.GetSelectedProfile());
         break;
     }
 }
