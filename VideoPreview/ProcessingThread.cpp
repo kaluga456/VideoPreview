@@ -85,9 +85,12 @@ DWORD CProcessingThread::Run()
     ShallowProcedure();
 #else //SHALLOW_PROCESSING
 
-    //TODO: processing procedure
+    //processing procedure
     CString result_string;
-    const int result = GenerateScreenshots(SourceFileName, OutputDir.IsEmpty() ? NULL : OutputDir, OutputProfile, result_string, this);
+    LPCTSTR output_dir = NULL;
+    if(false == OutputDir.IsEmpty())
+        output_dir = OutputDir;
+    const int result = GenerateScreenshots(SourceFileName, output_dir, OutputProfile, result_string, this);
     if(SNAPSHOTS_RESULT_SUCCESS == result)
         NotifyResult(PTM_DONE, result_string);
     else if(SNAPSHOTS_RESULT_TERMINATED == result)

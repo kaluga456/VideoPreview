@@ -5,8 +5,7 @@
 #include "app_gdi.h"
 #include "app_direct_show.h"
 #include "app_buffer.h"
-
-
+#pragma hdrstop
 #include "VideoFile.h"
 
 bool CVideoFile::Open(const TCHAR* file_name) throw()

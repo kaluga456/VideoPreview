@@ -19,7 +19,6 @@ const int DEFAULT_LAYOUT_WINDOWS_TATE = SW_SHOWDEFAULT;
 const int DEFAULT_USE_EXPLORER_CONTEXT_MENU = FALSE;
 const int DEFAULT_USE_SOURCE_FILE_LOCATION = TRUE;
 const int DEFAULT_OVERWRITE_OUTPUT_FILES = FALSE;
-const int DEFAULT_ACTION_ON_ERROR = CSettings::ACTION_ON_ERROR_SKIP;
 const int DEFAULT_SAVE_FILE_LIST_ON_EXIT = true;
 const int DEFAULT_FILE_LIST_COLUMN_WIDTH = 100;
 const int DEFAULT_FILE_LIST_SORTED_COLUMN = 0;
@@ -93,7 +92,6 @@ bool CSettings::Read()
     CString s = theApp.GetString(_T("SourceFileTypes"), DEFAULT_VIDEO_FILE_TYPES);
     SourceFileTypes.SetString(s);
 
-    ActionOnError = theApp.GetInt(_T("ActionOnError"), DEFAULT_ACTION_ON_ERROR);
     SaveFileListOnExit = theApp.GetInt(_T("SaveSourceFileList"), DEFAULT_SAVE_FILE_LIST_ON_EXIT);
     UseExplorerContextMenu = theApp.GetInt(_T("ExplorerContextMenu"), DEFAULT_USE_EXPLORER_CONTEXT_MENU);
 
@@ -126,7 +124,6 @@ bool CSettings::Write()
     theApp.WriteInt(_T("UseSourceLocation"), UseSourceFileLocation);
     theApp.WriteInt(_T("OverwriteFiles"), OverwriteOutputFiles);
     theApp.WriteString(_T("SourceFileTypes"), SourceFileTypes.GetString());
-    theApp.WriteInt(_T("ActionOnError"), ActionOnError);
     theApp.WriteInt(_T("SaveSourceFileList"), SaveFileListOnExit);
     theApp.WriteInt(_T("ExplorerContextMenu"), UseExplorerContextMenu);
 

@@ -48,7 +48,7 @@ protected:
     //controls
 	CMFCMenuBar MainMenu;
     CMainToolbar ToolBar;
-	CProfilePane SettingsPane;
+	CSettingsPane SettingsPane;
     CMFCStatusBar StatusBar;
 
     //output dir
@@ -77,7 +77,6 @@ protected:
     afx_msg void OnCmdProfileSave();
     afx_msg void OnCmdProfileDelete();
     afx_msg void OnProfilePreview();
-    afx_msg void OnProfileCombo();
     afx_msg void OnCmdTest(); //TEST:
     afx_msg void OnCmdGitHub();
     afx_msg void OnCmdAbout();

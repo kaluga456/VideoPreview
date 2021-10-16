@@ -38,15 +38,15 @@ public:
 
     void SetFont(const LOGFONT& logfont);
 };
-class CProfilePane : public CDockablePane
+class CSettingsPane : public CDockablePane
 {
 public:
     CMFCToolBarComboBoxButton* CBProfiles;
     CProfileToolBar ToolBar;
     CMFCPropertyGridCtrl PGProfile;
 
-	CProfilePane();
-    virtual ~CProfilePane();
+	CSettingsPane();
+    virtual ~CSettingsPane();
 
 	void AdjustLayout();
 
@@ -92,7 +92,6 @@ protected:
     CPGPCombo* pgpOutputFileFormat;
 
     //common settings
-    CPGPCombo* pgpActionOnError;
     CMFCPropertyGridProperty* pgpOverwriteFiles;
     CMFCPropertyGridProperty* pgpSaveFileListOnExit;
 

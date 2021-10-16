@@ -1,7 +1,7 @@
 #include "stdafx.h"
-#pragma hdrstop
 #include "app_error.h"
 #include "app_thread.h"
+#pragma hdrstop
 #include "Resource.h"
 #include "VPError.h"
 #include "ClipboardFiles.h"
@@ -17,7 +17,7 @@
 #include "DialogAbout.h"
 #include "DialogSettings.h"
 #include "DialogOutputProfile.h"
-#include "ProfilePane.h"
+#include "SettingsPane.h"
 #include "VideoPreviewDoc.h"
 #include "FileListView.h"
 #include "MainFrm.h"
@@ -231,7 +231,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWndEx)
     ON_COMMAND(ID_CMD_PROFILE_SAVE, &CMainFrame::OnCmdProfileSave)
     ON_COMMAND(ID_CMD_PROFILE_DELETE, &CMainFrame::OnCmdProfileDelete)
     ON_COMMAND(ID_CMD_PROFILE_PREVIEW, &CMainFrame::OnProfilePreview)
-    ON_CBN_SELCHANGE(ID_COMBO_OUTPUT_DIR, &CMainFrame::OnProfileCombo)
+    //ON_CBN_SELCHANGE(ID_COMBO_OUTPUT_DIR, &CMainFrame::OnProfileCombo)
 
     //processing
     ON_COMMAND(ID_CMD_PROCESS_ALL, &CMainFrame::OnCmdProcessAll)
@@ -378,8 +378,21 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 }
 void CMainFrame::OnClose()
 {
-    //BUG:
-    //SettingsPane.PromtSaveCurrentProfile();
+    COutputProfile* old_profile = OutputProfiles.GetSelectedProfile();
+    CString old_profile_name = OutputProfiles.GetSelectedProfileName();
+    if(SettingsPane.IsProfileChanged() && old_profile_name && false == old_profile_name.IsEmpty())
+    {
+        CString msg;
+        msg.Format(_T("Do you want to save profile\n\"%s\" ?"), old_profile_name);
+        const int result = ::AfxMessageBox(msg, MB_YESNOCANCEL | MB_ICONEXCLAMATION | MB_DEFBUTTON1);
+        if(IDCANCEL == result) 
+            return;
+        if(IDYES == result)
+        {
+            SettingsPane.GetOutputProfile(old_profile);
+            OutputProfiles.WriteProfile(theApp, old_profile_name);
+        }
+    }
 
     CFrameWndEx::OnClose();
 }
@@ -827,18 +840,6 @@ void CMainFrame::OnCmdSettings()
     CDialogSettings dialog(this);
     dialog.DoModal();
 }
-void CMainFrame::OnProfileCombo()
-{
-    //COutputProfile* old_profile = OutputProfiles.GetSelectedProfile();
-    //COutputProfile* new_profile = GetCurrentOutputDir();
-    //if(new_profile == old_profile) return;
-
-    //SettingsPane.PromtSaveCurrentProfile();
-
-    //OutputProfiles.SetSelectedProfile(new_profile);
-    //SettingsPane.SetOutputProfile(new_profile);
-    //SettingsPane.ResetProfileChanged();
-}
 void CMainFrame::OnCmdProfileAdd()
 {
     SettingsPane.PromtSaveCurrentProfile();
@@ -906,8 +907,6 @@ void CMainFrame::OnProfilePreview()
 void CMainFrame::OnCmdTest()
 {
     //TEST:
-
-
 }
 void CMainFrame::OnUpdateUI(CCmdUI* pCmdUI)
 {
@@ -973,6 +972,8 @@ void CMainFrame::OnUpdateUI(CCmdUI* pCmdUI)
 }
 LPCTSTR CMainFrame::GetCurrentOutputDir()
 {
+    if(0 == CBOutputDir->GetCurSel()) 
+        return NULL;
     return CBOutputDir->GetItem();
 }
 COutputProfile* CMainFrame::GetCurrentProfile()

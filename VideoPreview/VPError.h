@@ -1,5 +1,7 @@
 #pragma once
 
+LPCTSTR const VP_UNKNOWN_ERROR_STRING = _T("Unknown Error");
+
 CString VPGetErrorStr(DWORD error_code);
 CString VPGetLastErrorStr();
 
@@ -15,6 +17,7 @@ public:
     //error data
     virtual DWORD GetErrorCode() const throw() = 0;
     virtual CString GetErrorString() const throw() = 0;
+    virtual CString GetFullText() const throw() = 0;
 };
 
 class CVPExcStr : public CVPExc
@@ -25,10 +28,11 @@ public:
     virtual CString GetText() const throw() {return Text;}
 
     //error data
-    virtual DWORD GetErrorCode() const throw() {return 0;}
+    virtual DWORD GetErrorCode() const throw() {return ERROR_SUCCESS;}
     virtual CString GetErrorString() const throw() {return _T("");}
+    virtual CString GetFullText() const throw() {return Text;}
 
-private:
+protected:
     CString Text;
 };
 
@@ -40,6 +44,7 @@ public:
 
     virtual DWORD GetErrorCode() const throw() {return ErrorCode;}
     virtual CString GetErrorString() const throw() {return VPGetErrorStr(ErrorCode);}
+    virtual CString GetFullText() const throw();
 
 protected:
     DWORD ErrorCode;
@@ -57,4 +62,6 @@ void VPExcMsgBox(const CVPExc* exc, LPCTSTR msg = NULL);
 #define VP_VERIFY(expression) {if(NULL == (expression)) throw CVPExcStr(_T("VP_VERIFY(") _T(#expression) _T(") failed"));}
 #define VP_VERIFY_WINAPI(error_code) {if(r != ERROR_SUCCESS) throw CVPExcWinApi(DWORD(error_code));}
 #define VP_VERIFY_WINAPI_BOOL(bool_result) {if(FALSE == bool_result) throw CVPExcWinApi(::GetLastError());}
+
+#define VP_THROW(msg) {throw CVPExcStr(msg);}
 #define VP_THROW_WINAPI_LAST() {throw CVPExcWinApiLast();}

@@ -25,16 +25,6 @@ public:
     int UseSourceFileLocation;
     int OverwriteOutputFiles;
 
-    //DEPRECATE:
-    //action on error
-    enum
-    {
-        ACTION_ON_ERROR_SKIP,
-        ACTION_ON_ERROR_STOP,
-        ACTION_ON_ERROR_PROMT
-    };
-    int ActionOnError;
-
     //ctor/dtor
     CSettings() {}
 

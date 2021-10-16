@@ -12,35 +12,15 @@
 #define IDR_MAINFRAME                   128
 #define IDR_MAINFRAME_256               129
 #define ID_TOOLBAR_MAIN                 129
-#define IDR_VideoPreviewTYPE            130
-#define ID_SORTPROPERTIES               151
 #define ID_PROPERTIES1                  152
 #define ID_PROPERTIES2                  153
-#define ID_EXPAND_ALL                   154
 #define IDS_FILE_VIEW                   155
 #define IDS_CLASS_VIEW                  156
 #define IDS_OUTPUT_WND                  157
 #define IDS_PROPERTIES_WND              158
-#define IDI_FILE_VIEW                   161
-#define IDI_FILE_VIEW_HC                162
-#define IDI_CLASS_VIEW                  163
-#define IDI_CLASS_VIEW_HC               164
-#define IDI_OUTPUT_WND                  165
-#define IDI_OUTPUT_WND_HC               166
-#define IDI_PROPERTIES_WND              167
-#define IDI_PROPERTIES_WND_HC           168
-#define IDB_EXPLORER_24                 170
-#define IDB_FILE_VIEW                   175
-#define IDB_FILE_VIEW_24                176
 #define IDB_MENU_IMAGES_24              180
 #define IDR_PROPERTIES                  183
 #define ID_TOOLBAR_SETTINGS             183
-#define IDB_NAVIGATION_LARGE            186
-#define IDB_NAVIGATION_LARGE_HC         187
-#define IDB_PAGES                       188
-#define IDB_PAGES_HC                    189
-#define IDB_PAGES_SMALL                 190
-#define IDB_PAGES_SMALL_HC              191
 #define ID_VIEW_CAPTION_BAR             221
 #define IDB_INFO                        230
 #define IDS_CAPTION_BUTTON              231
@@ -48,11 +28,6 @@
 #define IDS_CAPTION_TEXT                233
 #define IDS_CAPTION_IMAGE_TIP           234
 #define IDS_CAPTION_IMAGE_TEXT          235
-#define IDS_MYCALENDARS                 250
-#define IDS_CALENDAR                    251
-#define IDS_SHORTCUTS                   252
-#define IDS_FOLDERS                     253
-#define IDS_OUTLOOKBAR                  258
 #define IDS_BUILD_TAB                   300
 #define IDS_DEBUG_TAB                   301
 #define IDS_FIND_TAB                    302
@@ -65,9 +40,6 @@
 #define IDC_COMBO_OUTPUT_PROFILES       311
 #define IDC_EDIT_OUTPUT_LOCATION        313
 #define IDC_BTN_OUTPUT_DIRECTORY        314
-#define IDC_RBTN_ACTION_ON_ERROR_SKIP   315
-#define IDC_RBTN_ACTION_ON_ERROR_STOP   316
-#define IDC_RBTN_ACTION_ON_ERROR_PROMT  317
 #define IDC_CBTN_SAVE_FILE_LIST         318
 #define IDC_LIST_SOURCE_FILE_TYPES      319
 #define IDC_BTN_ADD_SOURCE_FILE_TYPE    320
@@ -76,6 +48,8 @@
 #define IDC_CBTN_USE_EXPLORER_CONTEXT_MENU 323
 #define IDA_FILE_LIST                   323
 #define IDC_CBTN_USE_SOURCE_FILE_LOCATION 324
+#define IDB_BITMAP1                     324
+#define IDB_DUMMY_FRAME                 324
 #define IDC_CBTN_OVERWRITE_OUTPUT_FILES 325
 #define IDC_BTN_DEFAULT_SOURCE_FILE_TYPE 326
 #define IDD_SETTINGS                    329
@@ -133,7 +107,6 @@
 #define ID_FILE_ADDFILES                32836
 #define ID_ROOT_ADDFOLDER               32837
 #define ID_CMD_ADD_PROFILE              32839
-#define ID_BUTTON32842                  32842
 #define ID_CMD_PROFILE_ADD              32842
 #define ID_PROFILE_ADD                  32844
 #define ID_COMBO_OUTPUT_DIR             32848
@@ -146,7 +119,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        324
+#define _APS_NEXT_RESOURCE_VALUE        325
 #define _APS_NEXT_COMMAND_VALUE         32860
 #define _APS_NEXT_CONTROL_VALUE         1002
 #define _APS_NEXT_SYMED_VALUE           331

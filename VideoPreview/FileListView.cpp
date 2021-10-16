@@ -1,8 +1,8 @@
 #include "stdafx.h"
-#pragma hdrstop
 #include "app.h"
 #include "app_error.h"
 #include "app_exception.h"
+#pragma hdrstop
 #include "VPError.h"
 #include "ClipboardFiles.h"
 #include "VideoFileTypes.h"

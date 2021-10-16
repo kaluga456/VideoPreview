@@ -2,8 +2,6 @@
 #pragma hdrstop
 #include "VPError.h"
 
-LPCTSTR VP_UNKNOWN_ERROR_STRING = _T("Unknown Error");
-
 CString VPGetErrorStr(DWORD error_code)
 {
     const int buffer_size = 2048;
@@ -43,4 +41,21 @@ void VPExcMsgBox(const CVPExc* exc, LPCTSTR msg /*= NULL*/)
         text += error_text; 
     if(text.IsEmpty()) text = VP_UNKNOWN_ERROR_STRING;
     ::AfxMessageBox(text, MB_OK | MB_ICONWARNING);
+}
+
+CString CVPExcWinApi::GetFullText() const throw()
+{
+    CString result(Text);
+
+    if(ERROR_SUCCESS == ErrorCode)
+        return result;
+
+    CString error_text(VPGetErrorStr(ErrorCode));
+    if(error_text.IsEmpty())
+        return result;
+
+    if(false == result.IsEmpty())
+        result += _T("\n");
+    result += error_text;
+    return result;
 }

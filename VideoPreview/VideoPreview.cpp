@@ -15,7 +15,7 @@
 #include "ProcessingThread.h"
 #include "VideoPreview.h"
 #include "VideoPreviewDoc.h"
-#include "ProfilePane.h"
+#include "SettingsPane.h"
 #include "FileListView.h"
 #include "MainFrm.h"
 

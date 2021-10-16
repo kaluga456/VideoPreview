@@ -1,6 +1,6 @@
 #include "stdafx.h"
-#pragma hdrstop
 #include "app_thread.h"
+#pragma hdrstop
 #include "Resource.h"
 #include "Settings.h"
 #include "OutputProfile.h"
@@ -8,7 +8,7 @@
 #include "ScreenshotGenerator.h"
 #include "ProcessingThread.h"
 #include "VideoPreview.h"
-#include "ProfilePane.h"
+#include "SettingsPane.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -53,7 +53,6 @@ enum
     IDP_OUTPUT_FILE_FORMAT,
 
     //common settings
-    ID_SETTINGS_ACTION_ON_ERROR,
     ID_SETTINGS_OVERWRITE_OUTPUT_FILES,
     ID_SETTINGS_SAVE_FILELIST_ON_EXIT,
 
@@ -101,7 +100,6 @@ LPCTSTR SETTING_DESCR[] =
     _T("Ouput image format"), //IDP_OUTPUT_FILE_FORMAT,
 
     //OPTIONS
-    _T("Action for non critical processing errors"), //ID_SETTINGS_ACTION_ON_ERROR
     _T("Overwrite output images"), //ID_SETTINGS_OVERWRITE_OUTPUT_FILES
     _T("Save file list on exit\nRestore file list on startup"), //ID_SETTINGS_SAVE_FILELIST_ON_EXIT
 };
@@ -178,8 +176,8 @@ void CPGPFont::SetFont(const LOGFONT& logfont)
     Redraw();
 }
 /////////////////////////////////////////////////////////////////////////////
-//CProfilePane
-BEGIN_MESSAGE_MAP(CProfilePane, CDockablePane)
+//CSettingsPane
+BEGIN_MESSAGE_MAP(CSettingsPane, CDockablePane)
 	ON_WM_CREATE()
 	ON_WM_SIZE()
 	ON_WM_SETFOCUS()
@@ -194,13 +192,13 @@ BEGIN_MESSAGE_MAP(CProfilePane, CDockablePane)
     ON_UPDATE_COMMAND_UI(ID_CMD_PROFILE_SAVE, OnUpdateUI)
     ON_UPDATE_COMMAND_UI(ID_CMD_PROFILE_DELETE, OnUpdateUI)
 END_MESSAGE_MAP()
-CProfilePane::CProfilePane() : ProfileChanged(false)
+CSettingsPane::CSettingsPane() : ProfileChanged(false)
 {
 }
-CProfilePane::~CProfilePane()
+CSettingsPane::~CSettingsPane()
 {
 }
-int CProfilePane::OnCreate(LPCREATESTRUCT lpCreateStruct)
+int CSettingsPane::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	if(CDockablePane::OnCreate(lpCreateStruct) == -1)
 		return -1;
@@ -232,7 +230,7 @@ int CProfilePane::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 	return 0;
 }
-void CProfilePane::InitPropList()
+void CSettingsPane::InitPropList()
 {
     PGProfile.SetBoolLabels(_T("Yes"), _T("No"));
 	PGProfile.EnableHeaderCtrl(FALSE);
@@ -292,7 +290,7 @@ void CProfilePane::InitPropList()
     pgpOutputSizeMethod->AddItem(_T("Image width"), OUTPUT_IMAGE_WIDTH_AS_IS);
     pgpOutputSizeMethod->AddItem(_T("Frame Witdh"), OUTPUT_IMAGE_WIDTH_BY_FRAME_WIDTH);
     pgpOutputSizeMethod->AddItem(_T("Frame Height"), OUTPUT_IMAGE_WIDTH_BY_FRAME_HEIGHT);
-    pgpOutputSizeMethod->AddItem(_T("Use Original Frame"), OUTPUT_IMAGE_WIDTH_BY_ORIGINAL_FRAME_WIDTH);
+    pgpOutputSizeMethod->AddItem(_T("Use Original Frame"), OUTPUT_IMAGE_WIDTH_BY_ORIGINAL_FRAME);
     pgpOutputSizeMethod->AllowEdit(FALSE);
     pgpOutputSize = new CPGPNumberEdit(_T("Size Value"), (_variant_t)_T("1000"), SETTING_DESCR[IDP_OUTPUT_IMAGE_SIZE], IDP_OUTPUT_IMAGE_SIZE);
     pgp_output_image_size->AddSubItem(pgpOutputSizeMethod);
@@ -337,13 +335,8 @@ void CProfilePane::InitPropList()
 
     //TODO:
     CMFCPropertyGridProperty* pgp_settings_root = new CMFCPropertyGridProperty(_T("Common Settings"));
-    pgpActionOnError = new CPGPCombo(_T("Action On Error"), _T("Skip"), SETTING_DESCR[ID_SETTINGS_ACTION_ON_ERROR], ID_SETTINGS_ACTION_ON_ERROR);    
-    pgpActionOnError->AddItem(_T("Skip"), CSettings::ACTION_ON_ERROR_SKIP);
-    pgpActionOnError->AddItem(_T("Stop"), CSettings::ACTION_ON_ERROR_STOP);
-    pgpActionOnError->AddItem(_T("Promt"), CSettings::ACTION_ON_ERROR_PROMT);
     pgpOverwriteFiles = new CMFCPropertyGridProperty(_T("Overwrite Output Files"), (_variant_t)false, SETTING_DESCR[ID_SETTINGS_OVERWRITE_OUTPUT_FILES], ID_SETTINGS_OVERWRITE_OUTPUT_FILES);
-    pgpSaveFileListOnExit = new CMFCPropertyGridProperty(_T("Save File List"), (_variant_t)false, SETTING_DESCR[ID_SETTINGS_SAVE_FILELIST_ON_EXIT], ID_SETTINGS_SAVE_FILELIST_ON_EXIT);
-    pgp_settings_root->AddSubItem(pgpActionOnError);
+    pgpSaveFileListOnExit = new CMFCPropertyGridProperty(_T("Save File List On Exit"), (_variant_t)false, SETTING_DESCR[ID_SETTINGS_SAVE_FILELIST_ON_EXIT], ID_SETTINGS_SAVE_FILELIST_ON_EXIT);
     pgp_settings_root->AddSubItem(pgpOverwriteFiles);
     pgp_settings_root->AddSubItem(pgpSaveFileListOnExit);
 
@@ -355,19 +348,15 @@ void CProfilePane::InitPropList()
 	//pGroup3->AddSubItem(new CMFCPropertyGridFileProperty(_T("Folder"), _T("c:\\")));
 	//PGProfile.AddProperty(pGroup3);
 }
-void CProfilePane::SetSettings()
+void CSettingsPane::SetSettings()
 {
-    pgpActionOnError->SetItem(Settings.ActionOnError);
     pgpOverwriteFiles->SetValue(_variant_t(bool(Settings.OverwriteOutputFiles != 0)));
     pgpSaveFileListOnExit->SetValue(_variant_t(bool(Settings.SaveFileListOnExit != 0)));
 }
-bool CProfilePane::OnSettingsChanged(const DWORD_PTR property_id)
+bool CSettingsPane::OnSettingsChanged(const DWORD_PTR property_id)
 {
     switch(property_id)
     {
-    case ID_SETTINGS_ACTION_ON_ERROR:
-        Settings.ActionOnError = pgpActionOnError->GetItem();
-        return true;
     case ID_SETTINGS_OVERWRITE_OUTPUT_FILES:
         Settings.OverwriteOutputFiles = pgpOverwriteFiles->GetValue().boolVal;
         return true;
@@ -377,7 +366,7 @@ bool CProfilePane::OnSettingsChanged(const DWORD_PTR property_id)
     }
     return false;
 }
-LRESULT CProfilePane::OnPropertyChanged(WPARAM wp, LPARAM lp)
+LRESULT CSettingsPane::OnPropertyChanged(WPARAM wp, LPARAM lp)
 {
     CMFCPropertyGridProperty* property = reinterpret_cast<CMFCPropertyGridProperty*>(lp);
     const DWORD_PTR property_id = property->GetData();
@@ -405,7 +394,7 @@ LRESULT CProfilePane::OnPropertyChanged(WPARAM wp, LPARAM lp)
 
     case IDP_OUTPUT_SIZE_METHOD: 
     {
-        const BOOL enable = (OUTPUT_IMAGE_WIDTH_BY_ORIGINAL_FRAME_WIDTH != pgpOutputSizeMethod->GetItem());
+        const BOOL enable = (OUTPUT_IMAGE_WIDTH_BY_ORIGINAL_FRAME != pgpOutputSizeMethod->GetItem());
         pgpOutputSize->Enable(enable);
         break;
     }
@@ -427,7 +416,7 @@ LRESULT CProfilePane::OnPropertyChanged(WPARAM wp, LPARAM lp)
     ProfileChanged = true;
     return 0;
 }
-void CProfilePane::AdjustLayout()
+void CSettingsPane::AdjustLayout()
 {
 	if(GetSafeHwnd() == NULL || (AfxGetMainWnd() != NULL && AfxGetMainWnd()->IsIconic()))
 		return;
@@ -446,12 +435,12 @@ void CProfilePane::AdjustLayout()
     CBProfiles->SetRect(cb_rect);
     ToolBar.Invalidate(FALSE);
 }
-void CProfilePane::OnSize(UINT nType, int cx, int cy)
+void CSettingsPane::OnSize(UINT nType, int cx, int cy)
 {
 	CDockablePane::OnSize(nType, cx, cy);
 	AdjustLayout();
 }
-void CProfilePane::OnUpdateUI(CCmdUI* pCmdUI)
+void CSettingsPane::OnUpdateUI(CCmdUI* pCmdUI)
 {
     switch(pCmdUI->m_nID)
     {
@@ -466,12 +455,12 @@ void CProfilePane::OnUpdateUI(CCmdUI* pCmdUI)
         break;
     }
 }
-COutputProfile* CProfilePane::GetComboProfile()
+COutputProfile* CSettingsPane::GetComboProfile()
 {
     LPCTSTR profile_name = CBProfiles->GetItem();
     return OutputProfiles.GetProfile(profile_name);
 }
-void CProfilePane::OnProfileComboChanged()
+void CSettingsPane::OnProfileComboChanged()
 {
     COutputProfile* old_profile = OutputProfiles.GetSelectedProfile();
     COutputProfile* new_profile = GetComboProfile();
@@ -483,12 +472,12 @@ void CProfilePane::OnProfileComboChanged()
     SetOutputProfile(new_profile);
     ResetProfileChanged();
 }
-void CProfilePane::UpdateProfileCombo()
+void CSettingsPane::UpdateProfileCombo()
 {
     OutputProfiles.Fill(CBProfiles);
     ToolBar.Invalidate();
 }
-void CProfilePane::PromtSaveCurrentProfile()
+void CSettingsPane::PromtSaveCurrentProfile()
 {
     COutputProfile* old_profile = OutputProfiles.GetSelectedProfile();
     CString old_profile_name = OutputProfiles.GetSelectedProfileName();
@@ -503,12 +492,12 @@ void CProfilePane::PromtSaveCurrentProfile()
         }
     }
 }
-void CProfilePane::OnSetFocus(CWnd* pOldWnd)
+void CSettingsPane::OnSetFocus(CWnd* pOldWnd)
 {
 	CDockablePane::OnSetFocus(pOldWnd);
 	PGProfile.SetFocus();
 }
-void CProfilePane::SetOutputProfile(const COutputProfile* profile)
+void CSettingsPane::SetOutputProfile(const COutputProfile* profile)
 {
     ASSERT(profile);
 
@@ -530,7 +519,7 @@ void CProfilePane::SetOutputProfile(const COutputProfile* profile)
     pgpOutputSizeMethod->SetItem(profile->OutputSizeMethod);
 
     pgpOutputSize->SetInt(profile->OutputImageSize);
-    pgpOutputSize->Enable(profile->OutputSizeMethod != OUTPUT_IMAGE_WIDTH_BY_ORIGINAL_FRAME_WIDTH);
+    pgpOutputSize->Enable(profile->OutputSizeMethod != OUTPUT_IMAGE_WIDTH_BY_ORIGINAL_FRAME);
 
     pgpTimestampType->SetItem(profile->TimestampType);
     profile->TimestampFont.Get(lf);
@@ -546,7 +535,7 @@ void CProfilePane::SetOutputProfile(const COutputProfile* profile)
     ProfileChanged = false;
     EnableWindow(TRUE);
 }
-void CProfilePane::GetOutputProfile(COutputProfile* profile)
+void CSettingsPane::GetOutputProfile(COutputProfile* profile)
 {
     //TODO: value checks
     //TODO: try catch ?
