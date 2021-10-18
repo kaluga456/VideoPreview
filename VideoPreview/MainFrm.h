@@ -76,7 +76,7 @@ protected:
     afx_msg void OnCmdProfileAdd();
     afx_msg void OnCmdProfileSave();
     afx_msg void OnCmdProfileDelete();
-    afx_msg void OnProfilePreview();
+    afx_msg void OnCmdProfilePreview();
     afx_msg void OnCmdTest(); //TEST:
     afx_msg void OnCmdGitHub();
     afx_msg void OnCmdAbout();

@@ -26,6 +26,9 @@
 #define new DEBUG_NEW
 #endif
 
+//TEST:
+int GenerateProfilePreview(const COutputProfile& output_profile, CString& result_string);
+
 bool IsProcessSelected; //true process only selected items
 //////////////////////////////////////////////////////////////////////////////
 //CComboOutputDirs
@@ -230,7 +233,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWndEx)
     ON_COMMAND(ID_CMD_PROFILE_ADD, &CMainFrame::OnCmdProfileAdd)
     ON_COMMAND(ID_CMD_PROFILE_SAVE, &CMainFrame::OnCmdProfileSave)
     ON_COMMAND(ID_CMD_PROFILE_DELETE, &CMainFrame::OnCmdProfileDelete)
-    ON_COMMAND(ID_CMD_PROFILE_PREVIEW, &CMainFrame::OnProfilePreview)
+    ON_COMMAND(ID_CMD_PROFILE_PREVIEW, &CMainFrame::OnCmdProfilePreview)
     //ON_CBN_SELCHANGE(ID_COMBO_OUTPUT_DIR, &CMainFrame::OnProfileCombo)
 
     //processing
@@ -899,10 +902,23 @@ void CMainFrame::OnCmdProfileDelete()
     SettingsPane.SetOutputProfile(GetCurrentProfile());
     SettingsPane.UpdateProfileCombo();
 }
-void CMainFrame::OnProfilePreview()
+void CMainFrame::OnCmdProfilePreview()
 {
     //TODO:
-    int i = 0;
+    CString result_string;
+    SettingsPane.GetOutputProfile(&TempProfile);
+    int result = GenerateProfilePreview(TempProfile, result_string);
+
+    if(result)
+    {
+        //error
+        CString msg(_T("GenerateProfilePreview() failed\n"));
+        msg += result_string;
+        ::AfxMessageBox(msg, MB_OK | MB_ICONSTOP);
+        return;
+    }
+
+    ::ShellOpenFile(result_string, m_hWnd);
 }
 void CMainFrame::OnCmdTest()
 {

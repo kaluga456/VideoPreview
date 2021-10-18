@@ -2,7 +2,7 @@
 
 enum
 {
-    SNAPSHOTS_RESULT_SUCCESS,
+    SNAPSHOTS_RESULT_SUCCESS = 0,
     SNAPSHOTS_RESULT_FAIL,
     SNAPSHOTS_RESULT_TERMINATED
 };
@@ -17,5 +17,5 @@ public:
     virtual void SetProgress(size_t progress) = 0;
 };
 
-int GenerateProfilePreview(LPCTSTR video_file_name, LPCTSTR output_dir, const COutputProfile& output_profile, CString& result_string);
+//int GenerateProfilePreview(const COutputProfile& output_profile, CString& result_string);
 int GenerateScreenshots(LPCTSTR video_file_name, LPCTSTR output_dir, const COutputProfile& output_profile, CString& result_string, IScreenshotsCallback* callback = NULL);
