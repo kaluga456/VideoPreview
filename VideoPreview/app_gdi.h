@@ -43,11 +43,11 @@ class gdi_exception : public exception
 {
 public:
     //ctor/dtor
-    gdi_exception(Gdiplus::Status status) throw() : Status(status) {}
-    virtual ~gdi_exception() throw() {}
+    gdi_exception(Gdiplus::Status status) noexcept : Status(status) {}
+    virtual ~gdi_exception() noexcept {}
 
     //access
-    virtual const TCHAR* string() const throw() {return gdi_get_error_string(Status);}
+    virtual const TCHAR* string() const noexcept {return gdi_get_error_string(Status);}
 
 private:
     Gdiplus::Status Status;
@@ -70,7 +70,7 @@ public:
         Gdiplus::GdiplusStartupInput input; //used by default here
         verify_gdi(Gdiplus::GdiplusStartup(&Token, &input, output));
     }
-    ~gdi() throw()
+    ~gdi()
     {
         Gdiplus::GdiplusShutdown(Token);
     }
@@ -85,8 +85,8 @@ class gdi_encoders : private boost::noncopyable
 {
 public:
     //ctor/dtor
-    gdi_encoders() throw() : Count(0), Data(NULL) {}
-    ~gdi_encoders() throw() {::free(Data);}
+    gdi_encoders() : Count(0), Data(NULL) {}
+    ~gdi_encoders() {::free(Data);}
 
     //operation
     Gdiplus::Status initialize()
@@ -112,12 +112,12 @@ public:
     {
         Count = 0;
         ::free(Data);
-        Data = NULL;
+        Data = nullptr;
     }
 
     //access
-    UINT count() const throw() {return Count;}
-    const Gdiplus::ImageCodecInfo* encoder(UINT encoder_index) const throw()
+    UINT count() const {return Count;}
+    const Gdiplus::ImageCodecInfo* encoder(UINT encoder_index) const
     {
         return (encoder_index < Count) ? (Data + encoder_index) : NULL;
     }

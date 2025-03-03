@@ -11,11 +11,11 @@ class exception_direct_show : public exception_debug
 {
 public:
     //ctor/dtor
-    exception_direct_show(HRESULT error_code, const TCHAR* src_file_name, size_t line_number) throw() : 
+    exception_direct_show(HRESULT error_code, const TCHAR* src_file_name, size_t line_number) : 
       exception_debug(src_file_name, line_number), ErrorCode(error_code) {}
 
     //string data
-    virtual const size_t string(TCHAR* buffer, size_t buffer_size) const throw() 
+    virtual const size_t string(TCHAR* buffer, size_t buffer_size) const noexcept
     {
         return ::AMGetErrorText(ErrorCode, buffer, buffer_size);
     }

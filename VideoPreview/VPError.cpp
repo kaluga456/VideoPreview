@@ -43,7 +43,7 @@ void VPExcMsgBox(const CVPExc* exc, LPCTSTR msg /*= NULL*/)
     ::AfxMessageBox(text, MB_OK | MB_ICONWARNING);
 }
 
-CString CVPExcWinApi::GetFullText() const throw()
+CString CVPExcWinApi::GetFullText() const noexcept
 {
     CString result(Text);
 

@@ -12,16 +12,16 @@ class exception
 {
 public:
     //ctor/dtor
-    exception() throw() {}
-    virtual ~exception() throw() {}
+    exception() noexcept {}
+    virtual ~exception() noexcept {}
 
     //string data
-    virtual const TCHAR* string() const throw() {return NULL;}
-    virtual const size_t string(TCHAR* buffer, size_t buffer_size) const throw() {return 0;}
+    virtual const TCHAR* string() const noexcept {return NULL;}
+    virtual const size_t string(TCHAR* buffer, size_t buffer_size) const noexcept {return 0;}
 
     //source file information
-    virtual const TCHAR* source_file() const throw() {return NULL;}
-    virtual const size_t source_file_line() const throw() {return 0;}
+    virtual const TCHAR* source_file() const noexcept {return NULL;}
+    virtual const size_t source_file_line() const noexcept {return 0;}
 };
 
 //generic exception with source file info
@@ -29,15 +29,15 @@ class exception_debug : public exception
 {
 public:
     //ctor/dtor
-    exception_debug(const TCHAR* src_file_name, size_t line_number) throw() : SourceFileLine(line_number)
+    exception_debug(const TCHAR* src_file_name, size_t line_number) noexcept : SourceFileLine(line_number)
     {
         if(src_file_name != NULL)
             SourceFileName.assign(src_file_name);
     }
 
     //source file information
-    virtual const TCHAR* source_file() const throw() {return SourceFileName.c_str();}
-    virtual const size_t source_file_line() const throw() {return SourceFileLine;}
+    virtual const TCHAR* source_file() const noexcept {return SourceFileName.c_str();}
+    virtual const size_t source_file_line() const noexcept {return SourceFileLine;}
 
 private:
     app::string SourceFileName;
@@ -49,7 +49,7 @@ class exception_string : public exception_debug
 {
 public:
     //ctor/dtor
-    exception_string(const TCHAR* string_data, const TCHAR* src_file_name, size_t line_number) throw() : 
+    exception_string(const TCHAR* string_data, const TCHAR* src_file_name, size_t line_number) noexcept : 
       exception_debug(src_file_name, line_number)
     {
         if(string_data != NULL)
@@ -57,8 +57,8 @@ public:
     }
 
     //string data
-    virtual const TCHAR* string() const throw() {return StringData.c_str();}
-    virtual const size_t string(TCHAR* buffer, size_t buffer_size) const throw() {return 0;}
+    virtual const TCHAR* string() const noexcept {return StringData.c_str();}
+    virtual const size_t string(TCHAR* buffer, size_t buffer_size) const noexcept {return 0;}
 
 private:
     app::string StringData;
@@ -69,15 +69,15 @@ class exception_winapi_error : public exception_debug
 {
 public:
     //ctor/dtor
-    exception_winapi_error(DWORD error_code, const TCHAR* src_file_name, size_t line_number) throw() : 
+    exception_winapi_error(DWORD error_code, const TCHAR* src_file_name, size_t line_number) noexcept : 
       exception_debug(src_file_name, line_number), ErrorCode(error_code) {}
 
     //string data
-    virtual const size_t string(TCHAR* buffer, size_t buffer_size) const throw() 
+    virtual const size_t string(TCHAR* buffer, size_t buffer_size) const noexcept 
     {
         return app::winapi_error_string(ErrorCode, buffer, buffer_size);
     }
-    DWORD code() const throw() {return ErrorCode;}
+    DWORD code() const noexcept {return ErrorCode;}
 
 private:
     DWORD ErrorCode;

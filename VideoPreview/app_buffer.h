@@ -49,15 +49,15 @@ public:
         else
             Data = NULL;
     }
-    ~buffer() throw() {if(Data != NULL) delete [] Data;}
+    ~buffer() noexcept {if(Data != NULL) delete [] Data;}
 
     //access
-    T* data() throw() {return Data;}
-    operator T*()  throw() {return Data;}
-    size_t size() const throw() {return (NULL == Data) ? 0 : Size;}
+    T* data() noexcept {return Data;}
+    operator T*()  noexcept {return Data;}
+    size_t size() const noexcept {return (NULL == Data) ? 0 : Size;}
 
     //init
-    void reset() throw()
+    void reset() noexcept
     {
         if(Data != NULL) 
         {
@@ -164,15 +164,15 @@ public:
         else
             Data = NULL;
     }
-    ~strbuf() throw() {if(Data != NULL) delete [] Data;}
+    ~strbuf() noexcept {if(Data != NULL) delete [] Data;}
 
     //access
-    const T* data() throw() {return (NULL == Data) ? &NullT : Data;}
-    operator const T*()  throw() {return data();}
-    size_t size() const throw() {return (NULL == Data) ? 0 : Size;}
+    const T* data() noexcept {return (NULL == Data) ? &NullT : Data;}
+    operator const T*()  noexcept {return data();}
+    size_t size() const noexcept {return (NULL == Data) ? 0 : Size;}
 
     //init
-    void reset() throw()
+    void reset() noexcept
     {
         if(Data != NULL) 
         {

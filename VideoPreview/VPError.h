@@ -8,29 +8,29 @@ CString VPGetLastErrorStr();
 class CVPExc
 {
 public:
-    CVPExc() throw() {}
-    virtual ~CVPExc() throw() {}
+    CVPExc() noexcept {}
+    virtual ~CVPExc() noexcept {}
 
     //message
-    virtual CString GetText() const throw() = 0;
+    virtual CString GetText() const noexcept = 0;
 
     //error data
-    virtual DWORD GetErrorCode() const throw() = 0;
-    virtual CString GetErrorString() const throw() = 0;
-    virtual CString GetFullText() const throw() = 0;
+    virtual DWORD GetErrorCode() const noexcept = 0;
+    virtual CString GetErrorString() const noexcept = 0;
+    virtual CString GetFullText() const noexcept = 0;
 };
 
 class CVPExcStr : public CVPExc
 {
 public:
-    explicit CVPExcStr(LPCTSTR msg = NULL) throw() : Text(msg ? msg : _T("")) {}
+    explicit CVPExcStr(LPCTSTR msg = NULL) noexcept : Text(msg ? msg : _T("")) {}
 
-    virtual CString GetText() const throw() {return Text;}
+    virtual CString GetText() const noexcept {return Text;}
 
     //error data
-    virtual DWORD GetErrorCode() const throw() {return ERROR_SUCCESS;}
-    virtual CString GetErrorString() const throw() {return _T("");}
-    virtual CString GetFullText() const throw() {return Text;}
+    virtual DWORD GetErrorCode() const noexcept {return ERROR_SUCCESS;}
+    virtual CString GetErrorString() const noexcept {return _T("");}
+    virtual CString GetFullText() const noexcept {return Text;}
 
 protected:
     CString Text;
@@ -39,12 +39,12 @@ protected:
 class CVPExcWinApi : public CVPExcStr
 {
 public:
-    explicit CVPExcWinApi(DWORD error_code, LPCTSTR msg = NULL) throw() : CVPExcStr(msg), ErrorCode(error_code) {}
-    virtual ~CVPExcWinApi() throw() {}
+    explicit CVPExcWinApi(DWORD error_code, LPCTSTR msg = NULL) noexcept : CVPExcStr(msg), ErrorCode(error_code) {}
+    virtual ~CVPExcWinApi() noexcept {}
 
-    virtual DWORD GetErrorCode() const throw() {return ErrorCode;}
-    virtual CString GetErrorString() const throw() {return VPGetErrorStr(ErrorCode);}
-    virtual CString GetFullText() const throw();
+    virtual DWORD GetErrorCode() const noexcept {return ErrorCode;}
+    virtual CString GetErrorString() const noexcept {return VPGetErrorStr(ErrorCode);}
+    virtual CString GetFullText() const noexcept;
 
 protected:
     DWORD ErrorCode;
@@ -53,7 +53,7 @@ protected:
 class CVPExcWinApiLast : public CVPExcWinApi
 {
 public:
-    CVPExcWinApiLast() throw() : CVPExcWinApi(::GetLastError()) {}
+    CVPExcWinApiLast() noexcept : CVPExcWinApi(::GetLastError()) {}
 };
 
 void VPExcMsgBox(const CVPExc* exc, LPCTSTR msg = NULL);

@@ -17,7 +17,7 @@ class com
 public:
     //ctor/dtor
     explicit com(DWORD options = COINIT_MULTITHREADED) {APP_VERIFY_COM(::CoInitializeEx(NULL, options));}
-    ~com() throw() {::CoUninitialize();}
+    ~com() noexcept {::CoUninitialize();}
 };
 
 //COM interface
@@ -25,20 +25,20 @@ template<typename T> class com_iface : private boost::noncopyable
 {
 public:
     //ctor/dtor
-    explicit com_iface(T* iface = NULL) throw() : Interface(iface) {}
+    explicit com_iface(T* iface = NULL) noexcept : Interface(iface) {}
     com_iface(REFCLSID clsid, REFIID iid)
     {
         APP_VERIFY_COM(::CoCreateInstance(clsid, NULL, CLSCTX_INPROC_SERVER, iid, 
             reinterpret_cast<void **>(&Interface)));
     }
-    ~com_iface() throw() 
+    ~com_iface() noexcept 
     {
         if(Interface != NULL)
             Interface->Release();
     }
 
     //init
-    HRESULT create(REFCLSID clsid, REFIID iid) throw()
+    HRESULT create(REFCLSID clsid, REFIID iid) noexcept
     {
         if(Interface != NULL)
         {
@@ -47,13 +47,13 @@ public:
         }
         return ::CoCreateInstance(clsid, NULL, CLSCTX_INPROC_SERVER, iid, reinterpret_cast<void **>(&Interface));
     }
-    void reset(T* iface = NULL) throw()
+    void reset(T* iface = NULL) noexcept
     {
         if(Interface != NULL)
             Interface->Release();
         Interface = iface;
     }
-    T** pointer() throw() //WARNING: use only when initializing iface in outer COM function call
+    T** pointer() noexcept //WARNING: use only when initializing iface in outer COM function call
     {
         if(Interface != NULL)
         {
@@ -62,20 +62,20 @@ public:
         }
         return &Interface;
     }
-    void** void_pointer() throw() //WARNING: use only when initializing iface in outer COM function call
+    void** void_pointer() noexcept //WARNING: use only when initializing iface in outer COM function call
     {
         return reinterpret_cast<void **>(pointer());
     }
     
 
     //access
-    operator T*() throw() {return Interface;}
-    operator const T*() const throw() {return Interface;}
-    T* operator->() throw() {return Interface;}
-    const T* operator->() const throw() {return Interface;}
-    T* get() throw() {return Interface;}
-    const T* get() const throw() {return Interface;}
-    bool valid() const throw() {return (Interface != NULL);}
+    operator T*() noexcept {return Interface;}
+    operator const T*() const noexcept {return Interface;}
+    T* operator->() noexcept {return Interface;}
+    const T* operator->() const noexcept {return Interface;}
+    T* get() noexcept {return Interface;}
+    const T* get() const noexcept {return Interface;}
+    bool valid() const noexcept {return (Interface != NULL);}
 
 private:
     T* Interface;

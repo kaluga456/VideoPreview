@@ -12,16 +12,16 @@ class CVideoFile : private boost::noncopyable
 {
 public:
     //ctor/dtor
-    CVideoFile() throw() {}
-    ~CVideoFile() throw() {Close();}
+    CVideoFile() {}
+    ~CVideoFile() {Close();}
 
     //operations
-    bool Open(const TCHAR* file_name) throw();
-    void Close() throw();
+    bool Open(const TCHAR* file_name);
+    void Close();
     bool GetSnapshot(size_t offset, PBitmap& bitmap, app::byte_buffer& image_buffer);
-    size_t GetVideoWidth() const throw() {return static_cast<size_t>(VideoWidth);}
-    size_t GetVideoHeight() const throw() {return static_cast<size_t>(VideoHeight);}
-    size_t GetDuration() const throw() {return static_cast<size_t>(Duration / 1e7);}
+    size_t GetVideoWidth() const {return static_cast<size_t>(VideoWidth);}
+    size_t GetVideoHeight() const {return static_cast<size_t>(VideoHeight);}
+    size_t GetDuration() const {return static_cast<size_t>(Duration / 1e7);}
 
 private:
     //original video size

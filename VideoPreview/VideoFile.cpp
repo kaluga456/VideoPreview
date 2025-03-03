@@ -8,7 +8,7 @@
 #pragma hdrstop
 #include "VideoFile.h"
 
-bool CVideoFile::Open(const TCHAR* file_name) throw()
+bool CVideoFile::Open(const TCHAR* file_name)
 {
     Close();
     if(NULL == file_name)
@@ -82,7 +82,7 @@ bool CVideoFile::Open(const TCHAR* file_name) throw()
     //operation succeeded
     return true;
 }
-void CVideoFile::Close() throw()
+void CVideoFile::Close()
 {
     BasicVideo.reset();
     MediaSeeking.reset();

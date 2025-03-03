@@ -18,7 +18,7 @@ private:
 
     //operation
     void lock() {::EnterCriticalSection(&cs);} //NOTE: can raise SEH exceptions
-    void unlock() throw() {::LeaveCriticalSection(&cs);}
+    void unlock() {::LeaveCriticalSection(&cs);}
 };
 
 //critical_section_lock - locks critical section during critical_section_lock object lifetime
@@ -43,15 +43,15 @@ private:
 //        if(NULL == Handle)
 //            APP_VERIFY_WINAPI(::GetLastError());
 //    }
-//    ~event() throw() {::CloseHandle(Handle);}
+//    ~event() {::CloseHandle(Handle);}
 //
-//    HANDLE handle() const throw() {return Handle;}
+//    HANDLE handle() const {return Handle;}
 //
 //    //operation
 //    void set() const {APP_VERIFY(::SetEvent(Handle));}        //set event in signaled state
 //    void reset() const {APP_VERIFY(::ResetEvent(Handle));}    //set event in nonsignaled state
-//    bool signaled() const throw() {return WAIT_OBJECT_0 == ::WaitForSingleObject(Handle, 0);}
-//    DWORD wait(DWORD timeout = INFINITE) const throw() {return ::WaitForSingleObject(Handle, timeout);}
+//    bool signaled() const {return WAIT_OBJECT_0 == ::WaitForSingleObject(Handle, 0);}
+//    DWORD wait(DWORD timeout = INFINITE) const {return ::WaitForSingleObject(Handle, timeout);}
 //
 //protected:
 //    HANDLE Handle;
@@ -63,8 +63,8 @@ template<typename T> class thread : private boost::noncopyable
 {
 public:
     //ctor/dtor
-    thread() throw() : Handle(NULL) {}
-    ~thread() throw() {join();}
+    thread() : Handle(NULL) {}
+    ~thread() {join();}
 
     //init
     DWORD create(T* thread_procedure)
@@ -86,7 +86,7 @@ public:
     }
 
     //attr
-    bool is_valid() const throw() {return (Handle != NULL);}
+    bool is_valid() const {return (Handle != NULL);}
 
 protected:
     HANDLE Handle;

@@ -593,10 +593,10 @@ int GenerateProfilePreview(const COutputProfile& output_profile, CString& result
                 app::verify_gdi(graphics.DrawImage(snapshot.get(), frame_left, frame_top, frame_width, frame_height));
 
                 //timestamp
-                timestamp_draw.Draw(current_position, static_cast<Gdiplus::REAL>(frame_left), static_cast<Gdiplus::REAL>(frame_top),
-                                    static_cast<Gdiplus::REAL>(frame_width), static_cast<Gdiplus::REAL>(frame_height));
+                timestamp_draw.Draw(current_position, static_cast<REAL>(frame_left), static_cast<REAL>(frame_top),
+                                    static_cast<REAL>(frame_width), static_cast<REAL>(frame_height));
 
-                //ok - go to next frame
+                //ok - go to next frames
                 current_position += interval;
                 ++frame_index;
             }
