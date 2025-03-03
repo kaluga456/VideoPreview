@@ -25,8 +25,8 @@ public:
     void DeleteSelectedProfile(CWinAppEx& app);
 
     //GUI
-    void Fill(CComboBox& combo_box, const COutputProfile* selected_profile = NULL);
-    void Fill(CMFCToolBarComboBoxButton* combo_box, const COutputProfile* selected_profile = NULL);
+    void Fill(CComboBox& combo_box, const COutputProfile* selected_profile = nullptr);
+    void Fill(CMFCToolBarComboBoxButton* combo_box, const COutputProfile* selected_profile = nullptr);
 
     //serialization
     void ReadProfiles(CWinAppEx& app);

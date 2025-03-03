@@ -4,11 +4,11 @@
 //TODO:
 const UINT ERROR_UNDEFINED = 0xFFFFFFFF;
 
-typedef boost::shared_ptr<Gdiplus::Bitmap> PBitmap; //smart pointer for GDI bitmap
-typedef boost::shared_ptr<Gdiplus::Image> PImage; //smart pointer for GDI image
+typedef std::shared_ptr<Gdiplus::Bitmap> PBitmap; //smart pointer for GDI bitmap
+typedef std::shared_ptr<Gdiplus::Image> PImage; //smart pointer for GDI image
 
 //video file
-class CVideoFile : private boost::noncopyable
+class CVideoFile
 {
 public:
     //ctor/dtor

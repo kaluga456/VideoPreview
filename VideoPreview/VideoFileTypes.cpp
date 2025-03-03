@@ -67,12 +67,12 @@ void CVideoFileTypes::SetString(LPCTSTR source_file_types_string)
 CString CVideoFileTypes::GetString()
 {
     CString result;
-    for(CVideoFileTypesList::const_iterator i = VideoFileTypeList.begin(); i != VideoFileTypeList.end(); ++i)
+    for(const auto& i : VideoFileTypeList)
     {
-        ASSERT(i->IsValid());
-        if(false == i->IsValid())
+        ASSERT(i.IsValid());
+        if(false == i.IsValid())
             continue;
-        result += CString(i->Get()) + _T(';');
+        result += CString(i.Get()) + _T(';');
     }
     return result;
 }
@@ -87,14 +87,14 @@ bool CVideoFileTypes::GetFilterString(LPTSTR filter_string, UINT size)
     if(result < 0)
         return false;
     pos = result + 1;
-    for(CVideoFileTypesList::const_iterator i = VideoFileTypeList.begin(); i != VideoFileTypeList.end(); ++i)
+    for (const auto& i : VideoFileTypeList)
     {
-        ASSERT(i->IsValid());
-        if(false == i->IsValid())
+        ASSERT(i.IsValid());
+        if(false == i.IsValid())
             continue;
         if(pos >= size)
             return false;
-        result = ::swprintf_s(filter_string + pos, size - pos, _T("*.%s;"), i->Get());
+        result = ::swprintf_s(filter_string + pos, size - pos, _T("*.%s;"), i.Get());
         if(result < 0)
             return false;
         pos += result;
@@ -112,14 +112,14 @@ CString CVideoFileTypes::GetFilterString() const
     if(VideoFileTypeList.empty()) return all_files;
 
     CString result = _T("Video Files|");
-    for(CVideoFileTypesList::const_iterator i = VideoFileTypeList.begin(); i != VideoFileTypeList.end(); ++i)
+    for (const auto& i : VideoFileTypeList)
     {
-        ASSERT(i->IsValid());
-        if(false == i->IsValid())
+        ASSERT(i.IsValid());
+        if(false == i.IsValid())
             continue;
 
         CString ext;
-        ext.Format(_T("*.%s;"), i->Get());
+        ext.Format(_T("*.%s;"), i.Get());
         result += ext;
     }
     result += _T("|");

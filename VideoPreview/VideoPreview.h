@@ -17,8 +17,8 @@ extern int ProcessingState;
 template<class T> class CDlgItem : public T
 {
 public:
-    CDlgItem(HWND dialog_wnd, int control_id) : T() {Attach(::GetDlgItem(dialog_wnd, control_id));}
-    ~CDlgItem() {Detach();}
+    CDlgItem(HWND dialog_wnd, int control_id) : T() {T::Attach(::GetDlgItem(dialog_wnd, control_id));}
+    ~CDlgItem() {T::Detach();}
 };
 
 class CMainApp : public CWinAppEx

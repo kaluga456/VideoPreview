@@ -4,13 +4,13 @@
 class CDropFiles
 {
 public:
-    CDropFiles() : Dropfiles(NULL) {}
+    CDropFiles() : Dropfiles(nullptr) {}
     virtual ~CDropFiles() {}
 
     virtual void Deinit() = 0;
 
-    CString GetFileName(UINT index);
-    LPCTSTR GetFileName(UINT index, LPTSTR buffer, UINT buffer_size);
+    CString GetFileName(size_t index);
+    LPCTSTR GetFileName(size_t index, LPTSTR buffer, size_t buffer_size);
 
 protected:
     DROPFILES* Dropfiles;
@@ -23,7 +23,7 @@ public:
     explicit CClipboardFiles(HWND hwnd);
     virtual ~CClipboardFiles();
 
-    virtual void Deinit();
+    void Deinit() override;
 
 private:
     HANDLE Clipboard;
@@ -36,7 +36,7 @@ public:
     explicit COleObjectFiles(COleDataObject* ole_object);
     virtual ~COleObjectFiles();
 
-    virtual void Deinit();
+    void Deinit() override;
 
 private:
     HGLOBAL ObjectData;

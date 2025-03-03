@@ -1,6 +1,6 @@
 #pragma once
 
-LPCTSTR const VP_UNKNOWN_ERROR_STRING = _T("Unknown Error");
+LPCTSTR const VP_UNKNOWN_ERROR_STRING = L"Unknown Error";
 
 CString VPGetErrorStr(DWORD error_code);
 CString VPGetLastErrorStr();
@@ -25,26 +25,25 @@ class CVPExcStr : public CVPExc
 public:
     explicit CVPExcStr(LPCTSTR msg = NULL) noexcept : Text(msg ? msg : _T("")) {}
 
-    virtual CString GetText() const noexcept {return Text;}
+    CString GetText() const noexcept override {return Text;}
 
     //error data
-    virtual DWORD GetErrorCode() const noexcept {return ERROR_SUCCESS;}
-    virtual CString GetErrorString() const noexcept {return _T("");}
-    virtual CString GetFullText() const noexcept {return Text;}
+    DWORD GetErrorCode() const noexcept override {return ERROR_SUCCESS;}
+    CString GetErrorString() const noexcept override {return _T("");}
+    CString GetFullText() const noexcept override {return Text;}
 
 protected:
-    CString Text;
+    CString Text; //app defined description
 };
 
 class CVPExcWinApi : public CVPExcStr
 {
 public:
     explicit CVPExcWinApi(DWORD error_code, LPCTSTR msg = NULL) noexcept : CVPExcStr(msg), ErrorCode(error_code) {}
-    virtual ~CVPExcWinApi() noexcept {}
 
-    virtual DWORD GetErrorCode() const noexcept {return ErrorCode;}
-    virtual CString GetErrorString() const noexcept {return VPGetErrorStr(ErrorCode);}
-    virtual CString GetFullText() const noexcept;
+    DWORD GetErrorCode() const noexcept override {return ErrorCode;}
+    CString GetErrorString() const noexcept override {return VPGetErrorStr(ErrorCode);}
+    CString GetFullText() const noexcept override;
 
 protected:
     DWORD ErrorCode;
@@ -59,7 +58,7 @@ public:
 void VPExcMsgBox(const CVPExc* exc, LPCTSTR msg = NULL);
 
 //heplers
-#define VP_VERIFY(expression) {if(NULL == (expression)) throw CVPExcStr(_T("VP_VERIFY(") _T(#expression) _T(") failed"));}
+#define VP_VERIFY(expression) {if(NULL == (expression)) throw CVPExcStr(_T("VP_VERIFY(") _T(#expression) _T(")"));}
 #define VP_VERIFY_WINAPI(error_code) {if(r != ERROR_SUCCESS) throw CVPExcWinApi(DWORD(error_code));}
 #define VP_VERIFY_WINAPI_BOOL(bool_result) {if(FALSE == bool_result) throw CVPExcWinApi(::GetLastError());}
 

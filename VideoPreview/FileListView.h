@@ -31,7 +31,7 @@ public:
     //items
     int FindItem(const CProcessingItem* item);
     CProcessingItem* FindItem(int item_index);
-    CProcessingItem* GetFocusedItem(int* index = NULL);
+    CProcessingItem* GetFocusedItem(int* index = nullptr);
     void RemoveItem(const CProcessingItem* item);
     void UpdateItem(const CProcessingItem* item);
     void UpdateItem(const CProcessingItem* item, int item_index);

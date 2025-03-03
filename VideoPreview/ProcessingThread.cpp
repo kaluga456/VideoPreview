@@ -40,7 +40,7 @@ void CProcessingThread::NotifyMessageTarget(WPARAM message_type, LPARAM message_
 }
 void CProcessingThread::NotifyResult(WPARAM message_type, LPCTSTR result_string)
 {
-    LPCTSTR message_data = result_string ? ::_wcsdup(result_string) : NULL;
+    LPCTSTR message_data = result_string ? ::_wcsdup(result_string) : nullptr;
     NotifyMessageTarget(message_type, reinterpret_cast<LPARAM>(message_data));
 }
 void CProcessingThread::SetProgress(size_t progress)
@@ -58,7 +58,7 @@ void CProcessingThread::ShallowProcedure()
         //check terminate signal
         if(TerminateSignal)
         {
-            NotifyResult(PTM_STOP, NULL);
+            NotifyResult(PTM_STOP, nullptr);
             return;
         }
 
@@ -87,14 +87,14 @@ DWORD CProcessingThread::Run()
 
     //processing procedure
     CString result_string;
-    LPCTSTR output_dir = NULL;
+    LPCTSTR output_dir = nullptr;
     if(false == OutputDir.IsEmpty())
         output_dir = OutputDir;
     const int result = GenerateScreenshots(SourceFileName, output_dir, OutputProfile, result_string, this);
     if(SNAPSHOTS_RESULT_SUCCESS == result)
         NotifyResult(PTM_DONE, result_string);
     else if(SNAPSHOTS_RESULT_TERMINATED == result)
-        NotifyResult(PTM_STOP, NULL);
+        NotifyResult(PTM_STOP, nullptr);
     else
         NotifyResult(PTM_FAILED, result_string);
 

@@ -11,11 +11,11 @@ class exception_direct_show : public exception_debug
 {
 public:
     //ctor/dtor
-    exception_direct_show(HRESULT error_code, const TCHAR* src_file_name, size_t line_number) : 
-      exception_debug(src_file_name, line_number), ErrorCode(error_code) {}
+    exception_direct_show(HRESULT error_code, const TCHAR* src_file_name) : 
+        exception_debug(src_file_name), ErrorCode(error_code) {}
 
     //string data
-    virtual const size_t string(TCHAR* buffer, size_t buffer_size) const noexcept
+    const size_t string(TCHAR* buffer, DWORD buffer_size) const noexcept override
     {
         return ::AMGetErrorText(ErrorCode, buffer, buffer_size);
     }
@@ -27,7 +27,7 @@ private:
 #define APP_VERIFY_DSHOW(error_code) \
     {const DWORD r = (error_code); \
     if(r != S_OK) \
-        throw app::exception_direct_show(HRESULT_CODE(r), TEXT(__FILE__), __LINE__);}
+        throw app::exception_direct_show(HRESULT_CODE(r), SRC_INFO_STRING);}
 
 } //namespace app
 

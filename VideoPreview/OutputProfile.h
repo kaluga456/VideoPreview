@@ -141,7 +141,7 @@ public:
     virtual void Serialize(CArchive& archive);
 };
 
-typedef boost::shared_ptr<COutputProfile> POutputProfile;
+typedef std::shared_ptr<COutputProfile> POutputProfile;
 
 
 

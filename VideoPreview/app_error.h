@@ -11,12 +11,12 @@ inline DWORD winapi_error_stringa(DWORD error_code, LPSTR buffer, DWORD buffer_s
 {
     DWORD error_string_size = ::FormatMessageA( FORMAT_MESSAGE_FROM_SYSTEM |
                                                 FORMAT_MESSAGE_IGNORE_INSERTS, 
-                                                NULL, 
+                                                nullptr, 
                                                 error_code, 
                                                 MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), //default language
                                                 buffer, 
                                                 buffer_size, 
-                                                NULL);
+                                                nullptr);
 
     if(error_string_size < 2) //treat as error
     {
@@ -33,12 +33,12 @@ inline DWORD winapi_error_stringw(DWORD error_code, LPWSTR buffer, DWORD buffer_
 {
     DWORD error_string_size = ::FormatMessageW( FORMAT_MESSAGE_FROM_SYSTEM |
                                                 FORMAT_MESSAGE_IGNORE_INSERTS, 
-                                                NULL, 
+                                                nullptr, 
                                                 error_code, 
                                                 MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), //default language
                                                 buffer, 
                                                 buffer_size, 
-                                                NULL);
+                                                nullptr);
 
     if(error_string_size < 2) //treat as error
     {

@@ -1,9 +1,8 @@
 #pragma once
 
 //CSettings - main settings
-class CSettings
+struct CSettings
 {
-public:
     //profile pane
     int ProfilePaneWidth;
 
@@ -24,9 +23,6 @@ public:
     CString OutputDirectory;
     int UseSourceFileLocation;
     int OverwriteOutputFiles;
-
-    //ctor/dtor
-    CSettings() {}
 
     //init, if file_name not NULL, then it is import/export settings call
     bool Read();

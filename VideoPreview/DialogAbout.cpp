@@ -8,7 +8,7 @@ BEGIN_MESSAGE_MAP(CAboutDlg, CDialogEx)
     ON_WM_DESTROY()
 END_MESSAGE_MAP()
 
-CAboutDlg::CAboutDlg() : CDialogEx(CAboutDlg::IDD), URLFont(NULL), URLCursor(NULL)
+CAboutDlg::CAboutDlg() : CDialogEx(CAboutDlg::IDD), URLFont(nullptr), URLCursor(nullptr)
 {
 }
 BOOL CAboutDlg::OnInitDialog()
@@ -30,7 +30,7 @@ BOOL CAboutDlg::OnInitDialog()
     }
 
     //TODO:
-    URLCursor = ::LoadCursor(NULL, IDC_HAND); 
+    URLCursor = ::LoadCursor(nullptr, IDC_HAND); 
     if(URLCursor) url_ctrl->SetCursor(URLCursor);
 
     return CDialogEx::OnInitDialog();
@@ -46,6 +46,9 @@ void CAboutDlg::DoDataExchange(CDataExchange* pDX)
 	CDialogEx::DoDataExchange(pDX);
 
     if(pDX->m_bSaveAndValidate) return;
-    DDX_Text(pDX, IDC_STATIC_VERSION, CString(_T("Build: ") APP_BUILD));
-    DDX_Text(pDX, IDC_STATIC_APP_URL, CString(APP_URL));
+
+    CString build_str{ _T("Build: ") APP_BUILD };
+    CString url_str{ APP_URL };
+    DDX_Text(pDX, IDC_STATIC_VERSION, build_str);
+    DDX_Text(pDX, IDC_STATIC_VERSION, url_str);
 }

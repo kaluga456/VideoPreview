@@ -2,9 +2,9 @@
 #pragma hdrstop
 #include "ClipboardFiles.h"
 
-CString CDropFiles::GetFileName(UINT index)
+CString CDropFiles::GetFileName(size_t index)
 {
-    if(NULL == Dropfiles) return CString();
+    if(nullptr == Dropfiles) return CString();
     const UINT buffer_size = MAX_PATH + 1;
     TCHAR buffer[buffer_size];
     buffer[buffer_size - 1] = 0;
@@ -12,21 +12,21 @@ CString CDropFiles::GetFileName(UINT index)
         return CString();
     return CString(buffer);
 }
-LPCTSTR CDropFiles::GetFileName(UINT index, LPTSTR buffer, UINT buffer_size)
+LPCTSTR CDropFiles::GetFileName(size_t index, LPTSTR buffer, size_t buffer_size)
 {
-    if(NULL == Dropfiles) return NULL;
+    if(nullptr == Dropfiles) return nullptr;
     ASSERT(buffer);
     ASSERT(buffer_size);
     if(0 == ::DragQueryFile(reinterpret_cast<HDROP>(Dropfiles), index, buffer, buffer_size))
-        return NULL;
+        return nullptr;
     buffer[buffer_size - 1] = 0;
     return buffer;
 }
 
-CClipboardFiles::CClipboardFiles(HWND hwnd) : CDropFiles(), Clipboard(NULL) //, Dropfiles(NULL)
+CClipboardFiles::CClipboardFiles(HWND hwnd) : CDropFiles(), Clipboard(nullptr) //, Dropfiles(nullptr)
 {
     ASSERT(hwnd);
-    if(NULL == hwnd) 
+    if(nullptr == hwnd) 
         return;
 
     if(FALSE == ::OpenClipboard(hwnd))
@@ -35,14 +35,14 @@ CClipboardFiles::CClipboardFiles(HWND hwnd) : CDropFiles(), Clipboard(NULL) //, 
     do
     {
         Clipboard = ::GetClipboardData(CF_HDROP);
-        if(NULL == Clipboard)
+        if(nullptr == Clipboard)
             break;
 
         Dropfiles = reinterpret_cast<DROPFILES*>(::GlobalLock(Clipboard));
-        if(NULL == Dropfiles)
+        if(nullptr == Dropfiles)
             break;
 
-        //const UINT files_count = ::DragQueryFile(reinterpret_cast<HDROP>(Clipboard), 0xFFFFFFFF, NULL, 0);
+        //const UINT files_count = ::DragQueryFile(reinterpret_cast<HDROP>(Clipboard), 0xFFFFFFFF, nullptr, 0);
 
         //ok
         return;
@@ -60,7 +60,7 @@ void CClipboardFiles::Deinit()
     if(Clipboard) 
     {
         ::GlobalUnlock(Clipboard);
-        Clipboard = NULL;
+        Clipboard = nullptr;
     }
     ::CloseClipboard();
 }
@@ -68,20 +68,20 @@ void CClipboardFiles::Deinit()
 COleObjectFiles::COleObjectFiles(COleDataObject* ole_object) : CDropFiles(), ObjectData(ole_object)
 {
     ASSERT(ole_object);
-    if(NULL == ole_object)
+    if(nullptr == ole_object)
         return;
 
     do
     {
         ObjectData = ole_object->GetGlobalData(CF_HDROP);
-        if(NULL == ObjectData)
+        if(nullptr == ObjectData)
             break;
 
         Dropfiles = reinterpret_cast<DROPFILES*>(::GlobalLock(ObjectData));
-        if(NULL == Dropfiles)
+        if(nullptr == Dropfiles)
             break;
 
-        //const UINT files_count = ::DragQueryFile(reinterpret_cast<HDROP>(ObjectData), 0xFFFFFFFF, NULL, 0);
+        //const UINT files_count = ::DragQueryFile(reinterpret_cast<HDROP>(ObjectData), 0xFFFFFFFF, nullptr, 0);
 
         //ok
         return;
@@ -100,6 +100,6 @@ void COleObjectFiles::Deinit()
     {
         ::GlobalUnlock(ObjectData);
         ::GlobalFree(ObjectData);
-        ObjectData = NULL;
+        ObjectData = nullptr;
     }
 }

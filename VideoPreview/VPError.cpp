@@ -33,7 +33,7 @@ CString VPGetLastErrorStr()
 void VPExcMsgBox(const CVPExc* exc, LPCTSTR msg /*= NULL*/)
 {
     CString text(msg ? msg : _T(""));
-    CString error_text(exc ? exc->GetErrorString() : _T(""));
+    CString error_text(exc ? exc->GetErrorString() : CString{});
 
     if(false == text.IsEmpty())
         text += _T("\n");

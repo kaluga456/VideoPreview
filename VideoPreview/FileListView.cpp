@@ -27,7 +27,7 @@ extern bool IsProcessSelected; //true process only selected items
 
 static CString GetItemStateText(const CProcessingItem* pi)
 {
-    int item_state = pi->State;
+    INT_PTR item_state = pi->State;
     switch(item_state)
     {
     case PIS_WAIT: 
@@ -151,7 +151,7 @@ void CFileListView::OnSize(UINT nType, int cx, int cy)
  //   const int top_size = 24;
 	//CRect cr;
 	//GetClientRect(cr);
- //   SetWindowPos(NULL, cr.left, cr.top + top_size, cr.Width(), cr.Height() - top_size, SWP_NOACTIVATE | SWP_NOZORDER);
+ //   SetWindowPos(nullptr, cr.left, cr.top + top_size, cr.Width(), cr.Height() - top_size, SWP_NOACTIVATE | SWP_NOZORDER);
 
     //TODO: last column autosize
     //CListCtrl& listCtrl = GetListCtrl();
@@ -219,7 +219,7 @@ DROPEFFECT CFileListView::OnDragEnter(COleDataObject* ole_object, DWORD grfKeySt
 	ASSERT(DropEffect == DROPEFFECT_NONE);
 	
     HGLOBAL hObjDesc = ole_object->GetGlobalData(CF_HDROP);
-    if(NULL == hObjDesc)
+    if(nullptr == hObjDesc)
         DropEffect = DROPEFFECT_NONE;
     else
         DropEffect = DROPEFFECT_COPY;
@@ -258,7 +258,7 @@ CProcessingItem* CFileListView::FindItem(const CPoint& point)
     ::ZeroMemory(&lvhti, sizeof(lvhti));
     lvhti.pt = point;
     GetListCtrl().HitTest(&lvhti);
-    if(lvhti.iItem < 0) return NULL;
+    if(lvhti.iItem < 0) return nullptr;
     return FindItem(lvhti.iItem);
 }
 void CFileListView::Sort()
@@ -283,8 +283,8 @@ void CFileListView::UpdateItems()
 {
     CListCtrl& list_ctrl = GetListCtrl();
     list_ctrl.DeleteAllItems();
-    for(CProcessingItemList::const_iterator i = FileList.Items.begin(); i != FileList.Items.end(); ++i)
-        AddItem(i->second.get());
+    for(auto& i : FileList.Items)
+        AddItem(i.second.get());
 
     Sort();
 }
@@ -302,7 +302,7 @@ void CFileListView::UpdateItemStates()
 
         CProcessingItem* pi = reinterpret_cast<CProcessingItem*>(li.lParam);
         ASSERT(pi);
-        if(NULL == pi)
+        if(nullptr == pi)
             continue;
 
         if(pi->State != PIS_WAIT)
@@ -326,7 +326,7 @@ void CFileListView::UpdateItem(const CProcessingItem* item, int item_index)
 void CFileListView::AddItem(const CProcessingItem* item)
 {
     ASSERT(item);
-    if(NULL == item) return;
+    if(nullptr == item) return;
     
     CListCtrl& list_ctrl = GetListCtrl();
 
@@ -362,7 +362,7 @@ void CFileListView::SaveSelection()
 
         CProcessingItem* pi = reinterpret_cast<CProcessingItem*>(li.lParam);
         ASSERT(pi);
-        if(NULL == pi)
+        if(nullptr == pi)
             continue;
 
         pi->Selected = (li.state & LVIS_SELECTED) ? TRUE : FALSE;
@@ -393,7 +393,7 @@ PProcessingItem CFileListView::GetUnprocessedItem(bool selected_only)
 
         return pi;
     }
-    return NULL;
+    return nullptr;
 }
 // CFileListView diagnostics
 #ifdef _DEBUG
@@ -418,7 +418,7 @@ int CFileListView::FindItem(const CProcessingItem* item)
 {
     ASSERT(item);
     const LPARAM data = reinterpret_cast<LPARAM>(item);
-    if(NULL == data) 
+    if(NULL == data)
         return -1;
 
     LVFINDINFO lvfi;
@@ -431,10 +431,10 @@ CProcessingItem* CFileListView::FindItem(int item_index)
 {
     return reinterpret_cast<CProcessingItem*>(GetListCtrl().GetItemData(item_index));
 }
-CProcessingItem* CFileListView::GetFocusedItem(int* index /*= NULL*/)
+CProcessingItem* CFileListView::GetFocusedItem(int* index /*= nullptr*/)
 {
     const int found = GetListCtrl().GetNextItem(-1, LVNI_FOCUSED); 
-    if(found < 0) return NULL;
+    if(found < 0) return nullptr;
 
     if(index) *index = found;
     return FindItem(found);

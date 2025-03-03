@@ -6,22 +6,22 @@
 
 CFileList FileList;
 
-CProcessingItem::CProcessingItem(LPCTSTR source_file_name) : SourceFileName(source_file_name), State(PIS_WAIT), Selected(NULL)
+CProcessingItem::CProcessingItem(LPCTSTR source_file_name) : SourceFileName(source_file_name), State(PIS_WAIT), Selected(0)
 {
 }
-CProcessingItem::CProcessingItem(int state, LPCTSTR source_file_name, LPCTSTR result_string /*= _T("")*/) : Selected(NULL)
+CProcessingItem::CProcessingItem(int state, LPCTSTR source_file_name, LPCTSTR result_string /*= _T("")*/) : Selected(0)
 {
     ASSERT(source_file_name);
     SourceFileName = source_file_name;
     State = (state != PIS_DONE && state != PIS_FAILED) ? PIS_WAIT : state;
-    if(result_string != NULL && (PIS_DONE == State || PIS_FAILED == State))
+    if(result_string != nullptr && (PIS_DONE == State || PIS_FAILED == State))
         ResultString = result_string;
 }
 void CProcessingItem::Reset()
 {
     State = PIS_WAIT;
     ResultString = _T("");
-    Selected = NULL;
+    Selected = 0;
 }
 
 void CFileList::SetBit(int bit, bool value /*= true*/)
@@ -42,7 +42,7 @@ void CFileList::UpdateTypes()
 }
 void CFileList::AddFile(LPCTSTR file_name)
 {
-    if(NULL == file_name)
+    if(nullptr == file_name)
         return;
 
     //ignore duplicates
@@ -59,11 +59,11 @@ void CFileList::AddFile(LPCTSTR file_name)
 }
 bool CFileList::AddFiles(CDropFiles* DropFiles)
 {
-    if(NULL == DropFiles)
+    if(nullptr == DropFiles)
         return false;
 
-    const int prev_size = Items.size();
-    for(int index = 0;; ++index)
+    const size_t prev_size = Items.size();
+    for(size_t index = 0;; ++index)
     {
         CString file_name(DropFiles->GetFileName(index));
         if(file_name.IsEmpty())

@@ -9,56 +9,56 @@ namespace app
 #define APP_VERIFY_COM(error_code) \
     {const DWORD r = (error_code); \
     if(r != S_OK) \
-        throw app::exception_winapi_error(HRESULT_CODE(r), TEXT(__FILE__), __LINE__);}
+        throw app::exception_winapi_error(HRESULT_CODE(r), SRC_INFO_STRING);}
 
 //com initializer
 class com
 {
 public:
     //ctor/dtor
-    explicit com(DWORD options = COINIT_MULTITHREADED) {APP_VERIFY_COM(::CoInitializeEx(NULL, options));}
+    explicit com(DWORD options = COINIT_MULTITHREADED) {APP_VERIFY_COM(::CoInitializeEx(nullptr, options));}
     ~com() noexcept {::CoUninitialize();}
 };
 
 //COM interface
-template<typename T> class com_iface : private boost::noncopyable
+template<typename T> class com_iface
 {
 public:
     //ctor/dtor
-    explicit com_iface(T* iface = NULL) noexcept : Interface(iface) {}
+    explicit com_iface(T* iface = nullptr) noexcept : Interface(iface) {}
     com_iface(REFCLSID clsid, REFIID iid)
     {
-        APP_VERIFY_COM(::CoCreateInstance(clsid, NULL, CLSCTX_INPROC_SERVER, iid, 
+        APP_VERIFY_COM(::CoCreateInstance(clsid, nullptr, CLSCTX_INPROC_SERVER, iid, 
             reinterpret_cast<void **>(&Interface)));
     }
     ~com_iface() noexcept 
     {
-        if(Interface != NULL)
+        if(Interface != nullptr)
             Interface->Release();
     }
 
     //init
     HRESULT create(REFCLSID clsid, REFIID iid) noexcept
     {
-        if(Interface != NULL)
+        if(Interface != nullptr)
         {
             Interface->Release();
-            Interface = NULL;
+            Interface = nullptr;
         }
-        return ::CoCreateInstance(clsid, NULL, CLSCTX_INPROC_SERVER, iid, reinterpret_cast<void **>(&Interface));
+        return ::CoCreateInstance(clsid, nullptr, CLSCTX_INPROC_SERVER, iid, reinterpret_cast<void **>(&Interface));
     }
-    void reset(T* iface = NULL) noexcept
+    void reset(T* iface = nullptr) noexcept
     {
-        if(Interface != NULL)
+        if(Interface != nullptr)
             Interface->Release();
         Interface = iface;
     }
     T** pointer() noexcept //WARNING: use only when initializing iface in outer COM function call
     {
-        if(Interface != NULL)
+        if(Interface != nullptr)
         {
             Interface->Release();
-            Interface = NULL;
+            Interface = nullptr;
         }
         return &Interface;
     }
@@ -75,7 +75,7 @@ public:
     const T* operator->() const noexcept {return Interface;}
     T* get() noexcept {return Interface;}
     const T* get() const noexcept {return Interface;}
-    bool valid() const noexcept {return (Interface != NULL);}
+    bool valid() const noexcept {return (Interface != nullptr);}
 
 private:
     T* Interface;

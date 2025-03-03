@@ -18,11 +18,11 @@ const UINT WM_PROCESSING_THREAD = WM_APP + 1;
 #endif //_DEBUG
 
 //processing thread
-class CProcessingThread : public IScreenshotsCallback, private boost::noncopyable
+class CProcessingThread : public IScreenshotsCallback
 {
 public:
     //ctor/dtor
-    CProcessingThread() : TerminateSignal(false) {}
+    CProcessingThread() : TerminateSignal(false), MessageTarget(nullptr) {}
     ~CProcessingThread() {Stop();}
 
     //init

@@ -5,8 +5,7 @@ namespace app
 {
 
 //GDI+ error strings (according to MSDN)
-const size_t GDI_ERRORS_COUNT = 22;
-const LPWSTR gdi_error_strings[GDI_ERRORS_COUNT] =
+const LPCWSTR gdi_error_strings[] =
 {
     L"Ok",                           //Ok = 0,
     L"Generic error",                //GenericError = 1,
@@ -31,11 +30,13 @@ const LPWSTR gdi_error_strings[GDI_ERRORS_COUNT] =
     L"Property not supported",       //PropertyNotSupported = 20,
     L"Profile not found"             //ProfileNotFound = 21
 };
+const size_t GDI_ERRORS_COUNT = sizeof(gdi_error_strings) / sizeof(LPWSTR);
 
 //get error string from gdi+ status code
-inline LPWSTR gdi_get_error_string(Gdiplus::Status status)
+constexpr LPCWSTR gdi_get_error_string(Gdiplus::Status status)
 {
-    return (status >= GDI_ERRORS_COUNT) ? L"Undefined error" : gdi_error_strings[status];
+    const size_t value = static_cast<size_t>(status);
+    return (value >= GDI_ERRORS_COUNT) ? L"Undefined error" : gdi_error_strings[value];
 }
 
 //GDI exception
@@ -43,7 +44,7 @@ class gdi_exception : public exception
 {
 public:
     //ctor/dtor
-    gdi_exception(Gdiplus::Status status) noexcept : Status(status) {}
+    explicit gdi_exception(Gdiplus::Status status) noexcept : Status{ status } {}
     virtual ~gdi_exception() noexcept {}
 
     //access
@@ -65,7 +66,7 @@ class gdi
 {
 public:
     //ctor/dtor
-    explicit gdi(Gdiplus::GdiplusStartupOutput* output = NULL) 
+    explicit gdi(Gdiplus::GdiplusStartupOutput* output = nullptr) 
     {
         Gdiplus::GdiplusStartupInput input; //used by default here
         verify_gdi(Gdiplus::GdiplusStartup(&Token, &input, output));
@@ -81,11 +82,11 @@ private:
 };
 
 //encoder list
-class gdi_encoders : private boost::noncopyable
+class gdi_encoders
 {
 public:
     //ctor/dtor
-    gdi_encoders() : Count(0), Data(NULL) {}
+    gdi_encoders() : Count(0), Data(nullptr) {}
     ~gdi_encoders() {::free(Data);}
 
     //operation
@@ -119,7 +120,7 @@ public:
     UINT count() const {return Count;}
     const Gdiplus::ImageCodecInfo* encoder(UINT encoder_index) const
     {
-        return (encoder_index < Count) ? (Data + encoder_index) : NULL;
+        return (encoder_index < Count) ? (Data + encoder_index) : nullptr;
     }
 
     //get encoder CLSID from mime string, expected mime strings are
@@ -130,7 +131,7 @@ public:
     //image/png
     bool encoder_clsid(const TCHAR* mime_string, CLSID& clsid)
     {
-        if(NULL == mime_string)
+        if(nullptr == mime_string)
             return false;
 
         for(UINT encoder_index = 0; encoder_index < Count; ++encoder_index)

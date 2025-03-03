@@ -54,14 +54,13 @@ void CDialogSettings::UpdateSourceFileTypesListBox()
 {
     CDlgItem<CListBox> list_box(m_hWnd, IDC_LIST_SOURCE_FILE_TYPES);
     list_box.ResetContent();
-    const CVideoFileTypesList& list = SrcTypes.VideoFileTypeList;
-    for(CVideoFileTypesList::const_iterator i = list.begin(); i != list.end(); ++i)
+    for(const auto& i : SrcTypes.VideoFileTypeList)
     {
-        ASSERT(i->IsValid());
-        if(false == i->IsValid())
+        ASSERT(i.IsValid());
+        if(false == i.IsValid())
             continue;
 
-        list_box.AddString(i->Get());
+        list_box.AddString(i.Get());
     }
 }
 void CDialogSettings::OnOK()

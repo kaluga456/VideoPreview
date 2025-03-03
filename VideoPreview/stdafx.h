@@ -38,13 +38,11 @@
 #endif
 
 //stl
+#include <memory>
+#include <string>
 #include <list>
 #include <set>
 #include <map>
-
-//boost
-#include <boost\noncopyable.hpp>
-#include <boost\shared_ptr.hpp>
 
 //misc
 //TODO: #include <XmlLite.h>

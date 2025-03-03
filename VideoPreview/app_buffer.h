@@ -8,10 +8,10 @@ template <typename T> class buffer
 {
 public:
     //ctor/dtor
-    buffer() : Data(NULL) {}
+    buffer() : Data(nullptr) {}
     explicit buffer(const buffer& source) 
     {
-        if(source.Data != NULL)
+        if(source.Data != nullptr)
         {
             _ASSERTE(source.Size > 0);
 
@@ -23,7 +23,7 @@ public:
             ::memcpy(Data, source.Data, source.Size * sizeof(T));
         }
         else
-            Data = NULL;
+            Data = nullptr;
     }
     explicit buffer(size_t size)
     {
@@ -33,11 +33,11 @@ public:
             Size = size;
         }
         else
-            Data = NULL;
+            Data = nullptr;
     }
     buffer(const T* data, size_t size) 
     {
-        if(data != NULL && size > 0)
+        if(data != nullptr && size > 0)
         {
             //allocate
             Data = new T[size];
@@ -47,27 +47,27 @@ public:
             ::memcpy(Data, data, size * sizeof(T));
         }
         else
-            Data = NULL;
+            Data = nullptr;
     }
-    ~buffer() noexcept {if(Data != NULL) delete [] Data;}
+    ~buffer() noexcept {if(Data != nullptr) delete [] Data;}
 
     //access
     T* data() noexcept {return Data;}
     operator T*()  noexcept {return Data;}
-    size_t size() const noexcept {return (NULL == Data) ? 0 : Size;}
+    size_t size() const noexcept {return (nullptr == Data) ? 0 : Size;}
 
     //init
     void reset() noexcept
     {
-        if(Data != NULL) 
+        if(Data != nullptr)
         {
             delete [] Data;
-            Data = NULL;
+            Data = nullptr;
         }
     }
     void reset(size_t size)
     {
-        if(Data != NULL) 
+        if(Data != nullptr)
             delete [] Data;
 
         if(size > 0)
@@ -76,31 +76,31 @@ public:
             Size = size;
         }
         else
-            Data = NULL;
+            Data = nullptr;
     }
-    void reset(const T* data, size_t size)
+    void reset(const T* data, size_t sz)
     {
-        if(Data != NULL) 
+        if(Data != nullptr)
             delete [] Data;
 
-        if(data != NULL && size > 0)
+        if(data != nullptr && sz > 0)
         {
             //allocate
-            Data = new T[size];
-            Size = size;
+            Data = new T[sz];
+            Size = sz;
 
             //copy
             ::memcpy(Data, data, size() * sizeof(T));
         }
         else
-            Data = NULL;
+            Data = nullptr;
     }
     void reset(const buffer& source)
     {
-        if(Data != NULL) 
+        if(Data != nullptr)
             delete [] Data;
 
-        if(source.Data != NULL)
+        if(source.Data != nullptr)
         {
             _ASSERTE(source.Size > 0);
 
@@ -112,7 +112,7 @@ public:
             ::memcpy(Data, source.Data, source.Size * sizeof(T));
         }
         else
-            Data = NULL;
+            Data = nullptr;
     }
 
     //operators
@@ -132,10 +132,10 @@ template <typename T> class strbuf
 {
 public:
     //ctor/dtor
-    strbuf() : Data(NULL) {}
+    strbuf() : Data(nullptr) {}
     explicit strbuf(const strbuf& source)
     {
-        if(source.Data != NULL)
+        if(source.Data != nullptr)
         {
             //allocate
             Data = new T[source.Size + 1];
@@ -145,11 +145,11 @@ public:
             ::memcpy(Data, source.Data, (source.Size + 1) * sizeof(T));
         }
         else
-            Data = NULL;
+            Data = nullptr;
     }
     strbuf(const T* data, size_t size) 
     {
-        if(data != NULL)
+        if(data != nullptr)
         {
             //allocate
             Data = new T[size + 1];
@@ -162,52 +162,52 @@ public:
             Data[size] = static_cast<T>(0);
         }
         else
-            Data = NULL;
+            Data = nullptr;
     }
-    ~strbuf() noexcept {if(Data != NULL) delete [] Data;}
+    ~strbuf() noexcept {if(Data != nullptr) delete [] Data;}
 
     //access
-    const T* data() noexcept {return (NULL == Data) ? &NullT : Data;}
+    const T* data() noexcept {return (nullptr == Data) ? &NullT : Data;}
     operator const T*()  noexcept {return data();}
-    size_t size() const noexcept {return (NULL == Data) ? 0 : Size;}
+    size_t size() const noexcept {return (nullptr == Data) ? 0 : Size;}
 
     //init
     void reset() noexcept
     {
-        if(Data != NULL) 
+        if(Data != nullptr) 
         {
             delete [] Data;
-            Data = NULL;
+            Data = nullptr;
         }
     }
-    void reset(const T* data, size_t size)
+    void reset(const T* data, size_t sz)
     {
-        if(Data != NULL) 
+        if(Data != nullptr) 
             delete [] Data;
 
-        if(data != NULL)
+        if(data != nullptr)
         {
-            Data = new T[size + 1];
-            Size = size;
+            Data = new T[sz + 1];
+            Size = sz;
             ::memcpy(Data, data, size() * sizeof(T));
-            Data[size] = static_cast<T>(0);
+            Data[sz] = static_cast<T>(0);
         }
         else
-            Data = NULL;
+            Data = nullptr;
     }
     void reset(const strbuf& source)
     {
-        if(Data != NULL) 
+        if(Data != nullptr) 
             delete [] Data;
 
-        if(source.Data != NULL)
+        if(source.Data != nullptr)
         {
             Data = new T[source.Size + 1];
             Size = source.Size;
             ::memcpy(Data, source.Data, (source.Size + 1)* sizeof(T));
         }
         else
-            Data = NULL;
+            Data = nullptr;
     }
 
     //operators

@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "app_error.h"
+#include "app_exception.h"
 #include "app_thread.h"
 #pragma hdrstop
 #include "Resource.h"
@@ -29,19 +30,19 @@
 //TEST:
 int GenerateProfilePreview(const COutputProfile& output_profile, CString& result_string);
 
-bool IsProcessSelected; //true process only selected items
+bool IsProcessSelected = false; //true process only selected items
 //////////////////////////////////////////////////////////////////////////////
 //CComboOutputDirs
 IMPLEMENT_SERIAL(CComboOutputDirs, CObject, VERSIONABLE_SCHEMA | 1)
-CComboOutputDirs::CComboOutputDirs() : CMFCToolBarComboBoxButton()
+CComboOutputDirs::CComboOutputDirs() : CMFCToolBarComboBoxButton(), SelectedIndex{0}
 {
 }
-CComboOutputDirs::CComboOutputDirs(UINT uiID) : CMFCToolBarComboBoxButton(uiID, 0, CBS_DROPDOWNLIST, 0), SelectedIndex(0)
+CComboOutputDirs::CComboOutputDirs(UINT uiID) : CMFCToolBarComboBoxButton(uiID, 0, CBS_DROPDOWNLIST, 0), SelectedIndex{0}
 {
 }
 bool CComboOutputDirs::HasDir(LPCTSTR dir) const
 {
-    for(auto i : Dirs)
+    for(auto& i : Dirs)
     {
         if(0 == i.CompareNoCase(dir))
             return true;
@@ -64,15 +65,15 @@ void CComboOutputDirs::AddDir(CString new_dir)
 
     Update(new_dir);
 }
-void CComboOutputDirs::Update(LPCTSTR selected_dir /*= NULL*/)
+void CComboOutputDirs::Update(LPCTSTR selected_dir /*= nullptr*/)
 {
     RemoveAllItems();
-    AddItem(_T("<Use video file directory for output>"), NULL);
+    AddItem(_T("<Use video file directory for output>"), 0);
 
     CString sel_dir(selected_dir);
-    for(auto i : Dirs)
+    for(auto& i : Dirs)
     {
-        const int index = AddItem(i);
+        const INT_PTR index = AddItem(i);
         if(index >= MAX_DIRS_COUNT)
             break;
     }
@@ -86,7 +87,7 @@ void CComboOutputDirs::InitialUpdate()
 }
 LPCTSTR CComboOutputDirs::GetCurrent()
 {
-    return (0 == GetCurSel()) ? NULL : GetItem();
+    return (0 == GetCurSel()) ? nullptr : GetItem();
 }
 void CComboOutputDirs::SetCurrent(LPCTSTR selected_dir)
 {
@@ -99,7 +100,7 @@ void CComboOutputDirs::Serialize(CArchive& archive)
     if(archive.IsStoring())
     {
         const int sel_index = GetCurSel();
-        const int count = Dirs.size();      
+        const size_t count = Dirs.size();      
         archive << sel_index;
         archive << count;
         for(auto i : Dirs)
@@ -130,7 +131,7 @@ void CMainToolbar::AdjustLayout()
     if(combo_button_index < 0) combo_button_index = CommandToIndex(ID_COMBO_OUTPUT_DIR);
     CMFCToolBarComboBoxButton* cbb = static_cast<CMFCToolBarComboBoxButton*>(GetButton(combo_button_index));
     ASSERT(cbb);
-    if(NULL == cbb) return;
+    if(nullptr == cbb) return;
 
     //WORKAROUND: this call restores default width of CMFCToolBarComboBoxButton
     //CMFCToolBar::AdjustLayout();
@@ -155,7 +156,7 @@ static CString GetLParamString(LPARAM value)
 static void ShellSelectFile(LPCTSTR file_name)
 {
     ASSERT(file_name);
-    if(NULL == file_name) return;
+    if(nullptr == file_name) return;
 
     SHELLEXECUTEINFO shei;
     ::ZeroMemory(&shei, sizeof(shei));
@@ -177,10 +178,10 @@ static void ShellSelectFile(LPCTSTR file_name)
     message.Format(_T("Error opening file\r\n%s\r\n\r\n%s"), file_name, buffer);
     ::AfxMessageBox(message, MB_OK | MB_ICONSTOP);
 }
-static void ShellOpenFile(LPCTSTR file_name, HWND hwnd = NULL)
+static void ShellOpenFile(LPCTSTR file_name, HWND hwnd = nullptr)
 {
     ASSERT(file_name);
-    if(NULL == file_name) return;
+    if(nullptr == file_name) return;
 
     SHELLEXECUTEINFO shei;
     ::ZeroMemory(&shei, sizeof(shei));
@@ -367,8 +368,8 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
     TempProfile.SetDefault();
     COutputProfile* profile = OutputProfiles.GetSelectedProfile();
-    if(NULL == profile) profile = OutputProfiles.SelectFirst();
-    if(NULL == profile) profile = &TempProfile;
+    if(nullptr == profile) profile = OutputProfiles.SelectFirst();
+    if(nullptr == profile) profile = &TempProfile;
     SettingsPane.SetOutputProfile(profile);
 
     theApp.GetObject(_T("OutputDirs"), *CBOutputDir);
@@ -416,7 +417,7 @@ void CMainFrame::OnSize(UINT nType, int cx, int cy)
     //TODO:
     CFrameWndEx::OnSize(nType, cx, cy);
 }
-void CMainFrame::AdjustDockingLayout(HDWP hdwp /*= NULL*/)
+void CMainFrame::AdjustDockingLayout(HDWP hdwp /*= nullptr*/)
 {
     CFrameWndEx::AdjustDockingLayout(hdwp);
     if(ToolBar.GetSafeHwnd()) ToolBar.AdjustLayout();
@@ -504,7 +505,7 @@ void CMainFrame::OnCmdAbout()
 void CMainFrame::OnCmdAddFiles()
 {
     CString filter = SourceFileTypes.GetFilterString();
-    CFileDialog fd(TRUE, NULL, NULL, OFN_ALLOWMULTISELECT | OFN_ENABLESIZING | OFN_EXPLORER, filter, this, sizeof(OPENFILENAME), TRUE);
+    CFileDialog fd(TRUE, nullptr, nullptr, OFN_ALLOWMULTISELECT | OFN_ENABLESIZING | OFN_EXPLORER, filter, this, sizeof(OPENFILENAME), TRUE);
     OPENFILENAME& ofn = fd.GetOFN();
     ofn.lpstrTitle = _T("Add Video Files");
     if(IDCANCEL == fd.DoModal())
@@ -547,7 +548,7 @@ void CMainFrame::OnCmdAddFiles()
 }
 void CMainFrame::OnCmdAddFolder()
 {
-    CFolderPickerDialog fpd(NULL, OFN_ALLOWMULTISELECT | OFN_ENABLESIZING | OFN_EXPLORER, this, sizeof(OPENFILENAME));
+    CFolderPickerDialog fpd(nullptr, OFN_ALLOWMULTISELECT | OFN_ENABLESIZING | OFN_EXPLORER, this, sizeof(OPENFILENAME));
     OPENFILENAME& ofn = fpd.GetOFN();
     ofn.lpstrTitle = _T("Add Video Files");
     if(IDCANCEL == fpd.DoModal())
@@ -627,7 +628,7 @@ void CMainFrame::OnCmdPasteFiles()
 }
 void CMainFrame::OnCmdSelectOutputDir()
 {
-    CFolderPickerDialog fpd(NULL, OFN_ENABLESIZING | OFN_EXPLORER, this, sizeof(OPENFILENAME));
+    CFolderPickerDialog fpd(nullptr, OFN_ENABLESIZING | OFN_EXPLORER, this, sizeof(OPENFILENAME));
     OPENFILENAME& ofn = fpd.GetOFN();
     ofn.lpstrTitle = _T("Select Ouput Directory");
     if(IDCANCEL == fpd.DoModal())
@@ -641,7 +642,7 @@ LRESULT CMainFrame::OnProcessingThread(WPARAM wp, LPARAM lp)
     ASSERT(CurrentItem.get());
 
     CFileListView* file_list_view = GetFileListView();
-    const int message_type = wp;
+    const size_t message_type = wp;
     switch(message_type)
     {
     case PTM_PROGRESS:   //LPARAM - progress (0..100)
@@ -657,7 +658,7 @@ LRESULT CMainFrame::OnProcessingThread(WPARAM wp, LPARAM lp)
         CurrentItem.reset();
         ProcessNextItem();
         break;
-    case PTM_STOP:       //LPARAM - NULL
+    case PTM_STOP:       //LPARAM - nullptr
         CurrentItem->State = PIS_WAIT;
         CurrentItem->ResultString = _T("");
         file_list_view->UpdateItem(CurrentItem.get());
@@ -703,7 +704,7 @@ void CMainFrame::ProcessNextItem()
 {
     for(;;)
     {
-        ASSERT(NULL == CurrentItem.get());
+        ASSERT(nullptr == CurrentItem.get());
         if(CurrentItem.get()) 
             break;
 
@@ -717,7 +718,7 @@ void CMainFrame::ProcessNextItem()
 
         //no more items to process
         PProcessingItem pi = GetFileListView()->GetUnprocessedItem(IsProcessSelected);
-        if(NULL == pi) 
+        if(nullptr == pi) 
         {
             ProcessingState = PTS_NONE;
             GetFileListView()->UpdateItemStates();
@@ -855,7 +856,7 @@ void CMainFrame::OnCmdProfileAdd()
     if(dialog.IsCopyFrom && false == dialog.CopyFrom.IsEmpty())
     {
         const COutputProfile* op = OutputProfiles.GetProfile(dialog.CopyFrom);  
-        if(NULL == op)
+        if(nullptr == op)
         {
             ASSERT(FALSE);
             new_profile->SetDefault();
@@ -923,6 +924,14 @@ void CMainFrame::OnCmdProfilePreview()
 void CMainFrame::OnCmdTest()
 {
     //TEST:
+    try
+    {
+        APP_VERIFY(0);
+    }
+    catch (app::exception& e)
+    {
+        ::AfxMessageBox(e.source_info());
+    }
 }
 void CMainFrame::OnUpdateUI(CCmdUI* pCmdUI)
 {
@@ -944,14 +953,14 @@ void CMainFrame::OnUpdateUI(CCmdUI* pCmdUI)
     case ID_CMD_OPEN_VIDEO:
     case ID_CMD_BROWSE_TO_VIDEO:
     {
-        pCmdUI->Enable(GetFileListView()->GetFocusedItem() != NULL);
+        pCmdUI->Enable(GetFileListView()->GetFocusedItem() != nullptr);
         break;
     }
     case ID_CMD_OPEN_PREVIEW:
     case ID_CMD_BROWSE_TO_PREVIEW:
     {
         CProcessingItem* pi = GetFileListView()->GetFocusedItem();
-        pCmdUI->Enable(pi != NULL && PIS_DONE == pi->State);
+        pCmdUI->Enable(pi != nullptr && PIS_DONE == pi->State);
         break;
     }
     
@@ -989,7 +998,7 @@ void CMainFrame::OnUpdateUI(CCmdUI* pCmdUI)
 LPCTSTR CMainFrame::GetCurrentOutputDir()
 {
     if(0 == CBOutputDir->GetCurSel()) 
-        return NULL;
+        return nullptr;
     return CBOutputDir->GetItem();
 }
 COutputProfile* CMainFrame::GetCurrentProfile()
@@ -1006,26 +1015,26 @@ CFileListView* CMainFrame::GetFileListView()
 void CMainFrame::OnCmdOpenVideo()
 {
     CProcessingItem* pi = GetFileListView()->GetFocusedItem();
-    if(NULL == pi) return;
+    if(nullptr == pi) return;
     ShellOpenFile(pi->SourceFileName, m_hWnd);
 }
 void CMainFrame::OnCmdOpenPreview()
 {
     CProcessingItem* pi = GetFileListView()->GetFocusedItem();
-    if(NULL == pi) return;
+    if(nullptr == pi) return;
     ASSERT(PIS_DONE == pi->State);
     ShellOpenFile(pi->ResultString, m_hWnd);
 }
 void CMainFrame::OnCmdBrowseToVideo()
 {
     CProcessingItem* pi = GetFileListView()->GetFocusedItem();
-    if(NULL == pi) return;
+    if(nullptr == pi) return;
     ShellSelectFile(pi->SourceFileName);
 }
 void CMainFrame::OnCmdBrowseToPreview()
 {
     CProcessingItem* pi = GetFileListView()->GetFocusedItem();
-    if(NULL == pi) return;
+    if(nullptr == pi) return;
     ASSERT(PIS_DONE == pi->State);
     ShellSelectFile(pi->ResultString);
 }

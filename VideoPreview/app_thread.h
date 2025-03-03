@@ -5,7 +5,7 @@ namespace app
 {
 
 //critical_section - critical section object for recursive locking strategy
-class critical_section : private boost::noncopyable
+class critical_section
 {
     friend class critical_section_lock;
 public:
@@ -22,7 +22,7 @@ private:
 };
 
 //critical_section_lock - locks critical section during critical_section_lock object lifetime
-class critical_section_lock : private boost::noncopyable
+class critical_section_lock
 {
 public:
     critical_section_lock(critical_section& critical_section) : cs(critical_section) {cs.lock();}
@@ -33,14 +33,14 @@ private:
 };
 
 //event - event object
-//class event : private boost::noncopyable
+//class event
 //{
 //public:
 //    //ctor/dtor
-//    explicit event(bool initial_state = false, bool manual_reset = false, LPCTSTR name = NULL)
+//    explicit event(bool initial_state = false, bool manual_reset = false, LPCTSTR name = nullptr)
 //    {
-//        Handle = ::CreateEvent(NULL, manual_reset ? TRUE : FALSE, initial_state ? TRUE : FALSE, name);
-//        if(NULL == Handle)
+//        Handle = ::CreateEvent(nullptr, manual_reset ? TRUE : FALSE, initial_state ? TRUE : FALSE, name);
+//        if(nullptr == Handle)
 //            APP_VERIFY_WINAPI(::GetLastError());
 //    }
 //    ~event() {::CloseHandle(Handle);}
@@ -59,11 +59,11 @@ private:
 
 //thread - generic thread
 //NOTE: type 'T' must provide Run() method as thread procedure
-template<typename T> class thread : private boost::noncopyable
+template<typename T> class thread
 {
 public:
     //ctor/dtor
-    thread() : Handle(NULL) {}
+    thread() : Handle(nullptr) {}
     ~thread() {join();}
 
     //init
@@ -71,22 +71,22 @@ public:
     {
         join(); //wait for previous thread instance if any
 
-        Handle = ::CreateThread(NULL, 0, ThreadProcedure, thread_procedure, 0, NULL);
-        return (NULL == Handle) ? ::GetLastError() : ERROR_SUCCESS;
+        Handle = ::CreateThread(nullptr, 0, ThreadProcedure, thread_procedure, 0, nullptr);
+        return (nullptr == Handle) ? ::GetLastError() : ERROR_SUCCESS;
     }
     void join()
     {
-        if(NULL == Handle)
+        if(nullptr == Handle)
             return;
 
         //wait for thread termination
         ::WaitForSingleObject(Handle, INFINITE);
         ::CloseHandle(Handle);
-        Handle = NULL;
+        Handle = nullptr;
     }
 
     //attr
-    bool is_valid() const {return (Handle != NULL);}
+    bool is_valid() const {return (Handle != nullptr);}
 
 protected:
     HANDLE Handle;

@@ -23,13 +23,13 @@ public:
     void Reset();
 
     //data
-    int State;
+    INT_PTR State;
     int Selected; //used for Process Selected command
     CString SourceFileName;
     CString ResultString; //for PIS_WAIT - empty, for PIS_DONE - output file name, for PIS_FAILED - error description
 };
 
-typedef boost::shared_ptr<CProcessingItem> PProcessingItem;
+typedef std::shared_ptr<CProcessingItem> PProcessingItem;
 typedef std::map<CProcessingItem*, PProcessingItem> CProcessingItemList;
 
 class CFileList
@@ -58,7 +58,7 @@ public:
 
     bool RemoveItems(int Type);
 
-    CFileList() : Types(NULL) {}
+    CFileList() : Types(0) {}
 
 private:
     int Types;

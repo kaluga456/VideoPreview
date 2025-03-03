@@ -73,9 +73,6 @@
     <ClInclude Include="app.h">
       <Filter>generic</Filter>
     </ClInclude>
-    <ClInclude Include="app_string.h">
-      <Filter>generic</Filter>
-    </ClInclude>
     <ClInclude Include="app_com.h">
       <Filter>generic</Filter>
     </ClInclude>

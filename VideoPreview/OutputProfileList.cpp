@@ -6,24 +6,24 @@
 COutputProfiles OutputProfiles;
 //////////////////////////////////////////////////////////////////////////
 //COutputProfiles
-COutputProfiles::COutputProfiles() : SelectedProfile(NULL)
+COutputProfiles::COutputProfiles() : SelectedProfile(nullptr)
 {
 }
 COutputProfile* COutputProfiles::GetProfile(LPCTSTR output_profile_name)
 {
-    if(NULL == output_profile_name) return NULL;
+    if(nullptr == output_profile_name) return nullptr;
     COutputProfilesMap::const_iterator i = Profiles.find(output_profile_name);
-    return (i == Profiles.end()) ? NULL : i->second.get();
+    return (i == Profiles.end()) ? nullptr : i->second.get();
 }
 LPCTSTR COutputProfiles::GetSelectedProfileName()
 {
-    if(NULL == SelectedProfile) return NULL;
-    for(COutputProfilesMap::const_iterator i = Profiles.begin(); i != Profiles.end(); ++i)
+    if(nullptr == SelectedProfile) return nullptr;
+    for(const auto& i : Profiles)
     {
-        if(SelectedProfile == i->second.get())
-            return i->first;
+        if(SelectedProfile == i.second.get())
+            return i.first;
     }
-    return NULL;
+    return nullptr;
 }
 COutputProfile* COutputProfiles::GetSelectedProfile()
 {
@@ -33,29 +33,29 @@ COutputProfile* COutputProfiles::SelectFirst()
 {
     //select first if exists
     COutputProfilesMap::const_iterator i = Profiles.begin();
-    SelectedProfile = (i == Profiles.end()) ? NULL : i->second.get();
+    SelectedProfile = (i == Profiles.end()) ? nullptr : i->second.get();
     return SelectedProfile;
 }
 void COutputProfiles::SetSelectedProfile(LPCTSTR output_profile_name)
 {
-    if(NULL == output_profile_name)
+    if(nullptr == output_profile_name)
     {
-        SelectedProfile = NULL;
+        SelectedProfile = nullptr;
         return;
     }
     COutputProfilesMap::const_iterator i = Profiles.find(output_profile_name);
-    SelectedProfile = (i == Profiles.end()) ? NULL : i->second.get();
+    SelectedProfile = (i == Profiles.end()) ? nullptr : i->second.get();
 }
 void COutputProfiles::AddProfile(CWinAppEx& app, LPCTSTR profile_name, POutputProfile profile)
 {
-    if(NULL == profile) return;
+    if(nullptr == profile) return;
     Profiles[profile_name] = profile;
     WriteProfile(app, profile_name);
     SelectedProfile = profile.get();
 }
 void COutputProfiles::DeleteSelectedProfile(CWinAppEx& app)
 {
-    if(NULL == SelectedProfile) return;
+    if(nullptr == SelectedProfile) return;
 
     CString selected_profile_name = GetSelectedProfileName();
     CString msg = _T("Do you want to delete profile\r\n\"") + CString(selected_profile_name) + _T("\" ?");
@@ -68,30 +68,28 @@ void COutputProfiles::DeleteSelectedProfile(CWinAppEx& app)
         Profiles.erase(profile_i);
 
     profile_i = Profiles.begin();
-    SelectedProfile = (profile_i == Profiles.end()) ? NULL : profile_i->second.get();
+    SelectedProfile = (profile_i == Profiles.end()) ? nullptr : profile_i->second.get();
 }
-void COutputProfiles::Fill(CComboBox& combo_box, const COutputProfile* selected_profile /*= NULL*/)
+void COutputProfiles::Fill(CComboBox& combo_box, const COutputProfile* selected_profile /*= nullptr*/)
 {
     combo_box.ResetContent();
     int sel_index = 0;
-    for(COutputProfilesMap::const_iterator profile_i = Profiles.begin(); profile_i != Profiles.end(); ++profile_i)
+    for (const auto& profile_i : Profiles)
     {
-        POutputProfile profile = profile_i->second;
-        const int index = combo_box.AddString(profile_i->first);
-        if(SelectedProfile == profile_i->second.get())
+        const int index = combo_box.AddString(profile_i.first);
+        if(SelectedProfile == profile_i.second.get())
             sel_index = index;
     }
     combo_box.SetCurSel(sel_index);
 }
-void COutputProfiles::Fill(CMFCToolBarComboBoxButton* combo_box, const COutputProfile* selected_profile /*= NULL*/)
+void COutputProfiles::Fill(CMFCToolBarComboBoxButton* combo_box, const COutputProfile* selected_profile /*= nullptr*/)
 {
     combo_box->RemoveAllItems();
     int sel_index = 0; //DEFAULT_OUTPUT_PROFILE_NAME
-    for(COutputProfilesMap::const_iterator profile_i = Profiles.begin(); profile_i != Profiles.end(); ++profile_i)
+    for (const auto& profile_i : Profiles)
     {
-        POutputProfile profile = profile_i->second;
-        const int index = combo_box->AddItem(profile_i->first, reinterpret_cast<DWORD_PTR>(profile.get()));
-        if(SelectedProfile == profile_i->second.get())
+        const int index = combo_box->AddItem(profile_i.first, reinterpret_cast<DWORD_PTR>(profile_i.second.get()));
+        if(SelectedProfile == profile_i.second.get())
             sel_index = index;
     }
     combo_box->SelectItem(sel_index, FALSE);
@@ -99,7 +97,7 @@ void COutputProfiles::Fill(CMFCToolBarComboBoxButton* combo_box, const COutputPr
 void COutputProfiles::ReadProfiles(CWinAppEx& app)
 {
     HKEY root_reg_key = app.GetAppRegistryKey();
-    if(NULL == root_reg_key)
+    if(nullptr == root_reg_key)
         return;
 
     CRegKey app_reg;
@@ -112,7 +110,7 @@ void COutputProfiles::ReadProfiles(CWinAppEx& app)
     for(int value_index = 0; ; ++value_index)
     {
         profile_name_size = MAX_OUTPUT_PROFILE_NAME_SIZE + 1;
-        LONG result = ::RegEnumValue(app_reg.m_hKey, value_index, profile_name, &profile_name_size, NULL, NULL, NULL, NULL);
+        LONG result = ::RegEnumValue(app_reg.m_hKey, value_index, profile_name, &profile_name_size, nullptr, nullptr, nullptr, nullptr);
         if(result != ERROR_SUCCESS) 
         {
             ASSERT(ERROR_NO_MORE_ITEMS == result);
@@ -134,14 +132,14 @@ void COutputProfiles::ReadProfiles(CWinAppEx& app)
 void COutputProfiles::WriteProfile(CWinAppEx& app, LPCTSTR profile_name)
 {
     COutputProfile* profile = GetProfile(profile_name);
-    if(NULL == profile)
+    if(nullptr == profile)
         return;
     app.WriteSectionObject(REG_PROFILES_SECTION, profile_name, *profile);
 }
 void COutputProfiles::DeleteProfile(CWinAppEx& app, LPCTSTR profile_name)
 {
     HKEY root_reg_key = app.GetAppRegistryKey();
-    if(NULL == root_reg_key) 
+    if(nullptr == root_reg_key) 
         return;
 
     CRegKey app_reg;

@@ -53,9 +53,9 @@ void CProcessingItemListSerial::Serialize(CArchive& archive)
     {
         const int count = Items->size();
         archive << count;
-        for(CProcessingItemList::const_iterator i = Items->begin(); i != Items->end(); ++i)
+        for(const auto& i : *Items)
         {
-            CProcessingItem* pi = i->second.get();
+            const CProcessingItem* pi = i.second.get();
             archive << pi->State;
             archive << pi->SourceFileName;
             archive << pi->ResultString;

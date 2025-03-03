@@ -15,7 +15,7 @@ public:
     explicit CComboOutputDirs(UINT uiID);
 
     void AddDir(CString new_dir);
-    void Update(LPCTSTR selected_dir = NULL);
+    void Update(LPCTSTR selected_dir = nullptr);
     void InitialUpdate();
 
     LPCTSTR GetCurrent();
@@ -24,7 +24,7 @@ public:
     virtual void Serialize(CArchive& archive);
 
 private:
-    static const int MAX_DIRS_COUNT = 5;
+    static const size_t MAX_DIRS_COUNT = 5;
     int SelectedIndex;
     std::list<CString> Dirs; //queue
     bool HasDir(LPCTSTR dir) const;
@@ -56,7 +56,7 @@ protected:
     CComboOutputDirs* GetOutputDirCombo();
 
     //overrides
-    virtual void AdjustDockingLayout(HDWP hdwp /*= NULL*/);
+    virtual void AdjustDockingLayout(HDWP hdwp /*= nullptr*/);
 	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
     virtual void OnUpdateFrameTitle(BOOL bAddToTitle);
 
