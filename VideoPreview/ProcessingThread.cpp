@@ -90,7 +90,7 @@ DWORD CProcessingThread::Run()
     LPCTSTR output_dir = nullptr;
     if(false == OutputDir.IsEmpty())
         output_dir = OutputDir;
-    const int result = GenerateScreenshots(SourceFileName, output_dir, OutputProfile, result_string, this);
+    const int result = GenerateScreenlist(SourceFileName, output_dir, OutputProfile, result_string, this);
     if(SNAPSHOTS_RESULT_SUCCESS == result)
         NotifyResult(PTM_DONE, result_string);
     else if(SNAPSHOTS_RESULT_TERMINATED == result)

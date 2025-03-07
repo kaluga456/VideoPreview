@@ -18,4 +18,4 @@ public:
 };
 
 //int GenerateProfilePreview(const COutputProfile& output_profile, CString& result_string);
-int GenerateScreenshots(LPCTSTR video_file_name, LPCTSTR output_dir, const COutputProfile& output_profile, CString& result_string, IScreenshotsCallback* callback = nullptr);
+int GenerateScreenlist(LPCTSTR video_file_name, LPCTSTR output_dir, const COutputProfile& output_profile, CString& result_string, IScreenshotsCallback* callback = nullptr);

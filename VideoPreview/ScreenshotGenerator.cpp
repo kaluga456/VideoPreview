@@ -127,21 +127,6 @@ static CString GenerateOutputFileName(LPCTSTR video_file_name, LPCTSTR output_di
     result += GetImageFileExt(output_profile.OutputFileFormat);
     return result;
 }
-
-static CString GenerateHeaderText(LPCTSTR video_file_name, const COutputProfile& output_profile, const CVideoFile& video_file)
-{
-    //TODO:
-    ASSERT(video_file_name);
-    CString result; 
-    LPCTSTR file_name = GetRelativeFileName(video_file_name);
-    const UINT duration = video_file.GetDuration();
-    const long video_width = video_file.GetVideoWidth();
-    const long video_height = video_file.GetVideoHeight();
-
-    result.Format(_T("%s\r\nResolution: %d x %d | Duration: %u"), file_name, video_width, video_height, duration);
-    return result;
-}
-
 static void DrawTimestamp(Gdiplus::Graphics& graphics, Gdiplus::Font& font,  Gdiplus::Brush& brush, int timestamp, REAL frame_x, REAL frame_y, REAL frame_width, REAL frame_height, int position)
 {
     CString timestamp_str(GetDurationString(timestamp));
@@ -242,14 +227,78 @@ void CTimeStampDraw::Draw(int timestamp, REAL frame_x, REAL frame_y, REAL frame_
     app::verify_gdi(Graphics.DrawString(timestamp_str, timestamp_str.GetLength(), Font, rect, &str_format, Brush));
 }
 
-//TODO:
+//TODO: header draw
+LPCTSTR const HEADER_FORMAT_STRING = _T("File Name: %s\nFile Size: %s\nResolution: %ux%u\nDuration: %s");
+constexpr size_t HEADER_VERTICAL_PADDING = 5; //vertical padding, px
 class CHeaderDraw
 {
 public:
+    CHeaderDraw(Gdiplus::Graphics& graphics, const COutputProfile& output_profile) : Graphics(graphics), Profile(output_profile), Brush{nullptr}
+    {
+    }
+    ~CHeaderDraw()
+    {
+        delete Brush;
+    }
+
+    void Draw(LPCTSTR video_file_name, const CVideoFile& video_file)
+    {
+        const UINT duration = video_file.GetDuration();
+        const int video_width = video_file.GetVideoWidth();
+        const int video_height = video_file.GetVideoHeight();
+        VP_VERIFY(duration > 0);
+        VP_VERIFY(video_width > 0);
+        VP_VERIFY(video_height > 0);
+
+        CString header_text;
+
+        LARGE_INTEGER li{};
+        video_file.GetSize(li);
+        CString file_size_str = GetFileSizeString(li);
+        CString duration_str = GetDurationString(duration);
+        LPCTSTR file_name = GetRelativeFileName(video_file_name);
+        header_text.Format(HEADER_FORMAT_STRING, file_name, file_size_str, video_width, video_height, duration_str);
+
+        LOGFONT lf;
+        Profile.HeaderFont.Get(lf);
+        VP_VERIFY(lf.lfHeight);
+
+        HDC hdc = Graphics.GetHDC();
+        Gdiplus::Font header_font(hdc, &lf);
+        Graphics.ReleaseHDC(hdc);
+
+        Gdiplus::Color header_font_color;
+        header_font_color.SetFromCOLORREF(Profile.HeaderFont.Color);
+        Gdiplus::SolidBrush header_brush(header_font_color);
+        Gdiplus::PointF pt(0, static_cast<Gdiplus::REAL>(HEADER_VERTICAL_PADDING));
+
+        app::verify_gdi(Graphics.DrawString(header_text, static_cast<INT>(::wcslen(header_text)), &header_font, pt, &header_brush));
+    }
+    static int CalculateHeight(const COutputProfile& output_profile)
+    {
+        Gdiplus::Bitmap temp_image(100, 100, PixelFormat24bppRGB);
+        Gdiplus::Graphics temp_graphics(&temp_image);
+
+        LOGFONT lf{};
+        output_profile.HeaderFont.Get(lf);
+        VP_VERIFY(lf.lfHeight);
+
+        HDC hdc = temp_graphics.GetHDC();
+        Gdiplus::Font header_font(hdc, &lf);
+        temp_graphics.ReleaseHDC(hdc);
+
+        const int header_font_height = static_cast<size_t>(header_font.GetHeight(&temp_graphics));
+        return HEADER_VERTICAL_PADDING + header_font_height * HEADER_LINES_COUNT + HEADER_VERTICAL_PADDING;
+    }
+
 private:
+    const COutputProfile& Profile;
+    Gdiplus::Graphics& Graphics;
+
+    Gdiplus::SolidBrush* Brush{nullptr};
 };
 
-int GenerateScreenshots(LPCTSTR video_file_name, LPCTSTR output_dir, const COutputProfile& output_profile, CString& result_string, IScreenshotsCallback* callback /*= nullptr*/)
+int GenerateScreenlist(LPCTSTR video_file_name, LPCTSTR output_dir, const COutputProfile& output_profile, CString& result_string, IScreenshotsCallback* callback /*= nullptr*/)
 {
     if(nullptr == video_file_name)
         return SNAPSHOTS_RESULT_FAIL;
@@ -279,10 +328,6 @@ int GenerateScreenshots(LPCTSTR video_file_name, LPCTSTR output_dir, const COutp
         CVideoFile video_file;
         VP_VERIFY(video_file.Open(video_file_name));
 
-        //TODO: write header
-        //TODO: file size
-
-
         //get video file attr
         const UINT duration = video_file.GetDuration();
         const int video_width = video_file.GetVideoWidth();
@@ -290,16 +335,14 @@ int GenerateScreenshots(LPCTSTR video_file_name, LPCTSTR output_dir, const COutp
         VP_VERIFY(duration > 0);
         VP_VERIFY(video_width > 0);
         VP_VERIFY(video_height > 0);
-        const float aspect_ratio = float(video_width) / float(video_height);
-        
-        //get snapshots count
-        const int frame_count = output_profile.FrameRows * output_profile.FrameColumns;
 
         //init output image size
         int frame_width = 0;
         int frame_height = 0;
         int output_width = 0;
         int output_height = 0;
+        const float aspect_ratio = float(video_width) / float(video_height);
+        const int frame_count = output_profile.FrameRows * output_profile.FrameColumns;
         switch(output_profile.OutputSizeMethod)
         {
         case OUTPUT_IMAGE_WIDTH_BY_ORIGINAL_FRAME:
@@ -344,8 +387,30 @@ int GenerateScreenshots(LPCTSTR video_file_name, LPCTSTR output_dir, const COutp
         VP_VERIFY(0 < output_width && output_width < 4096);
         VP_VERIFY(0 < output_height && output_height < 4096);
 
+        //calculate header height
+        //TODO: how to calculate font height without temp Bitmap and Graphics?
+        int header_height = 0;
+        if (output_profile.WriteHeader)
+        {
+            header_height = CHeaderDraw::CalculateHeight(output_profile);
+            output_height += header_height;
+        }
+
         Gdiplus::Bitmap output_image(output_width, output_height, PixelFormat24bppRGB);
         Gdiplus::Graphics graphics(&output_image);
+
+        //draw background
+        Gdiplus::Color bk_color{ };
+        bk_color.SetFromCOLORREF(output_profile.BackgroundColor);
+        std::unique_ptr<Gdiplus::SolidBrush> brush{ new Gdiplus::SolidBrush(bk_color) };
+        app::verify_gdi(graphics.FillRectangle(brush.get(), Gdiplus::Rect(0, 0, output_width, output_height)));
+
+        //write header
+        if (output_profile.WriteHeader)
+        {
+            CHeaderDraw header_draw(graphics, output_profile);
+            header_draw.Draw(video_file_name, video_file);
+        }
 
         //get image encoder CLSID
         app::gdi_encoders encoders;
@@ -376,7 +441,7 @@ int GenerateScreenshots(LPCTSTR video_file_name, LPCTSTR output_dir, const COutp
 
                 //write frame
                 const INT frame_left = x * frame_width;
-                const INT frame_top = y * frame_height;
+                const INT frame_top = header_height + y * frame_height;
                 app::verify_gdi(graphics.DrawImage(snapshot.get(), frame_left, frame_top, frame_width, frame_height));
 
                 //timestamp
@@ -495,8 +560,7 @@ int GenerateProfilePreview(const COutputProfile& output_profile, CString& result
 
         //TODO: write header
         //TODO: file size
-        const size_t header_padding = 5; //vertical padding, px
-        
+       
         int header_height = 0;
         int header_font_height = 0;
 
@@ -516,7 +580,7 @@ int GenerateProfilePreview(const COutputProfile& output_profile, CString& result
             temp_graphics.ReleaseHDC(hdc);
 
             header_font_height = static_cast<size_t>(header_font.GetHeight(&temp_graphics));
-            header_height = header_padding + header_font_height * HEADER_LINES_COUNT + header_padding;
+            header_height = HEADER_VERTICAL_PADDING + header_font_height * HEADER_LINES_COUNT + HEADER_VERTICAL_PADDING;
         }
 
         //init output image
@@ -530,7 +594,6 @@ int GenerateProfilePreview(const COutputProfile& output_profile, CString& result
             CString header_text;
 
             //TODO:
-            LPCTSTR const HEADER_FORMAT_STRING = _T("File Name: %s\nFile Size: %s\nResolution: %ux%u\nDuration: %s");
             LARGE_INTEGER li{};
             li.QuadPart = 230454; //TODO:
             CString file_size_str = GetFileSizeString(li);
@@ -548,9 +611,9 @@ int GenerateProfilePreview(const COutputProfile& output_profile, CString& result
             Gdiplus::Color header_font_color;
             header_font_color.SetFromCOLORREF(output_profile.HeaderFont.Color);
             Gdiplus::SolidBrush header_brush(header_font_color);
-            Gdiplus::PointF pt(0, static_cast<Gdiplus::REAL>(header_padding));
+            Gdiplus::PointF pt(0, static_cast<Gdiplus::REAL>(HEADER_VERTICAL_PADDING));
 
-            app::verify_gdi(graphics.DrawString(header_text, ::wcslen(header_text), &header_font, pt, &header_brush));
+            app::verify_gdi(graphics.DrawString(header_text, static_cast<INT>(::wcslen(header_text)), &header_font, pt, &header_brush));
         }
 
         //TODO:
@@ -630,7 +693,10 @@ int GenerateProfilePreview(const COutputProfile& output_profile, CString& result
             result_string = buf;
         }
     }
-
+    catch (CVPExc& exc)
+    {
+        result_string = exc.GetFullText();
+    }
     catch(...)
     {
         result_string = VP_UNKNOWN_ERROR_STRING;

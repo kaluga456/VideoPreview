@@ -7,8 +7,26 @@
 #include "app_buffer.h"
 #pragma hdrstop
 #include "VideoFile.h"
+#include "VPError.h"
 
-bool CVideoFile::Open(const TCHAR* file_name)
+void CVideoFile::GetFileSize(LPCTSTR file_name)
+{
+    const HANDLE hFile = CreateFile(file_name, GENERIC_READ,
+        FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING,
+        FILE_ATTRIBUTE_NORMAL, NULL);
+    if (hFile == INVALID_HANDLE_VALUE)
+        VP_THROW_WINAPI_LAST();
+
+    if (FALSE == ::GetFileSizeEx(hFile, &FileSize))
+    {
+        ::CloseHandle(hFile);
+        VP_THROW_WINAPI_LAST();
+    }
+
+    ::CloseHandle(hFile);
+}
+
+bool CVideoFile::Open(LPCTSTR file_name)
 {
     Close();
     if(NULL == file_name)
@@ -16,6 +34,8 @@ bool CVideoFile::Open(const TCHAR* file_name)
 
     try
     {
+        GetFileSize(file_name);
+
         //create graph builder
         APP_VERIFY_COM(GraphBuilder.create(CLSID_FilterGraph, IID_IGraphBuilder));
 

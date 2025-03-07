@@ -77,23 +77,23 @@ protected:
     void InitPropList();
 
     //output profile
-    CMFCPropertyGridColorProperty* pgpBackgroundColor;
-    CMFCPropertyGridProperty* pgpWriteHeader;
-    CPGPFont* pgpHeaderFont;
-    CMFCPropertyGridColorProperty* pgpHeaderFontColor;
-    CMFCPropertyGridProperty* pgpFramesGridColumns;
-    CMFCPropertyGridProperty* pgpFramesGridRows;   
-    CPGPCombo* pgpTimestampType;
-    CPGPFont* pgpTimestampFont;
-    CMFCPropertyGridColorProperty* pgpTimestampFontColor;
-    CPGPCombo* pgpOutputSizeMethod;
-    CPGPNumberEdit* pgpOutputSize;
-    CMFCPropertyGridProperty* pgpOutputFileName;
-    CPGPCombo* pgpOutputFileFormat;
+    CMFCPropertyGridColorProperty* pgpBackgroundColor{ nullptr };
+    CMFCPropertyGridProperty* pgpWriteHeader{ nullptr };
+    CPGPFont* pgpHeaderFont{ nullptr };
+    CMFCPropertyGridColorProperty* pgpHeaderFontColor{ nullptr };
+    CMFCPropertyGridProperty* pgpFramesGridColumns{ nullptr };
+    CMFCPropertyGridProperty* pgpFramesGridRows{ nullptr };
+    CPGPCombo* pgpTimestampType{ nullptr };
+    CPGPFont* pgpTimestampFont{ nullptr };
+    CMFCPropertyGridColorProperty* pgpTimestampFontColor{ nullptr };
+    CPGPCombo* pgpOutputSizeMethod{ nullptr };
+    CPGPNumberEdit* pgpOutputSize{ nullptr };
+    CMFCPropertyGridProperty* pgpOutputFileName{ nullptr };
+    CPGPCombo* pgpOutputFileFormat{ nullptr };
 
     //common settings
-    CMFCPropertyGridProperty* pgpOverwriteFiles;
-    CMFCPropertyGridProperty* pgpSaveFileListOnExit;
+    CMFCPropertyGridProperty* pgpOverwriteFiles{ nullptr };
+    CMFCPropertyGridProperty* pgpSaveFileListOnExit{ nullptr };
 
     bool OnSettingsChanged(const DWORD_PTR property_id);
 };
