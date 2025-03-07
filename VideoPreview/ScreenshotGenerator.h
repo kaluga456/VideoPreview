@@ -1,6 +1,6 @@
 #pragma once
 
-enum
+enum : UINT
 {
     SNAPSHOTS_RESULT_SUCCESS = 0,
     SNAPSHOTS_RESULT_FAIL,
@@ -18,4 +18,4 @@ public:
 };
 
 //int GenerateProfilePreview(const COutputProfile& output_profile, CString& result_string);
-int GenerateScreenshots(LPCTSTR video_file_name, LPCTSTR output_dir, const COutputProfile& output_profile, CString& result_string, IScreenshotsCallback* callback = NULL);
+int GenerateScreenshots(LPCTSTR video_file_name, LPCTSTR output_dir, const COutputProfile& output_profile, CString& result_string, IScreenshotsCallback* callback = nullptr);

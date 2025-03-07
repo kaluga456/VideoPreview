@@ -32,9 +32,9 @@ void CFileList::SetBit(int bit, bool value /*= true*/)
 void CFileList::UpdateTypes()
 {
     Types = 0;
-    for(CProcessingItemList::iterator i = Items.begin(); i != Items.end(); ++i)
+    for(auto& i : Items)
     {
-        PProcessingItem pi = i->second;
+        PProcessingItem pi = i.second;
         if(PIS_WAIT == pi->State) SetBit(PILS_HAS_READY);
         else if(PIS_DONE == pi->State) SetBit(PILS_HAS_DONE);
         else if(PIS_FAILED == pi->State) SetBit(PILS_HAS_FAILED);
@@ -46,9 +46,9 @@ void CFileList::AddFile(LPCTSTR file_name)
         return;
 
     //ignore duplicates
-    for(CProcessingItemList::iterator i = Items.begin(); i != Items.end(); ++i)
+    for(auto& i : Items)
     {
-        PProcessingItem pi = i->second;
+        PProcessingItem pi = i.second;
         if(0 == pi->SourceFileName.CompareNoCase(file_name))
             return;
     }
@@ -83,7 +83,7 @@ bool CFileList::AddFiles(CDropFiles* DropFiles)
 }
 bool CFileList::RemoveItems(int Type)
 {
-    const int prev_size = Items.size();
+    const size_t prev_size = Items.size();
     for(CProcessingItemList::iterator i = Items.begin(); i != Items.end();)
     {
         PProcessingItem pi = i->second;

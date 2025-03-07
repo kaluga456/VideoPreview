@@ -2,7 +2,7 @@
 #pragma hdrstop
 #include "ClipboardFiles.h"
 
-CString CDropFiles::GetFileName(size_t index)
+CString CDropFiles::GetFileName(UINT index)
 {
     if(nullptr == Dropfiles) return CString();
     const UINT buffer_size = MAX_PATH + 1;
@@ -12,7 +12,7 @@ CString CDropFiles::GetFileName(size_t index)
         return CString();
     return CString(buffer);
 }
-LPCTSTR CDropFiles::GetFileName(size_t index, LPTSTR buffer, size_t buffer_size)
+LPCTSTR CDropFiles::GetFileName(UINT index, LPTSTR buffer, UINT buffer_size)
 {
     if(nullptr == Dropfiles) return nullptr;
     ASSERT(buffer);

@@ -9,7 +9,7 @@ enum
 };
 
 //output file format
-enum
+enum : UINT
 {
     OUTPUT_FILE_FORMAT_BMP,
     OUTPUT_FILE_FORMAT_JPG,
@@ -19,7 +19,7 @@ enum
 };
 
 //output image width calculation methods
-enum
+enum : UINT
 {
     OUTPUT_IMAGE_WIDTH_BY_ORIGINAL_FRAME,
     OUTPUT_IMAGE_WIDTH_AS_IS,
@@ -30,7 +30,7 @@ enum
 };
 
 //timestamp position flags
-enum
+enum : UINT
 {
     TIMESTAMP_TYPE_LEFT = 0x00000001,
     TIMESTAMP_TYPE_RIGHT = 0x00000002,
@@ -39,7 +39,7 @@ enum
 };
 
 //timestamp position
-enum
+enum : UINT
 {
     TIMESTAMP_TYPE_DISABLED = 0x00000000, //don`t write timestamp
 

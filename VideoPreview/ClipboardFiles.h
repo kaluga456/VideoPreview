@@ -9,8 +9,8 @@ public:
 
     virtual void Deinit() = 0;
 
-    CString GetFileName(size_t index);
-    LPCTSTR GetFileName(size_t index, LPTSTR buffer, size_t buffer_size);
+    CString GetFileName(UINT index);
+    LPCTSTR GetFileName(UINT index, LPTSTR buffer, UINT buffer_size);
 
 protected:
     DROPFILES* Dropfiles;
@@ -21,7 +21,7 @@ class CClipboardFiles : public CDropFiles
 {
 public:
     explicit CClipboardFiles(HWND hwnd);
-    virtual ~CClipboardFiles();
+    ~CClipboardFiles() override;
 
     void Deinit() override;
 
@@ -34,7 +34,7 @@ class COleObjectFiles : public CDropFiles
 {
 public:
     explicit COleObjectFiles(COleDataObject* ole_object);
-    virtual ~COleObjectFiles();
+    ~COleObjectFiles() override;
 
     void Deinit() override;
 

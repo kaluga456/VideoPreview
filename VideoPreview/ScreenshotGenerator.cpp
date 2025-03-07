@@ -26,7 +26,7 @@ LPCTSTR GetImageFileExt(int image_type)
     }
 
     ASSERT(FALSE);
-    return NULL;
+    return nullptr;
 }
 
 static LPCTSTR GetMIMETypeString(int image_type)
@@ -90,24 +90,20 @@ static CString GetFileSizeString(const LARGE_INTEGER& file_size)
 
     CString bytes_string;
     if(file_size.HighPart)
-    {
         bytes_string.Format(_T(" (%I64u bytes)"), file_size.QuadPart);
-    }
     else
-    {
         bytes_string.Format(_T(" (%u bytes)"), file_size.LowPart);
-    }
 
     return size_string + bytes_string;
 }
 
 static LPCTSTR GetRelativeFileName(LPCTSTR file_name)
 {
-    if(NULL == file_name)
-        return NULL;
+    if(nullptr == file_name)
+        return nullptr;
 
     LPCTSTR pos = ::_tcsrchr(file_name, _T('\\'));
-    return (NULL == pos) ? file_name : pos + 1;
+    return (nullptr == pos) ? file_name : pos + 1;
 };
 
 static CString GenerateOutputFileName(LPCTSTR video_file_name, LPCTSTR output_dir, const COutputProfile& output_profile) 
@@ -138,15 +134,15 @@ static CString GenerateHeaderText(LPCTSTR video_file_name, const COutputProfile&
     ASSERT(video_file_name);
     CString result; 
     LPCTSTR file_name = GetRelativeFileName(video_file_name);
-    const size_t duration = video_file.GetDuration();
-    const size_t video_width = video_file.GetVideoWidth();
-    const size_t video_height = video_file.GetVideoHeight();
+    const UINT duration = video_file.GetDuration();
+    const long video_width = video_file.GetVideoWidth();
+    const long video_height = video_file.GetVideoHeight();
 
-    result.Format(_T("%s\r\nResolution: %ux&u | Duration: %u"), file_name, video_width, video_height, duration);
+    result.Format(_T("%s\r\nResolution: %d x %d | Duration: %u"), file_name, video_width, video_height, duration);
     return result;
 }
 
-void DrawTimestamp(Gdiplus::Graphics& graphics, Gdiplus::Font& font,  Gdiplus::Brush& brush, size_t timestamp, REAL frame_x, REAL frame_y, REAL frame_width, REAL frame_height, int position)
+static void DrawTimestamp(Gdiplus::Graphics& graphics, Gdiplus::Font& font,  Gdiplus::Brush& brush, int timestamp, REAL frame_x, REAL frame_y, REAL frame_width, REAL frame_height, int position)
 {
     CString timestamp_str(GetDurationString(timestamp));
     Gdiplus::RectF rect(frame_x, frame_y, frame_width, frame_height);
@@ -178,7 +174,7 @@ void DrawTimestamp(Gdiplus::Graphics& graphics, Gdiplus::Font& font,  Gdiplus::B
 class CTimeStampDraw
 {
 public:
-    CTimeStampDraw(Gdiplus::Graphics& graphics, const COutputProfile& output_profile) : Graphics(graphics), Profile(output_profile), Font(NULL) , Brush(NULL), ShadowBrush(NULL)
+    CTimeStampDraw(Gdiplus::Graphics& graphics, const COutputProfile& output_profile) : Graphics(graphics), Profile(output_profile), Font(nullptr) , Brush(nullptr), ShadowBrush(nullptr)
     {
         if(TIMESTAMP_TYPE_DISABLED == Profile.TimestampType)
             return;
@@ -207,7 +203,7 @@ public:
         delete ShadowBrush;
     }
 
-    void Draw(size_t timestamp, REAL frame_x, REAL frame_y, REAL frame_width, REAL frame_height);
+    void Draw(int timestamp, REAL frame_x, REAL frame_y, REAL frame_width, REAL frame_height);
 
 private:
     const COutputProfile& Profile;
@@ -217,7 +213,7 @@ private:
     Gdiplus::SolidBrush* Brush;
     Gdiplus::SolidBrush* ShadowBrush;
 };
-void CTimeStampDraw::Draw(size_t timestamp, REAL frame_x, REAL frame_y, REAL frame_width, REAL frame_height)
+void CTimeStampDraw::Draw(int timestamp, REAL frame_x, REAL frame_y, REAL frame_width, REAL frame_height)
 {
     if(TIMESTAMP_TYPE_DISABLED == Profile.TimestampType)
         return;
@@ -253,9 +249,9 @@ public:
 private:
 };
 
-int GenerateScreenshots(LPCTSTR video_file_name, LPCTSTR output_dir, const COutputProfile& output_profile, CString& result_string, IScreenshotsCallback* callback /*= NULL*/)
+int GenerateScreenshots(LPCTSTR video_file_name, LPCTSTR output_dir, const COutputProfile& output_profile, CString& result_string, IScreenshotsCallback* callback /*= nullptr*/)
 {
-    if(NULL == video_file_name)
+    if(nullptr == video_file_name)
         return SNAPSHOTS_RESULT_FAIL;
 
     try
@@ -288,22 +284,22 @@ int GenerateScreenshots(LPCTSTR video_file_name, LPCTSTR output_dir, const COutp
 
 
         //get video file attr
-        const size_t duration = video_file.GetDuration();
-        const size_t video_width = video_file.GetVideoWidth();
-        const size_t video_height = video_file.GetVideoHeight();
+        const UINT duration = video_file.GetDuration();
+        const int video_width = video_file.GetVideoWidth();
+        const int video_height = video_file.GetVideoHeight();
         VP_VERIFY(duration > 0);
         VP_VERIFY(video_width > 0);
         VP_VERIFY(video_height > 0);
         const float aspect_ratio = float(video_width) / float(video_height);
         
         //get snapshots count
-        const size_t frame_count = output_profile.FrameRows * output_profile.FrameColumns;
+        const int frame_count = output_profile.FrameRows * output_profile.FrameColumns;
 
         //init output image size
-        size_t frame_width = 0;
-        size_t frame_height = 0;
-        size_t output_width = 0;
-        size_t output_height = 0;
+        int frame_width = 0;
+        int frame_height = 0;
+        int output_width = 0;
+        int output_height = 0;
         switch(output_profile.OutputSizeMethod)
         {
         case OUTPUT_IMAGE_WIDTH_BY_ORIGINAL_FRAME:
@@ -360,8 +356,8 @@ int GenerateScreenshots(LPCTSTR video_file_name, LPCTSTR output_dir, const COutp
         CTimeStampDraw timestamp_draw(graphics, output_profile);
 
         //build output image
-        size_t interval = duration / (frame_count + 1);
-        size_t current_position = interval;
+        const int interval = duration / (frame_count + 1);
+        int current_position = interval;
         size_t frame_index = 0;
         for(int y = 0; y < output_profile.FrameRows; ++y)
         {
@@ -403,7 +399,7 @@ int GenerateScreenshots(LPCTSTR video_file_name, LPCTSTR output_dir, const COutp
     catch(app::exception& exc)
     {
         LPCTSTR error_string = exc.string();
-        if(NULL == error_string)
+        if(nullptr == error_string)
         {
             TCHAR buf[2*KILOBYTE];
             exc.string(buf, 2*KILOBYTE);
@@ -437,19 +433,19 @@ int GenerateProfilePreview(const COutputProfile& output_profile, CString& result
         app::gdi gdi;
 
         //get video file attr
-        const size_t duration = 0;
-        const size_t video_width = 320;
-        const size_t video_height = 200;
+        const int duration = 0;
+        const int video_width = 320;
+        const int video_height = 200;
         const float aspect_ratio = float(video_width) / float(video_height);
         
         //get snapshots count
-        const size_t frame_count = output_profile.FrameRows * output_profile.FrameColumns;
+        const UINT frame_count = output_profile.FrameRows * output_profile.FrameColumns;
 
         //init output image size
-        size_t frame_width = 0;
-        size_t frame_height = 0;
-        size_t output_width = 0;
-        size_t output_height = 0;
+        int frame_width = 0;
+        int frame_height = 0;
+        int output_width = 0;
+        int output_height = 0;
         switch(output_profile.OutputSizeMethod)
         {
         case OUTPUT_IMAGE_WIDTH_BY_ORIGINAL_FRAME:
@@ -462,8 +458,8 @@ int GenerateProfilePreview(const COutputProfile& output_profile, CString& result
         }
         case OUTPUT_IMAGE_WIDTH_AS_IS:
         {
-            frame_width = static_cast<size_t>(float(output_profile.OutputImageSize) / float(output_profile.FrameColumns));
-            frame_height = static_cast<size_t>(float(frame_width) / aspect_ratio);
+            frame_width = static_cast<int>(float(output_profile.OutputImageSize) / float(output_profile.FrameColumns));
+            frame_height = static_cast<int>(float(frame_width) / aspect_ratio);
             output_width = output_profile.OutputImageSize;
             output_height = frame_height * output_profile.FrameRows;
             break;
@@ -471,7 +467,7 @@ int GenerateProfilePreview(const COutputProfile& output_profile, CString& result
         case OUTPUT_IMAGE_WIDTH_BY_FRAME_WIDTH:
         {
             frame_width = output_profile.OutputImageSize;
-            frame_height = static_cast<size_t>(float(frame_width) / aspect_ratio);
+            frame_height = static_cast<int>(float(frame_width) / aspect_ratio);
             output_width = frame_width * output_profile.FrameColumns;
             output_height = frame_height * output_profile.FrameRows;
             break;
@@ -501,8 +497,8 @@ int GenerateProfilePreview(const COutputProfile& output_profile, CString& result
         //TODO: file size
         const size_t header_padding = 5; //vertical padding, px
         
-        size_t header_height = 0;
-        size_t header_font_height = 0;
+        int header_height = 0;
+        int header_font_height = 0;
 
         //calculate header height
         //TODO: how to calculate font height without temp Bitmap and Graphics?
@@ -535,8 +531,8 @@ int GenerateProfilePreview(const COutputProfile& output_profile, CString& result
 
             //TODO:
             LPCTSTR const HEADER_FORMAT_STRING = _T("File Name: %s\nFile Size: %s\nResolution: %ux%u\nDuration: %s");
-            LARGE_INTEGER li;
-            li.QuadPart = 230454;
+            LARGE_INTEGER li{};
+            li.QuadPart = 230454; //TODO:
             CString file_size_str = GetFileSizeString(li);
             CString duration_str = GetDurationString(duration);
             header_text.Format(HEADER_FORMAT_STRING, video_file_name, file_size_str, 320, 240, duration_str);
@@ -576,9 +572,9 @@ int GenerateProfilePreview(const COutputProfile& output_profile, CString& result
         CTimeStampDraw timestamp_draw(graphics, output_profile);
 
         //draw frames grid
-        size_t interval = duration / (frame_count + 1);
-        size_t current_position = interval;
-        size_t frame_index = 0;
+        int interval = duration / (frame_count + 1);
+        int current_position = interval;
+        int frame_index = 0;
         for (int y = 0; y < output_profile.FrameRows; ++y)
         {
             for (int x = 0; x < output_profile.FrameColumns; ++x)
@@ -604,9 +600,8 @@ int GenerateProfilePreview(const COutputProfile& output_profile, CString& result
 
         //get output file name
         CString output_dir;
-        output_dir.GetEnvironmentVariable(_T("TEMP"));
         CString output_file_name;
-        if(output_dir.IsEmpty())
+        if(FALSE == output_dir.GetEnvironmentVariable(_T("TEMP")))
             output_file_name = _T("vp_profile_preview.");
         else
             output_file_name = output_dir + _T("\\vp_profile_preview.");
@@ -628,7 +623,7 @@ int GenerateProfilePreview(const COutputProfile& output_profile, CString& result
     catch(app::exception& exc)
     {
         LPCTSTR error_string = exc.string();
-        if(NULL == error_string)
+        if(nullptr == error_string)
         {
             TCHAR buf[2*KILOBYTE];
             exc.string(buf, 2*KILOBYTE);
@@ -638,7 +633,7 @@ int GenerateProfilePreview(const COutputProfile& output_profile, CString& result
 
     catch(...)
     {
-        result_string = _T("Unknown error");
+        result_string = VP_UNKNOWN_ERROR_STRING;
     }
 
     return SNAPSHOTS_RESULT_FAIL;

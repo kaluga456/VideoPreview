@@ -51,7 +51,7 @@ void CProcessingItemListSerial::Serialize(CArchive& archive)
 
     if(archive.IsStoring())
     {
-        const int count = Items->size();
+        const int count = static_cast<int>(Items->size());
         archive << count;
         for(const auto& i : *Items)
         {

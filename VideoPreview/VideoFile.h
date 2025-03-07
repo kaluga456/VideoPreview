@@ -19,15 +19,14 @@ public:
     bool Open(const TCHAR* file_name);
     void Close();
     bool GetSnapshot(size_t offset, PBitmap& bitmap, app::byte_buffer& image_buffer);
-    size_t GetVideoWidth() const {return static_cast<size_t>(VideoWidth);}
-    size_t GetVideoHeight() const {return static_cast<size_t>(VideoHeight);}
-    size_t GetDuration() const {return static_cast<size_t>(Duration / 1e7);}
+    long GetVideoWidth() const {return VideoWidth;}
+    long GetVideoHeight() const {return VideoHeight;}
+    UINT GetDuration() const {return static_cast<UINT>(Duration / 1e7);}
 
 private:
-    //original video size
-    long VideoWidth;  //pixels
-    long VideoHeight; //pixels
-    REFERENCE_TIME Duration;    //seconds
+    long VideoWidth{};              //pixels
+    long VideoHeight{};             //pixels
+    REFERENCE_TIME Duration{};      //seconds
 
     //interfaces
     app::com_iface<IGraphBuilder> GraphBuilder;

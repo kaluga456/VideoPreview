@@ -88,9 +88,9 @@ void COutputProfiles::Fill(CMFCToolBarComboBoxButton* combo_box, const COutputPr
     int sel_index = 0; //DEFAULT_OUTPUT_PROFILE_NAME
     for (const auto& profile_i : Profiles)
     {
-        const int index = combo_box->AddItem(profile_i.first, reinterpret_cast<DWORD_PTR>(profile_i.second.get()));
+        const INT_PTR index = combo_box->AddItem(profile_i.first, reinterpret_cast<DWORD_PTR>(profile_i.second.get()));
         if(SelectedProfile == profile_i.second.get())
-            sel_index = index;
+            sel_index = static_cast<int>(index);
     }
     combo_box->SelectItem(sel_index, FALSE);
 }
