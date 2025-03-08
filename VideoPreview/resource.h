@@ -48,8 +48,7 @@
 #define IDC_CBTN_USE_EXPLORER_CONTEXT_MENU 323
 #define IDA_FILE_LIST                   323
 #define IDC_CBTN_USE_SOURCE_FILE_LOCATION 324
-#define IDB_BITMAP1                     324
-#define IDB_DUMMY_FRAME                 324
+#define IDB_SAMPLE_FRAME                324
 #define IDC_CBTN_OVERWRITE_OUTPUT_FILES 325
 #define IDC_BTN_DEFAULT_SOURCE_FILE_TYPE 326
 #define IDD_SETTINGS                    329

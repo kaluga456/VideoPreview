@@ -83,7 +83,8 @@ END
 // Bitmap
 //
 
-IDB_DUMMY_FRAME         BITMAP                  "res\\dummy_frame.bmp"
+IDB_SAMPLE_FRAME        BITMAP                  "res\\sample_frame.bmp"
+
 #endif    // Russian (Russia) resources
 /////////////////////////////////////////////////////////////////////////////
 
@@ -116,6 +117,16 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
+// Bitmap
+//
+
+ID_TOOLBAR_SETTINGS     BITMAP                  "res\\ToolbarSettings.bmp"
+
+ID_TOOLBAR_MAIN         BITMAP                  "res\\ToolbarMain.bmp"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
 // Icon
 //
 
@@ -123,13 +134,6 @@ END
 // remains consistent on all systems.
 IDR_MAINFRAME           ICON                    "res\\AppIcon.ico"
 
-/////////////////////////////////////////////////////////////////////////////
-//
-// Bitmap
-//
-
-ID_TOOLBAR_SETTINGS     BITMAP                  "res\\ToolbarSettings.bmp"
-ID_TOOLBAR_MAIN         BITMAP                  "res\\ToolbarMain.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //

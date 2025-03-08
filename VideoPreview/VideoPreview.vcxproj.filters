@@ -109,6 +109,9 @@
     <ClInclude Include="SettingsPane.h">
       <Filter>gui</Filter>
     </ClInclude>
+    <ClInclude Include="Draw.h">
+      <Filter>core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FileListView.cpp">
@@ -168,6 +171,9 @@
     <ClCompile Include="SettingsPane.cpp">
       <Filter>gui</Filter>
     </ClCompile>
+    <ClCompile Include="Draw.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="VideoPreview.rc">
@@ -184,7 +190,7 @@
     <Image Include="res\AppIcon.ico">
       <Filter>res</Filter>
     </Image>
-    <Image Include="res\dummy_frame.bmp">
+    <Image Include="res\sample_frame.bmp">
       <Filter>res</Filter>
     </Image>
     <Image Include="res\ToolbarSettings.bmp">

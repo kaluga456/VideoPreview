@@ -9,8 +9,68 @@
 #include "VideoFile.h"
 #include "VPError.h"
 
+LPCTSTR GetRelativeFileName(LPCTSTR file_name)
+{
+    ASSERT(file_name);
+    LPCTSTR pos = ::_tcsrchr(file_name, _T('\\'));
+    return (nullptr == pos) ? file_name : pos + 1;
+};
+CString GetDurationString(int duration)
+{
+    LPCTSTR format_string = _T("%02u:%02u:%02u");
+
+    const int seconds = duration % 60;
+    const int minutes = (duration / 60) % 60;
+    const int hours = duration / 3600;
+
+    CString result;
+    result.Format(format_string, hours, minutes, seconds);
+
+    return result;
+}
+CString GetFileSizeString(const LARGE_INTEGER& file_size)
+{
+    CString size_string;
+    uint32_t size_value = 0;
+    const QWORD terabyte = QWORD(1024 * 1024) * QWORD(1024 * 1024);
+    if (file_size.QuadPart >= terabyte)
+    {
+        size_value = static_cast<uint32_t>(file_size.QuadPart / terabyte);
+        size_string.Format(_T("%u TB"), size_value);
+    }
+    else if (file_size.QuadPart >= 1024 * 1024 * 1024)
+    {
+        size_value = static_cast<uint32_t>(file_size.QuadPart / (1024 * 1024 * 1024));
+        size_string.Format(_T("%u GB"), size_value);
+    }
+    else if (file_size.QuadPart >= 1024 * 1024)
+    {
+        size_value = static_cast<uint32_t>(file_size.QuadPart / (1024 * 1024));
+        size_string.Format(_T("%u MB"), size_value);
+    }
+    else if (file_size.QuadPart >= 1024)
+    {
+        size_value = static_cast<uint32_t>(file_size.QuadPart / 1024);
+        size_string.Format(_T("%u KB"), size_value);
+    }
+    else
+    {
+        size_value = static_cast<uint32_t>(file_size.QuadPart);
+        size_string.Format(_T("%u B"), size_value);
+    }
+
+    CString bytes_string;
+    if (file_size.HighPart)
+        bytes_string.Format(_T(" (%I64u bytes)"), file_size.QuadPart);
+    else
+        bytes_string.Format(_T(" (%u bytes)"), file_size.LowPart);
+
+    return size_string + bytes_string;
+}
+
 void CVideoFile::GetFileSize(LPCTSTR file_name)
 {
+    ASSERT(file_name);
     const HANDLE hFile = CreateFile(file_name, GENERIC_READ,
         FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING,
         FILE_ATTRIBUTE_NORMAL, NULL);

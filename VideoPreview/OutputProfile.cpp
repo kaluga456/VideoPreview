@@ -92,7 +92,6 @@ void COutputProfile::Normalize()
     //TODO:
 }
 
-//TODO:
 void COutputProfile::operator=(const COutputProfile& src)
 {
     //TODO: copy for processing thread or block writing?

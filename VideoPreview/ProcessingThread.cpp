@@ -91,9 +91,9 @@ DWORD CProcessingThread::Run()
     if(false == OutputDir.IsEmpty())
         output_dir = OutputDir;
     const int result = GenerateScreenlist(SourceFileName, output_dir, OutputProfile, result_string, this);
-    if(SNAPSHOTS_RESULT_SUCCESS == result)
+    if(SCREENLIST_RESULT_SUCCESS == result)
         NotifyResult(PTM_DONE, result_string);
-    else if(SNAPSHOTS_RESULT_TERMINATED == result)
+    else if(SCREENLIST_RESULT_TERMINATED == result)
         NotifyResult(PTM_STOP, nullptr);
     else
         NotifyResult(PTM_FAILED, result_string);

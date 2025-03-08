@@ -135,26 +135,26 @@ CPGPCombo::CPGPCombo(const CString& strName, const COleVariant& varValue, LPCTST
 {
     AllowEdit(FALSE);
 }
-void CPGPCombo::AddItem(CString key, int value)
+void CPGPCombo::AddItem(CString key, INT_PTR value)
 {
     ASSERT(false == key.IsEmpty());
     Items[key] = reinterpret_cast<void*>(value);
     AddOption(key);
 }
-int CPGPCombo::GetItem() const
+INT_PTR CPGPCombo::GetItem() const
 {
     CString key = GetValue();
     void* value;
-    return Items.Lookup(key, value) ? reinterpret_cast<int>(value) : -1;
+    return Items.Lookup(key, value) ? reinterpret_cast<INT_PTR>(value) : -1;
 }
-void CPGPCombo::SetItem(int value)
+void CPGPCombo::SetItem(INT_PTR value)
 {
     CString key;
     void* val = NULL;
     for(POSITION pos = Items.GetStartPosition(); pos;)
     {
         Items.GetNextAssoc(pos, key, val);
-        if(value != reinterpret_cast<int>(val)) continue;        
+        if(value != reinterpret_cast<INT_PTR>(val)) continue;
         SetValue(key);
         return;
     }
@@ -550,10 +550,10 @@ void CSettingsPane::GetOutputProfile(COutputProfile* profile)
     profile->FrameColumns = pgpFramesGridColumns->GetValue().intVal;
     profile->FrameRows = pgpFramesGridRows->GetValue().intVal;
 
-    profile->OutputSizeMethod = pgpOutputSizeMethod->GetItem();
+    profile->OutputSizeMethod = static_cast<int>(pgpOutputSizeMethod->GetItem());
     profile->OutputImageSize = pgpOutputSize->GetInt();
     
-    profile->TimestampType = pgpTimestampType->GetItem();
+    profile->TimestampType = static_cast<int>(pgpTimestampType->GetItem());
     LPLOGFONT timestamp_logfont = pgpTimestampFont->GetLogFont();
     COLORREF timestamp_font_clor = pgpTimestampFontColor->GetColor();
     profile->TimestampFont.Set(*timestamp_logfont, timestamp_font_clor);
@@ -561,7 +561,7 @@ void CSettingsPane::GetOutputProfile(COutputProfile* profile)
     //const COleVariant& output_file_name = pgpOutputFileName->GetValue();
     //profile->OutputFileName = output_file_name;
 
-    int output_format = pgpOutputFileFormat->GetItem();
+    int output_format = static_cast<int>(pgpOutputFileFormat->GetItem());
     ASSERT(0 <= output_format && output_format <= OUTPUT_FILE_FORMAT_COUNT);
     if(output_format < 0 && OUTPUT_FILE_FORMAT_COUNT < output_format) output_format = OUTPUT_FILE_FORMAT_JPG;
     profile->OutputFileFormat = output_format;

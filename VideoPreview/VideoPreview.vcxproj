@@ -210,6 +210,7 @@
     <ClInclude Include="DialogAbout.h" />
     <ClInclude Include="DialogOutputProfile.h" />
     <ClInclude Include="DialogSettings.h" />
+    <ClInclude Include="Draw.h" />
     <ClInclude Include="FileListView.h" />
     <ClInclude Include="MainFrm.h" />
     <ClInclude Include="OutputProfile.h" />
@@ -233,6 +234,7 @@
     <ClCompile Include="DialogAbout.cpp" />
     <ClCompile Include="DialogOutputProfile.cpp" />
     <ClCompile Include="DialogSettings.cpp" />
+    <ClCompile Include="Draw.cpp" />
     <ClCompile Include="FileListView.cpp" />
     <ClCompile Include="MainFrm.cpp" />
     <ClCompile Include="OutputProfile.cpp" />
@@ -259,7 +261,7 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\AppIcon.ico" />
-    <Image Include="res\dummy_frame.bmp" />
+    <Image Include="res\sample_frame.bmp" />
     <Image Include="res\Toolbar.bmp" />
     <Image Include="res\ToolbarMain.bmp" />
     <Image Include="res\ToolbarSettings.bmp" />

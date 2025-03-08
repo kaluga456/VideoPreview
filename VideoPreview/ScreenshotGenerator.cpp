@@ -10,13 +10,12 @@
 #include "Settings.h"
 #include "OutputProfile.h"
 #include "VideoFile.h"
+#include "Draw.h"
 #include "ScreenshotGenerator.h"
 
-using Gdiplus::REAL;
+constexpr LPCTSTR SAMPLE_OUTPUT_FILE_NAME = _T("vp_profile_preview.");
 
-const size_t HEADER_LINES_COUNT = 4;
-
-LPCTSTR GetImageFileExt(int image_type)
+static LPCTSTR GetImageFileExt(int image_type)
 {
     switch(image_type)
     {
@@ -26,7 +25,7 @@ LPCTSTR GetImageFileExt(int image_type)
     }
 
     ASSERT(FALSE);
-    return nullptr;
+    return _T("");
 }
 
 static LPCTSTR GetMIMETypeString(int image_type)
@@ -43,70 +42,7 @@ static LPCTSTR GetMIMETypeString(int image_type)
     return _T("image/jpeg");
 }
 
-static CString GetDurationString(int duration)
-{
-    LPCTSTR format_string = _T("%02u:%02u:%02u");
-
-    const int seconds = duration % 60;
-    const int minutes = (duration / 60) % 60;
-    const int hours = duration / 3600;
-
-    CString result;
-    result.Format(format_string, hours, minutes, seconds);
-
-    return result;
-}
-
-static CString GetFileSizeString(const LARGE_INTEGER& file_size)
-{
-    CString size_string;
-    uint32_t size_value = 0;
-    const QWORD terabyte = QWORD(1024 * 1024) * QWORD(1024 * 1024);
-    if(file_size.QuadPart >= terabyte)
-    {
-        size_value = static_cast<uint32_t>(file_size.QuadPart / terabyte);
-        size_string.Format(_T("%u TB"), size_value);
-    }
-    else if(file_size.QuadPart >= 1024 * 1024 * 1024)
-    {
-        size_value = static_cast<uint32_t>(file_size.QuadPart / (1024 * 1024 * 1024));
-        size_string.Format(_T("%u GB"), size_value);
-    }
-    else if(file_size.QuadPart >= 1024 * 1024)
-    {
-        size_value = static_cast<uint32_t>(file_size.QuadPart / (1024 * 1024));
-        size_string.Format(_T("%u MB"), size_value);
-    }
-    else if(file_size.QuadPart >= 1024)
-    {
-        size_value = static_cast<uint32_t>(file_size.QuadPart / 1024);
-        size_string.Format(_T("%u KB"), size_value);
-    }
-    else
-    {
-        size_value = static_cast<uint32_t>(file_size.QuadPart);
-        size_string.Format(_T("%u B"), size_value);
-    }
-
-    CString bytes_string;
-    if(file_size.HighPart)
-        bytes_string.Format(_T(" (%I64u bytes)"), file_size.QuadPart);
-    else
-        bytes_string.Format(_T(" (%u bytes)"), file_size.LowPart);
-
-    return size_string + bytes_string;
-}
-
-static LPCTSTR GetRelativeFileName(LPCTSTR file_name)
-{
-    if(nullptr == file_name)
-        return nullptr;
-
-    LPCTSTR pos = ::_tcsrchr(file_name, _T('\\'));
-    return (nullptr == pos) ? file_name : pos + 1;
-};
-
-static CString GenerateOutputFileName(LPCTSTR video_file_name, LPCTSTR output_dir, const COutputProfile& output_profile) 
+static CString GenerateOutputFileName(LPCTSTR video_file_name, LPCTSTR output_dir, const COutputProfile& profile) 
 {
     ASSERT(video_file_name);
 
@@ -114,7 +50,7 @@ static CString GenerateOutputFileName(LPCTSTR video_file_name, LPCTSTR output_di
     {
         CString file_name(GetRelativeFileName(video_file_name));
         file_name += _T(".");
-        file_name += GetImageFileExt(output_profile.OutputFileFormat);
+        file_name += GetImageFileExt(profile.OutputFileFormat);
 
         CString result(output_dir);
         result += _T("\\");
@@ -124,184 +60,99 @@ static CString GenerateOutputFileName(LPCTSTR video_file_name, LPCTSTR output_di
 
     CString result(video_file_name);
     result += _T(".");
-    result += GetImageFileExt(output_profile.OutputFileFormat);
+    result += GetImageFileExt(profile.OutputFileFormat);
     return result;
 }
-static void DrawTimestamp(Gdiplus::Graphics& graphics, Gdiplus::Font& font,  Gdiplus::Brush& brush, int timestamp, REAL frame_x, REAL frame_y, REAL frame_width, REAL frame_height, int position)
-{
-    CString timestamp_str(GetDurationString(timestamp));
-    Gdiplus::RectF rect(frame_x, frame_y, frame_width, frame_height);
 
-    Gdiplus::StringFormat str_format;
-    Gdiplus::StringAlignment horz_alignment = Gdiplus::StringAlignmentFar;
-    if(TIMESTAMP_TYPE_TOP_LEFT == position || TIMESTAMP_TYPE_BOTTOM_LEFT == position)
-        horz_alignment = Gdiplus::StringAlignmentNear;
-    else if(TIMESTAMP_TYPE_TOP_CENTER == position || TIMESTAMP_TYPE_BOTTOM_CENTER == position)
-        horz_alignment = Gdiplus::StringAlignmentCenter;
-    const Gdiplus::StringAlignment vert_alignment = (TIMESTAMP_TYPE_TOP_LEFT == position || 
-                                TIMESTAMP_TYPE_TOP_CENTER == position || 
-                                TIMESTAMP_TYPE_TOP_RIGHT == position) ?
-                                Gdiplus::StringAlignmentNear : Gdiplus::StringAlignmentFar;
-
-    str_format.SetAlignment(horz_alignment); //horz alignment
-    str_format.SetLineAlignment(vert_alignment); //vert alignment
-
-    //TEST:
-    Gdiplus::Color timestamp_font_color_shadow(0, 0, 0);
-    Gdiplus::SolidBrush timestamp_brush_shadow(timestamp_font_color_shadow);
-    Gdiplus::RectF rect_shadow(frame_x + 2, frame_y + 2, frame_width, frame_height);
-    app::verify_gdi(graphics.DrawString(timestamp_str, timestamp_str.GetLength(), &font, rect_shadow, &str_format, &timestamp_brush_shadow));
-
-    app::verify_gdi(graphics.DrawString(timestamp_str, timestamp_str.GetLength(), &font, rect, &str_format, &brush));
-}
-
-//TODO:
-class CTimeStampDraw
+class CEncoderCLSID
 {
 public:
-    CTimeStampDraw(Gdiplus::Graphics& graphics, const COutputProfile& output_profile) : Graphics(graphics), Profile(output_profile), Font(nullptr) , Brush(nullptr), ShadowBrush(nullptr)
+    CEncoderCLSID(const COutputProfile& profile)
     {
-        if(TIMESTAMP_TYPE_DISABLED == Profile.TimestampType)
-            return;
-
-        LOGFONT ts_lf;
-        Profile.TimestampFont.Get(ts_lf);
-        VP_VERIFY(ts_lf.lfHeight);
-
-        HDC hdc = graphics.GetHDC();
-        Font = new Gdiplus::Font(hdc, &ts_lf);
-        graphics.ReleaseHDC(hdc);
-
-        Gdiplus::Color font_color;
-        font_color.SetFromCOLORREF(output_profile.TimestampFont.Color);
-   
-        Brush = new Gdiplus::SolidBrush(font_color);
-
-        //TODO: inverted color
-        Gdiplus::Color shadow_color(0, 0, 0);
-        ShadowBrush = new Gdiplus::SolidBrush(shadow_color);
-    }
-    ~CTimeStampDraw()
-    {
-        delete Font;
-        delete Brush;
-        delete ShadowBrush;
+        //get image encoder CLSID
+        app::gdi_encoders encoders;
+        app::verify_gdi(encoders.initialize());
+        VP_VERIFY(true == encoders.encoder_clsid(GetMIMETypeString(profile.OutputFileFormat), EncoderCLSID));
     }
 
-    void Draw(int timestamp, REAL frame_x, REAL frame_y, REAL frame_width, REAL frame_height);
+    const CLSID* Get() const { return &EncoderCLSID; }
 
 private:
-    const COutputProfile& Profile;
-    Gdiplus::Graphics& Graphics;
-
-    Gdiplus::Font* Font;  
-    Gdiplus::SolidBrush* Brush;
-    Gdiplus::SolidBrush* ShadowBrush;
-};
-void CTimeStampDraw::Draw(int timestamp, REAL frame_x, REAL frame_y, REAL frame_width, REAL frame_height)
-{
-    if(TIMESTAMP_TYPE_DISABLED == Profile.TimestampType)
-        return;
-
-    CString timestamp_str(GetDurationString(timestamp));
-    Gdiplus::RectF rect(frame_x, frame_y, frame_width, frame_height);
-
-    Gdiplus::StringFormat str_format;
-    Gdiplus::StringAlignment horz_alignment = Gdiplus::StringAlignmentFar;
-    if(TIMESTAMP_TYPE_TOP_LEFT == Profile.TimestampType || TIMESTAMP_TYPE_BOTTOM_LEFT == Profile.TimestampType)
-        horz_alignment = Gdiplus::StringAlignmentNear;
-    else if(TIMESTAMP_TYPE_TOP_CENTER == Profile.TimestampType || TIMESTAMP_TYPE_BOTTOM_CENTER == Profile.TimestampType)
-        horz_alignment = Gdiplus::StringAlignmentCenter;
-    const Gdiplus::StringAlignment vert_alignment = (TIMESTAMP_TYPE_TOP_LEFT == Profile.TimestampType || 
-                                TIMESTAMP_TYPE_TOP_CENTER == Profile.TimestampType || 
-                                TIMESTAMP_TYPE_TOP_RIGHT == Profile.TimestampType) ?
-                                Gdiplus::StringAlignmentNear : Gdiplus::StringAlignmentFar;
-
-    str_format.SetAlignment(horz_alignment); //horz alignment
-    str_format.SetLineAlignment(vert_alignment); //vert alignment
-
-    //TODO:
-    Gdiplus::RectF rect_shadow(frame_x + 2, frame_y + 2, frame_width, frame_height);
-    app::verify_gdi(Graphics.DrawString(timestamp_str, timestamp_str.GetLength(), Font, rect_shadow, &str_format, ShadowBrush));
-
-    app::verify_gdi(Graphics.DrawString(timestamp_str, timestamp_str.GetLength(), Font, rect, &str_format, Brush));
-}
-
-//TODO: header draw
-LPCTSTR const HEADER_FORMAT_STRING = _T("File Name: %s\nFile Size: %s\nResolution: %ux%u\nDuration: %s");
-constexpr size_t HEADER_VERTICAL_PADDING = 5; //vertical padding, px
-class CHeaderDraw
-{
-public:
-    CHeaderDraw(Gdiplus::Graphics& graphics, const COutputProfile& output_profile) : Graphics(graphics), Profile(output_profile), Brush{nullptr}
-    {
-    }
-    ~CHeaderDraw()
-    {
-        delete Brush;
-    }
-
-    void Draw(LPCTSTR video_file_name, const CVideoFile& video_file)
-    {
-        const UINT duration = video_file.GetDuration();
-        const int video_width = video_file.GetVideoWidth();
-        const int video_height = video_file.GetVideoHeight();
-        VP_VERIFY(duration > 0);
-        VP_VERIFY(video_width > 0);
-        VP_VERIFY(video_height > 0);
-
-        CString header_text;
-
-        LARGE_INTEGER li{};
-        video_file.GetSize(li);
-        CString file_size_str = GetFileSizeString(li);
-        CString duration_str = GetDurationString(duration);
-        LPCTSTR file_name = GetRelativeFileName(video_file_name);
-        header_text.Format(HEADER_FORMAT_STRING, file_name, file_size_str, video_width, video_height, duration_str);
-
-        LOGFONT lf;
-        Profile.HeaderFont.Get(lf);
-        VP_VERIFY(lf.lfHeight);
-
-        HDC hdc = Graphics.GetHDC();
-        Gdiplus::Font header_font(hdc, &lf);
-        Graphics.ReleaseHDC(hdc);
-
-        Gdiplus::Color header_font_color;
-        header_font_color.SetFromCOLORREF(Profile.HeaderFont.Color);
-        Gdiplus::SolidBrush header_brush(header_font_color);
-        Gdiplus::PointF pt(0, static_cast<Gdiplus::REAL>(HEADER_VERTICAL_PADDING));
-
-        app::verify_gdi(Graphics.DrawString(header_text, static_cast<INT>(::wcslen(header_text)), &header_font, pt, &header_brush));
-    }
-    static int CalculateHeight(const COutputProfile& output_profile)
-    {
-        Gdiplus::Bitmap temp_image(100, 100, PixelFormat24bppRGB);
-        Gdiplus::Graphics temp_graphics(&temp_image);
-
-        LOGFONT lf{};
-        output_profile.HeaderFont.Get(lf);
-        VP_VERIFY(lf.lfHeight);
-
-        HDC hdc = temp_graphics.GetHDC();
-        Gdiplus::Font header_font(hdc, &lf);
-        temp_graphics.ReleaseHDC(hdc);
-
-        const int header_font_height = static_cast<size_t>(header_font.GetHeight(&temp_graphics));
-        return HEADER_VERTICAL_PADDING + header_font_height * HEADER_LINES_COUNT + HEADER_VERTICAL_PADDING;
-    }
-
-private:
-    const COutputProfile& Profile;
-    Gdiplus::Graphics& Graphics;
-
-    Gdiplus::SolidBrush* Brush{nullptr};
+    CLSID EncoderCLSID;
 };
 
-int GenerateScreenlist(LPCTSTR video_file_name, LPCTSTR output_dir, const COutputProfile& output_profile, CString& result_string, IScreenshotsCallback* callback /*= nullptr*/)
+//output sizes calculation
+struct COutputImageSize
+{
+    COutputImageSize(const COutputProfile& profile, int video_width, int video_height) : HeaderHeight{0}
+    {
+        const float aspect_ratio = float(video_width) / float(video_height);
+        FrameCount = profile.FrameRows * profile.FrameColumns;
+        switch (profile.OutputSizeMethod)
+        {
+        case OUTPUT_IMAGE_WIDTH_BY_ORIGINAL_FRAME:
+        {
+            FrameWidth = video_width;
+            FrameHeight = video_height;
+            Width = FrameWidth * profile.FrameColumns;
+            Height = FrameHeight * profile.FrameRows;
+            break;
+        }
+        case OUTPUT_IMAGE_WIDTH_AS_IS:
+        {
+            FrameWidth = static_cast<int>(float(profile.OutputImageSize) / float(profile.FrameColumns));
+            FrameHeight = static_cast<int>(FrameWidth / aspect_ratio);
+            Width = profile.OutputImageSize;
+            Height = FrameHeight * profile.FrameRows;
+            break;
+        }
+        case OUTPUT_IMAGE_WIDTH_BY_FRAME_WIDTH:
+        {
+            FrameWidth = profile.OutputImageSize;
+            FrameHeight = static_cast<int>(FrameWidth / aspect_ratio);
+            Width = FrameWidth * profile.FrameColumns;
+            Height = FrameHeight * profile.FrameRows;
+            break;
+        }
+        case OUTPUT_IMAGE_WIDTH_BY_FRAME_HEIGHT:
+        {
+            FrameHeight = profile.OutputImageSize;
+            FrameWidth = static_cast<int>(FrameHeight * aspect_ratio);
+            Width = FrameWidth * profile.FrameColumns;
+            Height = FrameHeight * profile.FrameRows;
+            break;
+        }
+        default:
+            VP_THROW(_T("Uknown profile.OutputSizeMethod"));
+        }
+
+        //TODO:
+        VP_VERIFY(0 < FrameWidth && FrameWidth < 4096);
+        VP_VERIFY(0 < FrameHeight && FrameHeight < 4096);
+        VP_VERIFY(0 < Width && Width < 4096);
+        VP_VERIFY(0 < Height && Height < 4096);
+
+        //calculate header height
+        if (profile.WriteHeader)
+        {
+            HeaderHeight = CHeaderDraw::CalculateHeight(profile);
+            Height += HeaderHeight;
+        }
+    }
+
+    //sizes
+    int HeaderHeight{0};
+    int FrameWidth{0};
+    int FrameHeight{0};
+    int Width{0};
+    int Height{0};
+    int FrameCount{0};
+};
+
+UINT GenerateScreenlist(LPCTSTR video_file_name, LPCTSTR output_dir, const COutputProfile& output_profile, CString& result_string, IScreenshotsCallback* callback /*= nullptr*/)
 {
     if(nullptr == video_file_name)
-        return SNAPSHOTS_RESULT_FAIL;
+        return SCREENLIST_RESULT_FAIL;
 
     try
     {
@@ -314,7 +165,7 @@ int GenerateScreenlist(LPCTSTR video_file_name, LPCTSTR output_dir, const COutpu
             {
                 result_string = _T("Output file already exists: ");
                 result_string += output_file_name;
-                return SNAPSHOTS_RESULT_FAIL;
+                return SCREENLIST_RESULT_FAIL;
             }            
         }
 
@@ -336,74 +187,14 @@ int GenerateScreenlist(LPCTSTR video_file_name, LPCTSTR output_dir, const COutpu
         VP_VERIFY(video_width > 0);
         VP_VERIFY(video_height > 0);
 
-        //init output image size
-        int frame_width = 0;
-        int frame_height = 0;
-        int output_width = 0;
-        int output_height = 0;
-        const float aspect_ratio = float(video_width) / float(video_height);
-        const int frame_count = output_profile.FrameRows * output_profile.FrameColumns;
-        switch(output_profile.OutputSizeMethod)
-        {
-        case OUTPUT_IMAGE_WIDTH_BY_ORIGINAL_FRAME:
-        {
-            frame_width = video_width;
-            frame_height = video_height;
-            output_width = frame_width * output_profile.FrameColumns;
-            output_height = frame_height * output_profile.FrameRows;
-            break;
-        }
-        case OUTPUT_IMAGE_WIDTH_AS_IS:
-        {
-            frame_width = static_cast<size_t>(float(output_profile.OutputImageSize) / float(output_profile.FrameColumns));
-            frame_height = static_cast<size_t>(float(frame_width) / aspect_ratio);
-            output_width = output_profile.OutputImageSize;
-            output_height = frame_height * output_profile.FrameRows;
-            break;
-        }
-        case OUTPUT_IMAGE_WIDTH_BY_FRAME_WIDTH:
-        {
-            frame_width = output_profile.OutputImageSize;
-            frame_height = static_cast<size_t>(float(frame_width) / aspect_ratio);
-            output_width = frame_width * output_profile.FrameColumns;
-            output_height = frame_height * output_profile.FrameRows;
-            break;
-        }
-        case OUTPUT_IMAGE_WIDTH_BY_FRAME_HEIGHT:
-        {
-            frame_height = output_profile.OutputImageSize;
-            frame_width = static_cast<size_t>(float(frame_height) * aspect_ratio);
-            output_width = frame_width * output_profile.FrameColumns;
-            output_height = frame_height * output_profile.FrameRows;
-            break;
-        }
-        default:
-            VP_THROW(_T("Uknown output_profile.OutputSizeMethod"));
-        }
+        //calculate sizes
+        COutputImageSize output_size(output_profile, video_width, video_height);
 
-        //TODO:
-        VP_VERIFY(0 < frame_width && frame_width < 4096);
-        VP_VERIFY(0 < frame_height && frame_height < 4096);
-        VP_VERIFY(0 < output_width && output_width < 4096);
-        VP_VERIFY(0 < output_height && output_height < 4096);
-
-        //calculate header height
-        //TODO: how to calculate font height without temp Bitmap and Graphics?
-        int header_height = 0;
-        if (output_profile.WriteHeader)
-        {
-            header_height = CHeaderDraw::CalculateHeight(output_profile);
-            output_height += header_height;
-        }
-
-        Gdiplus::Bitmap output_image(output_width, output_height, PixelFormat24bppRGB);
+        Gdiplus::Bitmap output_image(output_size.Width, output_size.Height, PixelFormat24bppRGB);
         Gdiplus::Graphics graphics(&output_image);
 
         //draw background
-        Gdiplus::Color bk_color{ };
-        bk_color.SetFromCOLORREF(output_profile.BackgroundColor);
-        std::unique_ptr<Gdiplus::SolidBrush> brush{ new Gdiplus::SolidBrush(bk_color) };
-        app::verify_gdi(graphics.FillRectangle(brush.get(), Gdiplus::Rect(0, 0, output_width, output_height)));
+        DrawBackgorund(graphics, output_profile, output_size.Width, output_size.Height);
 
         //write header
         if (output_profile.WriteHeader)
@@ -412,16 +203,9 @@ int GenerateScreenlist(LPCTSTR video_file_name, LPCTSTR output_dir, const COutpu
             header_draw.Draw(video_file_name, video_file);
         }
 
-        //get image encoder CLSID
-        app::gdi_encoders encoders;
-        app::verify_gdi(encoders.initialize());
-        CLSID encoder_clsid;
-        VP_VERIFY(true == encoders.encoder_clsid(GetMIMETypeString(output_profile.OutputFileFormat), encoder_clsid));
-
+        //write frames
         CTimeStampDraw timestamp_draw(graphics, output_profile);
-
-        //build output image
-        const int interval = duration / (frame_count + 1);
+        const int interval = duration / (output_size.FrameCount + 1);
         int current_position = interval;
         size_t frame_index = 0;
         for(int y = 0; y < output_profile.FrameRows; ++y)
@@ -429,10 +213,10 @@ int GenerateScreenlist(LPCTSTR video_file_name, LPCTSTR output_dir, const COutpu
             for (int x = 0; x < output_profile.FrameColumns; ++x)
             {
                 if(callback && true == callback->IsTerminate())
-                    return SNAPSHOTS_RESULT_TERMINATED;
+                    return SCREENLIST_RESULT_TERMINATED;
 
                 if(callback)
-                    callback->SetProgress(static_cast<size_t>(frame_index * 100.f / frame_count)); 
+                    callback->SetProgress(static_cast<size_t>(frame_index * 100.f / output_size.FrameCount));
 
                 //get frame
                 app::byte_buffer image_buffer;
@@ -440,24 +224,28 @@ int GenerateScreenlist(LPCTSTR video_file_name, LPCTSTR output_dir, const COutpu
                 VP_VERIFY(true == video_file.GetSnapshot(current_position, snapshot, image_buffer));
 
                 //write frame
-                const INT frame_left = x * frame_width;
-                const INT frame_top = header_height + y * frame_height;
-                app::verify_gdi(graphics.DrawImage(snapshot.get(), frame_left, frame_top, frame_width, frame_height));
+                const INT frame_left = x * output_size.FrameWidth;
+                const INT frame_top = output_size.HeaderHeight + y * output_size.FrameHeight;
+                app::verify_gdi(graphics.DrawImage(snapshot.get(), frame_left, frame_top, output_size.FrameWidth, output_size.FrameHeight));
 
                 //timestamp
-                timestamp_draw.Draw(current_position, static_cast<Gdiplus::REAL>(frame_left), static_cast<Gdiplus::REAL>(frame_top),
-                    static_cast<Gdiplus::REAL>(frame_width), static_cast<Gdiplus::REAL>(frame_height));
+                if (TIMESTAMP_TYPE_DISABLED != output_profile.TimestampType)
+                {
+                    timestamp_draw.Draw(current_position, static_cast<REAL>(frame_left), static_cast<REAL>(frame_top),
+                        static_cast<REAL>(output_size.FrameWidth), static_cast<REAL>(output_size.FrameHeight));
+                }
 
-                //ok - go to next frame
+                //go to next frame
                 current_position += interval;
                 ++frame_index;
             }
         }
 
         //save
-        app::verify_gdi(output_image.Save(output_file_name, &encoder_clsid));
+        CEncoderCLSID encoder_clsid(output_profile);
+        app::verify_gdi(output_image.Save(output_file_name, encoder_clsid.Get()));
         result_string = output_file_name;
-        return SNAPSHOTS_RESULT_SUCCESS;
+        return SCREENLIST_RESULT_SUCCESS;
     }
 
     //DEPRECATE:
@@ -481,16 +269,13 @@ int GenerateScreenlist(LPCTSTR video_file_name, LPCTSTR output_dir, const COutpu
         result_string = VP_UNKNOWN_ERROR_STRING;
     }
 
-    return SNAPSHOTS_RESULT_FAIL;
+    return SCREENLIST_RESULT_FAIL;
 }
-int GenerateProfilePreview(const COutputProfile& output_profile, CString& result_string)
+UINT GenerateScreenlistPreview(const COutputProfile& output_profile, CString& result_string)
 {
-    //sample preview settings
-    LPCTSTR video_file_name = _T("dummy_frame.bmp");
-
     try
     {
-        //TODO: already initialized in main thread
+        //NOTE: already initialized in main thread
         //init COM
         //app::com com(COINIT_MULTITHREADED);
 
@@ -498,164 +283,56 @@ int GenerateProfilePreview(const COutputProfile& output_profile, CString& result
         app::gdi gdi;
 
         //get video file attr
-        const int duration = 0;
-        const int video_width = 320;
-        const int video_height = 200;
+        const int duration = SAMPLE_FRAME_DURATION;
+        const int video_width = SAMPLE_FRAME_WIDTH;
+        const int video_height = SAMPLE_FRAME_HEIGHT;
         const float aspect_ratio = float(video_width) / float(video_height);
         
         //get snapshots count
         const UINT frame_count = output_profile.FrameRows * output_profile.FrameColumns;
 
-        //init output image size
-        int frame_width = 0;
-        int frame_height = 0;
-        int output_width = 0;
-        int output_height = 0;
-        switch(output_profile.OutputSizeMethod)
-        {
-        case OUTPUT_IMAGE_WIDTH_BY_ORIGINAL_FRAME:
-        {
-            frame_width = video_width;
-            frame_height = video_height;
-            output_width = frame_width * output_profile.FrameColumns;
-            output_height = frame_height * output_profile.FrameRows;
-            break;
-        }
-        case OUTPUT_IMAGE_WIDTH_AS_IS:
-        {
-            frame_width = static_cast<int>(float(output_profile.OutputImageSize) / float(output_profile.FrameColumns));
-            frame_height = static_cast<int>(float(frame_width) / aspect_ratio);
-            output_width = output_profile.OutputImageSize;
-            output_height = frame_height * output_profile.FrameRows;
-            break;
-        }
-        case OUTPUT_IMAGE_WIDTH_BY_FRAME_WIDTH:
-        {
-            frame_width = output_profile.OutputImageSize;
-            frame_height = static_cast<int>(float(frame_width) / aspect_ratio);
-            output_width = frame_width * output_profile.FrameColumns;
-            output_height = frame_height * output_profile.FrameRows;
-            break;
-        }
-        case OUTPUT_IMAGE_WIDTH_BY_FRAME_HEIGHT:
-        {
-            frame_height = output_profile.OutputImageSize;
-            frame_width = static_cast<size_t>(float(frame_height) * aspect_ratio);
-            output_width = frame_width * output_profile.FrameColumns;
-            output_height = frame_height * output_profile.FrameRows;
-            break;
-        }
-        default:
-            VP_THROW(_T("Uknown output_profile.OutputSizeMethod"));
-        }
-
-        //TODO:
-        VP_VERIFY(0 < frame_width && frame_width < 4096);
-        VP_VERIFY(0 < frame_height && frame_height < 4096);
-        VP_VERIFY(0 < output_width && output_width < 4096);
-        VP_VERIFY(0 < output_height && output_height < 4096);
+        //calculate sizes
+        COutputImageSize output_size(output_profile, video_width, video_height);
 
         //use dummy frame for all frames in grid
-        PBitmap snapshot(new Gdiplus::Bitmap(::AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_DUMMY_FRAME)));
-
-        //TODO: write header
-        //TODO: file size
-       
-        int header_height = 0;
-        int header_font_height = 0;
-
-        //calculate header height
-        //TODO: how to calculate font height without temp Bitmap and Graphics?
-        if(output_profile.WriteHeader)
-        {
-            Gdiplus::Bitmap temp_image(100, 100, PixelFormat24bppRGB);
-            Gdiplus::Graphics temp_graphics(&temp_image);
-
-            LOGFONT lf;
-            output_profile.HeaderFont.Get(lf);
-            VP_VERIFY(lf.lfHeight);
-
-            HDC hdc = temp_graphics.GetHDC();
-            Gdiplus::Font header_font(hdc, &lf);
-            temp_graphics.ReleaseHDC(hdc);
-
-            header_font_height = static_cast<size_t>(header_font.GetHeight(&temp_graphics));
-            header_height = HEADER_VERTICAL_PADDING + header_font_height * HEADER_LINES_COUNT + HEADER_VERTICAL_PADDING;
-        }
+        PBitmap snapshot(new Gdiplus::Bitmap(::AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_SAMPLE_FRAME)));
 
         //init output image
-        Gdiplus::Bitmap output_image(output_width, header_height + output_height, PixelFormat24bppRGB);
+        Gdiplus::Bitmap output_image(output_size.Width, output_size.Height, PixelFormat24bppRGB);
         Gdiplus::Graphics graphics(&output_image);
 
-        //TODO: write header
-        //TODO: file size
+        //draw background
+        DrawBackgorund(graphics, output_profile, output_size.Width, output_size.Height);
+
+        //write header
         if(output_profile.WriteHeader)
         {
-            CString header_text;
-
-            //TODO:
-            LARGE_INTEGER li{};
-            li.QuadPart = 230454; //TODO:
-            CString file_size_str = GetFileSizeString(li);
-            CString duration_str = GetDurationString(duration);
-            header_text.Format(HEADER_FORMAT_STRING, video_file_name, file_size_str, 320, 240, duration_str);
-
-            LOGFONT lf;
-            output_profile.HeaderFont.Get(lf);
-            VP_VERIFY(lf.lfHeight);
-            
-            HDC hdc = graphics.GetHDC();
-            Gdiplus::Font header_font(hdc, &lf);
-            graphics.ReleaseHDC(hdc);
-           
-            Gdiplus::Color header_font_color;
-            header_font_color.SetFromCOLORREF(output_profile.HeaderFont.Color);
-            Gdiplus::SolidBrush header_brush(header_font_color);
-            Gdiplus::PointF pt(0, static_cast<Gdiplus::REAL>(HEADER_VERTICAL_PADDING));
-
-            app::verify_gdi(graphics.DrawString(header_text, static_cast<INT>(::wcslen(header_text)), &header_font, pt, &header_brush));
+            CHeaderDraw header_draw(graphics, output_profile);
+            header_draw.DrawPreview();
         }
-
-        //TODO:
-        //if(output_profile.TimestampType != TIMESTAMP_TYPE_DISABLED)
-        //{
-            //LOGFONT ts_lf;
-            //output_profile.TimestampFont.Get(ts_lf);
-            //VP_VERIFY(ts_lf.lfHeight);
-
-            //HDC hdc = graphics.GetHDC();
-            //Gdiplus::Font timestamp_font(hdc, &ts_lf);
-            //graphics.ReleaseHDC(hdc);
-
-            //Gdiplus::Color timestamp_font_color;
-            //timestamp_font_color.SetFromCOLORREF(output_profile.TimestampFont.Color);
-            //Gdiplus::SolidBrush timestamp_brush(timestamp_font_color);
-        //}
         
-        CTimeStampDraw timestamp_draw(graphics, output_profile);
-
         //draw frames grid
-        int interval = duration / (frame_count + 1);
+        CTimeStampDraw timestamp_draw(graphics, output_profile);
+        const int interval = duration / (frame_count + 1);
         int current_position = interval;
         int frame_index = 0;
         for (int y = 0; y < output_profile.FrameRows; ++y)
         {
             for (int x = 0; x < output_profile.FrameColumns; ++x)
             {
-                //get frame
-                //app::byte_buffer image_buffer;
-                //VP_VERIFY(true == video_file.GetSnapshot(current_position, snapshot, image_buffer));
-
                 //frame image
-                const INT frame_left = x * frame_width;
-                const INT frame_top = header_height + y * frame_height;
-                app::verify_gdi(graphics.DrawImage(snapshot.get(), frame_left, frame_top, frame_width, frame_height));
+                const INT frame_left = x * output_size.FrameWidth;
+                const INT frame_top = output_size.HeaderHeight + y * output_size.FrameHeight;
+                app::verify_gdi(graphics.DrawImage(snapshot.get(), frame_left, frame_top, output_size.FrameWidth, output_size.FrameHeight));
 
                 //timestamp
-                timestamp_draw.Draw(current_position, static_cast<REAL>(frame_left), static_cast<REAL>(frame_top),
-                                    static_cast<REAL>(frame_width), static_cast<REAL>(frame_height));
+                if (TIMESTAMP_TYPE_DISABLED != output_profile.TimestampType)
+                {
+                    timestamp_draw.Draw(current_position, static_cast<REAL>(frame_left), static_cast<REAL>(frame_top),
+                        static_cast<REAL>(output_size.FrameWidth), static_cast<REAL>(output_size.FrameHeight));
+                }
 
-                //ok - go to next frames
+                //go to next frame
                 current_position += interval;
                 ++frame_index;
             }
@@ -665,21 +342,16 @@ int GenerateProfilePreview(const COutputProfile& output_profile, CString& result
         CString output_dir;
         CString output_file_name;
         if(FALSE == output_dir.GetEnvironmentVariable(_T("TEMP")))
-            output_file_name = _T("vp_profile_preview.");
+            output_file_name = SAMPLE_OUTPUT_FILE_NAME;
         else
-            output_file_name = output_dir + _T("\\vp_profile_preview.");
+            output_file_name = output_dir + _T("\\") + SAMPLE_OUTPUT_FILE_NAME;
         output_file_name += GetImageFileExt(output_profile.OutputFileFormat);
 
-        //get image encoder CLSID
-        app::gdi_encoders encoders;
-        app::verify_gdi(encoders.initialize());
-        CLSID encoder_clsid;
-        VP_VERIFY(true == encoders.encoder_clsid(GetMIMETypeString(output_profile.OutputFileFormat), encoder_clsid));
-
         //save
-        app::verify_gdi(output_image.Save(output_file_name, &encoder_clsid));
+        CEncoderCLSID encoder_clsid(output_profile);
+        app::verify_gdi(output_image.Save(output_file_name, encoder_clsid.Get()));
         result_string = output_file_name;
-        return SNAPSHOTS_RESULT_SUCCESS;
+        return SCREENLIST_RESULT_SUCCESS;
     }
 
     //DEPRECATE:
@@ -702,5 +374,5 @@ int GenerateProfilePreview(const COutputProfile& output_profile, CString& result
         result_string = VP_UNKNOWN_ERROR_STRING;
     }
 
-    return SNAPSHOTS_RESULT_FAIL;
+    return SCREENLIST_RESULT_FAIL;
 }

@@ -27,9 +27,6 @@
 #define new DEBUG_NEW
 #endif
 
-//TEST:
-int GenerateProfilePreview(const COutputProfile& output_profile, CString& result_string);
-
 bool IsProcessSelected = false; //true process only selected items
 //////////////////////////////////////////////////////////////////////////////
 //CComboOutputDirs
@@ -905,21 +902,19 @@ void CMainFrame::OnCmdProfileDelete()
 }
 void CMainFrame::OnCmdProfilePreview()
 {
-    //TODO:
     CString result_string;
     SettingsPane.GetOutputProfile(&TempProfile);
-    int result = GenerateProfilePreview(TempProfile, result_string);
-
-    if(result)
+    if (SCREENLIST_RESULT_SUCCESS == GenerateScreenlistPreview(TempProfile, result_string))
     {
-        //error
-        CString msg(_T("GenerateProfilePreview() failed\n"));
-        msg += result_string;
-        ::AfxMessageBox(msg, MB_OK | MB_ICONSTOP);
+        ::ShellOpenFile(result_string, m_hWnd);
         return;
     }
 
-    ::ShellOpenFile(result_string, m_hWnd);
+    //error
+    CString msg(_T("GenerateScreenlistPreview() failed\n"));
+    msg += result_string;
+    ::AfxMessageBox(msg, MB_OK | MB_ICONSTOP);
+    return;
 }
 void CMainFrame::OnCmdTest()
 {

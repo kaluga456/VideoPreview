@@ -23,9 +23,9 @@ class CPGPCombo : public CMFCPropertyGridProperty
 public:
     CPGPCombo(const CString& strName, const COleVariant& varValue, LPCTSTR lpszDescr = NULL, DWORD_PTR dwData = 0);
 
-    void AddItem(CString key, int value);
-    int GetItem() const;
-    void SetItem(int value);
+    void AddItem(CString key, INT_PTR value);
+    INT_PTR GetItem() const;
+    void SetItem(INT_PTR value);
 
 private:
     CMapStringToPtr Items;
