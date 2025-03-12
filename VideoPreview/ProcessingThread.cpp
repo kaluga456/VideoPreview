@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #pragma hdrstop
-#include "app_thread.h"
 #include "ClipboardFiles.h"
 #include "Settings.h"
 #include "OutputProfile.h"

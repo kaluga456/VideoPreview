@@ -18,7 +18,7 @@ public:
     //operations
     bool Open(LPCTSTR file_name);
     void Close();
-    bool GetSnapshot(size_t offset, PBitmap& bitmap, app::byte_buffer& image_buffer);
+    bool GetFrameImage(size_t offset, PBitmap& bitmap, std::vector<BYTE>& image_buffer);
 
     //access
     long GetVideoWidth() const {return VideoWidth;}

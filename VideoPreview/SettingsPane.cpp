@@ -1,5 +1,4 @@
 #include "stdafx.h"
-#include "app_thread.h"
 #pragma hdrstop
 #include "Resource.h"
 #include "Settings.h"

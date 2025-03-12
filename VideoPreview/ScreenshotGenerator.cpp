@@ -1,9 +1,6 @@
 #include "stdafx.h"
-#include "app.h"
-#include "app_buffer.h"
 #include "app_com.h"
 #include "app_gdi.h"
-#include "app_direct_show.h"
 #pragma hdrstop
 #include "Resource.h"
 #include "VPError.h"
@@ -208,6 +205,7 @@ UINT GenerateScreenlist(LPCTSTR video_file_name, LPCTSTR output_dir, const COutp
         const int interval = duration / (output_size.FrameCount + 1);
         int current_position = interval;
         size_t frame_index = 0;
+        std::vector<BYTE> image_buffer;
         for(int y = 0; y < output_profile.FrameRows; ++y)
         {
             for (int x = 0; x < output_profile.FrameColumns; ++x)
@@ -219,9 +217,8 @@ UINT GenerateScreenlist(LPCTSTR video_file_name, LPCTSTR output_dir, const COutp
                     callback->SetProgress(static_cast<size_t>(frame_index * 100.f / output_size.FrameCount));
 
                 //get frame
-                app::byte_buffer image_buffer;
                 PBitmap snapshot;
-                VP_VERIFY(true == video_file.GetSnapshot(current_position, snapshot, image_buffer));
+                VP_VERIFY(true == video_file.GetFrameImage(current_position, snapshot, image_buffer));
 
                 //write frame
                 const INT frame_left = x * output_size.FrameWidth;
@@ -249,16 +246,16 @@ UINT GenerateScreenlist(LPCTSTR video_file_name, LPCTSTR output_dir, const COutp
     }
 
     //DEPRECATE:
-    catch(app::exception& exc)
-    {
-        LPCTSTR error_string = exc.string();
-        if(nullptr == error_string)
-        {
-            TCHAR buf[2*KILOBYTE];
-            exc.string(buf, 2*KILOBYTE);
-            result_string = buf;
-        }
-    }
+    //catch(app::exception& exc)
+    //{
+    //    LPCTSTR error_string = exc.string();
+    //    if(nullptr == error_string)
+    //    {
+    //        TCHAR buf[2*1024];
+    //        exc.string(buf, 2*1024);
+    //        result_string = buf;
+    //    }
+    //}
 
     catch(CVPExc& exc)
     {
@@ -355,16 +352,16 @@ UINT GenerateScreenlistPreview(const COutputProfile& output_profile, CString& re
     }
 
     //DEPRECATE:
-    catch(app::exception& exc)
-    {
-        LPCTSTR error_string = exc.string();
-        if(nullptr == error_string)
-        {
-            TCHAR buf[2*KILOBYTE];
-            exc.string(buf, 2*KILOBYTE);
-            result_string = buf;
-        }
-    }
+    //catch(app::exception& exc)
+    //{
+    //    LPCTSTR error_string = exc.string();
+    //    if(nullptr == error_string)
+    //    {
+    //        TCHAR buf[2*1024];
+    //        exc.string(buf, 2*1024);
+    //        result_string = buf;
+    //    }
+    //}
     catch (CVPExc& exc)
     {
         result_string = exc.GetFullText();

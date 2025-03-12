@@ -22,27 +22,15 @@ CString VPGetErrorStr(DWORD error_code)
     }
 
     //ok
-    error_string_size -= 2; //exclude trailing "\r\n" symbols
+    if (error_string_size >= 2) error_string_size -= 2; //exclude trailing "\r\n" symbols
     buffer[error_string_size] = 0; 
     return CString(buffer);
 }
+
 CString VPGetLastErrorStr()
 {
     return VPGetErrorStr(::GetLastError());
 }
-void VPExcMsgBox(const CVPExc* exc, LPCTSTR msg /*= NULL*/)
-{
-    CString text(msg ? msg : _T(""));
-    CString error_text(exc ? exc->GetErrorString() : CString{});
-
-    if(false == text.IsEmpty())
-        text += _T("\n");
-    if(false == error_text.IsEmpty())
-        text += error_text; 
-    if(text.IsEmpty()) text = VP_UNKNOWN_ERROR_STRING;
-    ::AfxMessageBox(text, MB_OK | MB_ICONWARNING);
-}
-
 CString CVPExcWinApi::GetFullText() const noexcept
 {
     CString result(Text);
@@ -58,4 +46,27 @@ CString CVPExcWinApi::GetFullText() const noexcept
         result += _T("\n");
     result += error_text;
     return result;
+}
+
+CString CVPExcDirectShow::GetFullText() const noexcept
+{
+    const int buffer_size = MAX_ERROR_TEXT_LEN;
+    TCHAR buffer[buffer_size];
+    DWORD error_string_size = ::AMGetErrorText(ErrorCode, buffer, buffer_size);
+    if(error_string_size >= 2) error_string_size -= 2; //exclude trailing "\r\n" symbols
+    buffer[error_string_size] = 0;
+    return CString(buffer);
+}
+
+void VPExcMsgBox(const CVPExc* exc, LPCTSTR msg /*= NULL*/)
+{
+    CString text(msg ? msg : _T(""));
+    CString error_text(exc ? exc->GetErrorString() : CString{});
+
+    if (false == text.IsEmpty())
+        text += _T("\n");
+    if (false == error_text.IsEmpty())
+        text += error_text;
+    if (text.IsEmpty()) text = VP_UNKNOWN_ERROR_STRING;
+    ::AfxMessageBox(text, MB_OK | MB_ICONWARNING);
 }

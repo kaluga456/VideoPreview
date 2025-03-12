@@ -1,22 +1,17 @@
 #ifndef _APP_COM_H_
 #define _APP_COM_H_
 
-#include "app_exception.h"
+#include "VPError.h"
 
 namespace app
 {
-
-#define APP_VERIFY_COM(error_code) \
-    {const DWORD r = (error_code); \
-    if(r != S_OK) \
-        throw app::exception_winapi_error(HRESULT_CODE(r), SRC_INFO_STRING);}
 
 //com initializer
 class com
 {
 public:
     //ctor/dtor
-    explicit com(DWORD options = COINIT_MULTITHREADED) {APP_VERIFY_COM(::CoInitializeEx(nullptr, options));}
+    explicit com(DWORD options = COINIT_MULTITHREADED) {VP_VERIFY_COM(::CoInitializeEx(nullptr, options));}
     ~com() noexcept {::CoUninitialize();}
 };
 
@@ -28,7 +23,7 @@ public:
     explicit com_iface(T* iface = nullptr) noexcept : Interface(iface) {}
     com_iface(REFCLSID clsid, REFIID iid)
     {
-        APP_VERIFY_COM(::CoCreateInstance(clsid, nullptr, CLSCTX_INPROC_SERVER, iid, 
+        VP_VERIFY_COM(::CoCreateInstance(clsid, nullptr, CLSCTX_INPROC_SERVER, iid, 
             reinterpret_cast<void **>(&Interface)));
     }
     ~com_iface() noexcept 
@@ -66,7 +61,6 @@ public:
     {
         return reinterpret_cast<void **>(pointer());
     }
-    
 
     //access
     operator T*() noexcept {return Interface;}

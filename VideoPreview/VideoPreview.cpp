@@ -2,7 +2,6 @@
 #include "afxwinappex.h"
 #include "afxdialogex.h"
 #pragma hdrstop
-#include "app_thread.h"
 #include "About.h"
 #include "Resource.h"
 #include "ClipboardFiles.h"

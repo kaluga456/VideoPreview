@@ -1,9 +1,6 @@
 #include "stdafx.h"
-#include "app.h"
-#include "app_buffer.h"
 #include "app_com.h"
 #include "app_gdi.h"
-#include "app_direct_show.h"
 #pragma hdrstop
 #include "Resource.h"
 #include "VPError.h"

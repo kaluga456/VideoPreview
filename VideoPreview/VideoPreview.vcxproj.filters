@@ -40,12 +40,6 @@
     <ClInclude Include="Resource.h">
       <Filter>core</Filter>
     </ClInclude>
-    <ClInclude Include="app_thread.h">
-      <Filter>generic</Filter>
-    </ClInclude>
-    <ClInclude Include="app_error.h">
-      <Filter>generic</Filter>
-    </ClInclude>
     <ClInclude Include="OutputProfile.h">
       <Filter>core</Filter>
     </ClInclude>
@@ -67,12 +61,6 @@
     <ClInclude Include="ScreenshotGenerator.h">
       <Filter>core</Filter>
     </ClInclude>
-    <ClInclude Include="app_exception.h">
-      <Filter>generic</Filter>
-    </ClInclude>
-    <ClInclude Include="app.h">
-      <Filter>generic</Filter>
-    </ClInclude>
     <ClInclude Include="app_com.h">
       <Filter>generic</Filter>
     </ClInclude>
@@ -81,12 +69,6 @@
     </ClInclude>
     <ClInclude Include="VideoFile.h">
       <Filter>core</Filter>
-    </ClInclude>
-    <ClInclude Include="app_buffer.h">
-      <Filter>generic</Filter>
-    </ClInclude>
-    <ClInclude Include="app_direct_show.h">
-      <Filter>generic</Filter>
     </ClInclude>
     <ClInclude Include="DialogOutputProfile.h">
       <Filter>gui</Filter>

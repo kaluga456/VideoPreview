@@ -43,6 +43,7 @@
 #include <list>
 #include <set>
 #include <map>
+#include <vector>
 
 //misc
 //TODO: #include <XmlLite.h>

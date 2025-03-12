@@ -1,7 +1,4 @@
 #include "stdafx.h"
-#include "app_error.h"
-#include "app_exception.h"
-#include "app_thread.h"
 #pragma hdrstop
 #include "Resource.h"
 #include "VPError.h"
@@ -168,11 +165,10 @@ static void ShellSelectFile(LPCTSTR file_name)
     const BOOL result = ::ShellExecuteEx(&shei);
     if(TRUE == result) return;
 
-    const DWORD error_code = ::GetLastError();
-    TCHAR buffer[2048];
-    app::winapi_error_string(error_code, buffer, 2048);
+    //fail
     CString message;
-    message.Format(_T("Error opening file\r\n%s\r\n\r\n%s"), file_name, buffer);
+    CString error_msg = VPGetLastErrorStr();
+    message.Format(_T("Error opening file\r\n%s\r\n\r\n%s"), file_name, error_msg.GetString());
     ::AfxMessageBox(message, MB_OK | MB_ICONSTOP);
 }
 static void ShellOpenFile(LPCTSTR file_name, HWND hwnd = nullptr)
@@ -191,11 +187,10 @@ static void ShellOpenFile(LPCTSTR file_name, HWND hwnd = nullptr)
     const BOOL result = ::ShellExecuteEx(&shei);
     if(TRUE == result) return;
 
-    const DWORD error_code = ::GetLastError();
-    TCHAR buffer[2048];
-    app::winapi_error_string(error_code, buffer, 2048);
+    //fail
     CString message;
-    message.Format(_T("Error opening file\r\n%s\r\n\r\n%s"), file_name, buffer);
+    CString error_msg = VPGetLastErrorStr();
+    message.Format(_T("Error opening file\r\n%s\r\n\r\n%s"), file_name, error_msg.GetString());
     ::AfxMessageBox(message, MB_OK | MB_ICONSTOP);
 }
 
@@ -921,11 +916,21 @@ void CMainFrame::OnCmdTest()
     //TEST:
     try
     {
-        APP_VERIFY(0);
+        //VP_VERIFY_WINAPI(E_NOINTERFACE);
+        VP_VERIFY_DIRECT_SHOW(E_NOINTERFACE);
+
+        //DWORD error_code = HRESULT_CODE(E_NOINTERFACE);
+        //const int buffer_size = MAX_ERROR_TEXT_LEN;
+        //TCHAR buffer[buffer_size];
+        //DWORD error_string_size = ::AMGetErrorText(error_code, buffer, buffer_size);
+        //if (error_string_size >= 2) error_string_size -= 2; //exclude trailing "\r\n" symbols
+        //buffer[error_string_size] = 0;
+
+        //::AfxMessageBox(buffer);
     }
-    catch (app::exception& e)
+    catch (CVPExc& e)
     {
-        ::AfxMessageBox(e.source_info());
+        ::AfxMessageBox(e.GetFullText());
     }
 }
 void CMainFrame::OnUpdateUI(CCmdUI* pCmdUI)

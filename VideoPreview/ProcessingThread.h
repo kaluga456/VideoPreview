@@ -1,5 +1,50 @@
 #pragma once
 
+//thread - generic thread
+//NOTE: type 'T' must provide Run() method as thread procedure
+namespace app
+{
+    template<typename T> class thread
+    {
+    public:
+        //ctor/dtor
+        thread() : Handle(nullptr) {}
+        ~thread() { join(); }
+
+        //init
+        DWORD create(T* thread_procedure)
+        {
+            join(); //wait for previous thread instance if any
+
+            Handle = ::CreateThread(nullptr, 0, ThreadProcedure, thread_procedure, 0, nullptr);
+            return (nullptr == Handle) ? ::GetLastError() : ERROR_SUCCESS;
+        }
+        void join()
+        {
+            if (nullptr == Handle)
+                return;
+
+            //wait for thread termination
+            ::WaitForSingleObject(Handle, INFINITE);
+            ::CloseHandle(Handle);
+            Handle = nullptr;
+        }
+
+        //attr
+        bool is_valid() const { return (Handle != nullptr); }
+
+    protected:
+        HANDLE Handle;
+
+        //thread procedure
+        static DWORD WINAPI ThreadProcedure(void* param)
+        {
+            T* thread_procedure = static_cast<T*>(param);
+            return thread_procedure->Run();
+        }
+    };
+}
+
 //messages from processing thread
 //WPARAM - message type
 enum

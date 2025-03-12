@@ -23,7 +23,7 @@ public:
 class CVPExcStr : public CVPExc
 {
 public:
-    explicit CVPExcStr(LPCTSTR msg = NULL) noexcept : Text(msg ? msg : _T("")) {}
+    explicit CVPExcStr(LPCTSTR msg = nullptr) noexcept : Text(msg ? msg : _T("")) {}
 
     CString GetText() const noexcept override {return Text;}
 
@@ -39,7 +39,7 @@ protected:
 class CVPExcWinApi : public CVPExcStr
 {
 public:
-    explicit CVPExcWinApi(DWORD error_code, LPCTSTR msg = NULL) noexcept : CVPExcStr(msg), ErrorCode(error_code) {}
+    explicit CVPExcWinApi(DWORD error_code, LPCTSTR msg = nullptr) noexcept : CVPExcStr(msg), ErrorCode(error_code) {}
 
     DWORD GetErrorCode() const noexcept override {return ErrorCode;}
     CString GetErrorString() const noexcept override {return VPGetErrorStr(ErrorCode);}
@@ -55,12 +55,30 @@ public:
     CVPExcWinApiLast() noexcept : CVPExcWinApi(::GetLastError()) {}
 };
 
-void VPExcMsgBox(const CVPExc* exc, LPCTSTR msg = NULL);
+//direct show error
+class CVPExcDirectShow : public CVPExcStr
+{
+public:
+    CVPExcDirectShow(HRESULT error_code, LPCTSTR msg = nullptr) : CVPExcStr(msg), ErrorCode(error_code) {}
+
+    DWORD GetErrorCode() const noexcept override { return ErrorCode; }
+    CString GetErrorString() const noexcept override { return VPGetErrorStr(ErrorCode); }
+    CString GetFullText() const noexcept override;
+
+protected:
+    HRESULT ErrorCode;
+};
+
+void VPExcMsgBox(const CVPExc* exc, LPCTSTR msg = nullptr);
 
 //heplers
 #define VP_VERIFY(expression) {if(NULL == (expression)) throw CVPExcStr(_T("VP_VERIFY(") _T(#expression) _T(")"));}
-#define VP_VERIFY_WINAPI(error_code) {if(r != ERROR_SUCCESS) throw CVPExcWinApi(DWORD(error_code));}
-#define VP_VERIFY_WINAPI_BOOL(bool_result) {if(FALSE == bool_result) throw CVPExcWinApi(::GetLastError());}
+#define VP_VERIFY_WINAPI(error_code) {if(error_code != ERROR_SUCCESS) throw CVPExcWinApi(DWORD(error_code));}
+#define VP_VERIFY_WINAPI_BOOL(bool_result) {if(FALSE == (bool_result)) throw CVPExcWinApi(::GetLastError());}
+
+//TODO: get correct messages
+#define VP_VERIFY_DIRECT_SHOW(error_code) {if(error_code != S_OK) throw CVPExcDirectShow(error_code);}
+#define VP_VERIFY_COM(error_code) {if(error_code != ERROR_SUCCESS) throw CVPExcWinApi(DWORD(error_code));}
 
 #define VP_THROW(msg) {throw CVPExcStr(msg);}
 #define VP_THROW_WINAPI_LAST() {throw CVPExcWinApiLast();}

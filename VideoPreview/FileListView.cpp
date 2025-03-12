@@ -1,7 +1,5 @@
 #include "stdafx.h"
-#include "app.h"
-#include "app_error.h"
-#include "app_exception.h"
+//#include "app_error.h"
 #pragma hdrstop
 #include "VPError.h"
 #include "ClipboardFiles.h"

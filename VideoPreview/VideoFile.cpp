@@ -1,10 +1,6 @@
 #include "stdafx.h"
-#include "app.h"
-#include "app_error.h"
 #include "app_com.h"
 #include "app_gdi.h"
-#include "app_direct_show.h"
-#include "app_buffer.h"
 #pragma hdrstop
 #include "VideoFile.h"
 #include "VPError.h"
@@ -97,10 +93,10 @@ bool CVideoFile::Open(LPCTSTR file_name)
         GetFileSize(file_name);
 
         //create graph builder
-        APP_VERIFY_COM(GraphBuilder.create(CLSID_FilterGraph, IID_IGraphBuilder));
+        VP_VERIFY_COM(GraphBuilder.create(CLSID_FilterGraph, IID_IGraphBuilder));
 
         //render file
-        APP_VERIFY_DSHOW(GraphBuilder->RenderFile(file_name, NULL));
+        VP_VERIFY_DIRECT_SHOW(GraphBuilder->RenderFile(file_name, NULL));
 
         //try to replace render filter with VMR9
         app::com_iface<IBaseFilter> render_filter;
@@ -110,52 +106,55 @@ bool CVideoFile::Open(LPCTSTR file_name)
             app::com_iface<IPin> render_filter_pin;
             app::com_iface<IPin> decoder_filter_pin;
             app::com_iface<IEnumPins> enum_pins;
-            APP_VERIFY_DSHOW(render_filter->EnumPins(enum_pins.pointer()));
-            APP_VERIFY_DSHOW(enum_pins->Next(1, render_filter_pin.pointer(), NULL));
-            APP_VERIFY_DSHOW(render_filter_pin->ConnectedTo(decoder_filter_pin.pointer()));
+            VP_VERIFY_DIRECT_SHOW(render_filter->EnumPins(enum_pins.pointer()));
+            VP_VERIFY_DIRECT_SHOW(enum_pins->Next(1, render_filter_pin.pointer(), NULL));
+            VP_VERIFY_DIRECT_SHOW(render_filter_pin->ConnectedTo(decoder_filter_pin.pointer()));
 
             //remove old render filter
-            APP_VERIFY_DSHOW(GraphBuilder->RemoveFilter(render_filter.get()));
+            VP_VERIFY_DIRECT_SHOW(GraphBuilder->RemoveFilter(render_filter.get()));
 
             //add VMR9 filter
             app::com_iface<IBaseFilter> vmr9_filter(CLSID_VideoMixingRenderer9, IID_IBaseFilter);
-            APP_VERIFY_DSHOW(GraphBuilder->AddFilter(vmr9_filter, L"VMR9"));
+            VP_VERIFY_DIRECT_SHOW(GraphBuilder->AddFilter(vmr9_filter, L"VMR9"));
 
             //connect VMR9 with decoder
             render_filter_pin.reset();
             enum_pins.reset();
-            APP_VERIFY_DSHOW(vmr9_filter->EnumPins(enum_pins.pointer()));
-            APP_VERIFY_DSHOW(enum_pins->Next(1, render_filter_pin.pointer(), NULL));
-            APP_VERIFY_DSHOW(decoder_filter_pin->Connect(render_filter_pin.get(), NULL));
+            VP_VERIFY_DIRECT_SHOW(vmr9_filter->EnumPins(enum_pins.pointer()));
+            VP_VERIFY_DIRECT_SHOW(enum_pins->Next(1, render_filter_pin.pointer(), NULL));
+            VP_VERIFY_DIRECT_SHOW(decoder_filter_pin->Connect(render_filter_pin.get(), NULL));
         } 
 
         //query interfaces
         app::com_iface<IVideoWindow> video_window;
         app::com_iface<IMediaControl> media_control;
-        APP_VERIFY_COM(GraphBuilder->QueryInterface(IID_IBasicVideo, BasicVideo.void_pointer()));
-        APP_VERIFY_COM(GraphBuilder->QueryInterface(IID_IMediaControl, media_control.void_pointer()));
-        APP_VERIFY_COM(GraphBuilder->QueryInterface(IID_IMediaSeeking, MediaSeeking.void_pointer()));
-        APP_VERIFY_COM(GraphBuilder->QueryInterface(IID_IVideoWindow, video_window.void_pointer()));
+        VP_VERIFY_COM(GraphBuilder->QueryInterface(IID_IBasicVideo, BasicVideo.void_pointer()));
+        VP_VERIFY_COM(GraphBuilder->QueryInterface(IID_IMediaControl, media_control.void_pointer()));
+        VP_VERIFY_COM(GraphBuilder->QueryInterface(IID_IMediaSeeking, MediaSeeking.void_pointer()));
+        VP_VERIFY_COM(GraphBuilder->QueryInterface(IID_IVideoWindow, video_window.void_pointer()));
 
         //don`t show video window
-        APP_VERIFY_DSHOW(video_window->put_AutoShow(OAFALSE));
+        VP_VERIFY_DIRECT_SHOW(video_window->put_AutoShow(OAFALSE));
 
         //set media time format
-        APP_VERIFY_DSHOW(MediaSeeking->SetTimeFormat(&TIME_FORMAT_MEDIA_TIME));
+        VP_VERIFY_DIRECT_SHOW(MediaSeeking->SetTimeFormat(&TIME_FORMAT_MEDIA_TIME));
 
         //go to paused state
         const HRESULT result = media_control->Pause();
         if(FAILED(result)) //partial success, treat as success here
-            APP_VERIFY_DSHOW(result);
+            VP_VERIFY_DIRECT_SHOW(result);
 
         //get duration and video size
-        APP_VERIFY_DSHOW(MediaSeeking->GetDuration(&Duration));
-        APP_VERIFY_DSHOW(BasicVideo->GetVideoSize(&VideoWidth, &VideoHeight));
+        VP_VERIFY_DIRECT_SHOW(MediaSeeking->GetDuration(&Duration));
+        VP_VERIFY_DIRECT_SHOW(BasicVideo->GetVideoSize(&VideoWidth, &VideoHeight));
     }
-    catch(app::exception&) //operation failed
+    catch (CVPExc&)
     {
         Close();
-        //app::print_exception(exception);
+
+        //TODO:
+        //result_string = exc.GetFullText();
+
         return false;
     }
 
@@ -168,42 +167,44 @@ void CVideoFile::Close()
     MediaSeeking.reset();
     GraphBuilder.reset();
 }
-bool CVideoFile::GetSnapshot(size_t offset, PBitmap& bitmap, app::byte_buffer& image_buffer)
+bool CVideoFile::GetFrameImage(size_t offset, PBitmap& bitmap, std::vector<BYTE>& image_buffer)
 {
-    if(false == GraphBuilder.valid())
+    if (false == GraphBuilder.valid())
         return false;
 
     try
     {
         //seek
         REFERENCE_TIME position = static_cast<REFERENCE_TIME>(offset * 1e7);
-        APP_VERIFY_DSHOW(MediaSeeking->SetPositions(&position, AM_SEEKING_AbsolutePositioning,
+        VP_VERIFY_DIRECT_SHOW(MediaSeeking->SetPositions(&position, AM_SEEKING_AbsolutePositioning,
             NULL, AM_SEEKING_NoPositioning));
-        
-        //get required space for image
-        long buffer_size = 0;
-        APP_VERIFY_DSHOW(BasicVideo->GetCurrentImage(&buffer_size, NULL));
 
-        //allocate buffer
-        image_buffer.reset(buffer_size);
-        if(NULL == image_buffer)
-            return false;
+        //allocate required space for image
+        long buffer_size = 0;
+        VP_VERIFY_DIRECT_SHOW(BasicVideo->GetCurrentImage(&buffer_size, NULL));
+        image_buffer.reserve(buffer_size);
 
         //get image
-        APP_VERIFY_DSHOW(BasicVideo->GetCurrentImage(&buffer_size, reinterpret_cast<long*>(image_buffer.data())));
+        VP_VERIFY_DIRECT_SHOW(BasicVideo->GetCurrentImage(&buffer_size, reinterpret_cast<long*>(image_buffer.data())));
         bitmap.reset(new Gdiplus::Bitmap(reinterpret_cast<BITMAPINFO*>(image_buffer.data()), image_buffer.data() + sizeof(BITMAPINFO)));
+
+        //operation succeeded
+        return true;
     }
-    catch(app::exception&) //operation failed
+    catch (CVPExc&)
     {
         Close();
-        //app::print_exception(exception);
-        return false;
-    }
-    catch(std::exception&) //operation failed
-    {
-        return false;
-    }
 
-    //operation succeeded
-    return true;
+        //TODO:
+        //result_string = exc.GetFullText();
+    }
+    catch (std::exception&) //operation failed
+    {
+    }
+    catch (...)
+    {
+        //result_string = VP_UNKNOWN_ERROR_STRING;
+        
+    }
+    return false;
 }

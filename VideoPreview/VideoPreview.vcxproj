@@ -198,14 +198,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="About.h" />
-    <ClInclude Include="app.h" />
-    <ClInclude Include="app_buffer.h" />
     <ClInclude Include="app_com.h" />
-    <ClInclude Include="app_direct_show.h" />
-    <ClInclude Include="app_error.h" />
-    <ClInclude Include="app_exception.h" />
     <ClInclude Include="app_gdi.h" />
-    <ClInclude Include="app_thread.h" />
     <ClInclude Include="ClipboardFiles.h" />
     <ClInclude Include="DialogAbout.h" />
     <ClInclude Include="DialogOutputProfile.h" />

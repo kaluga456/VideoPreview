@@ -1,6 +1,8 @@
 #ifndef _APP_GDI_H_
 #define _APP_GDI_H_
 
+#include "VPError.h"
+
 namespace app
 {
 
@@ -40,15 +42,17 @@ constexpr LPCWSTR gdi_get_error_string(Gdiplus::Status status)
 }
 
 //GDI exception
-class gdi_exception : public exception
+class gdi_exception : public CVPExcStr
 {
 public:
     //ctor/dtor
-    explicit gdi_exception(Gdiplus::Status status) noexcept : Status{ status } {}
+    explicit gdi_exception(Gdiplus::Status status, LPCTSTR msg = nullptr) noexcept : CVPExcStr(msg), Status{ status } {}
     virtual ~gdi_exception() noexcept {}
 
     //access
-    virtual const TCHAR* string() const noexcept {return gdi_get_error_string(Status);}
+    DWORD GetErrorCode() const noexcept override { return static_cast<DWORD>(Status); }
+    CString GetErrorString() const noexcept override { return gdi_get_error_string(Status); }
+    CString GetFullText() const noexcept override { return GetErrorString(); }
 
 private:
     Gdiplus::Status Status;
@@ -102,7 +106,7 @@ public:
 
         //allocate memory
         Data = static_cast<Gdiplus::ImageCodecInfo*>(::malloc(DataSize));
-        APP_VERIFY(Data != nullptr);
+        VP_VERIFY(Data != nullptr);
 
         //get encoders data
         status = Gdiplus::GetImageEncoders(Count, DataSize, Data);

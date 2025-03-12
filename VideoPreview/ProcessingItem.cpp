@@ -63,7 +63,7 @@ bool CFileList::AddFiles(CDropFiles* DropFiles)
         return false;
 
     const size_t prev_size = Items.size();
-    for(size_t index = 0;; ++index)
+    for(UINT index = 0;; ++index)
     {
         CString file_name(DropFiles->GetFileName(index));
         if(file_name.IsEmpty())
