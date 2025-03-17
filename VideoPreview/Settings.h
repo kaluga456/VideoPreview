@@ -24,7 +24,7 @@ struct CSettings
     int UseSourceFileLocation;
     int OverwriteOutputFiles;
 
-    //init, if file_name not NULL, then it is import/export settings call
+    //init
     bool Read();
     bool Write();
 };

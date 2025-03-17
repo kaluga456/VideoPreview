@@ -105,8 +105,8 @@ LPCTSTR SETTING_DESCR[] =
 static_assert(sizeof(SETTING_DESCR) / sizeof(LPCTSTR) == SETTING_COUNT, "Invalid SETTING_DESCR size");
 /////////////////////////////////////////////////////////////////////////////
 //CPGPNumberEdit
-CPGPNumberEdit::CPGPNumberEdit(const CString& strName, const COleVariant& varValue, LPCTSTR lpszDescr /*= NULL*/, DWORD_PTR dwData /*= 0*/) :
-    CMFCPropertyGridProperty(strName, varValue, lpszDescr, dwData, NULL, NULL, _T("0123456789")) 
+CPGPNumberEdit::CPGPNumberEdit(const CString& strName, const COleVariant& varValue, LPCTSTR lpszDescr /*= nullptr*/, DWORD_PTR dwData /*= 0*/) :
+    CMFCPropertyGridProperty(strName, varValue, lpszDescr, dwData, nullptr, nullptr, _T("0123456789"))
 {
 }
 void CPGPNumberEdit::SetInt(int value)
@@ -124,12 +124,12 @@ int CPGPNumberEdit::GetInt()
 {
     const COleVariant& v = GetValue();
     LONG lval = 0;
-    VarI4FromStr(v.bstrVal, NULL, LOCALE_NOUSEROVERRIDE, &lval);
+    VarI4FromStr(v.bstrVal, 0, LOCALE_NOUSEROVERRIDE, &lval);
     return lval;
 }
 /////////////////////////////////////////////////////////////////////////////
 //CPGPCombo
-CPGPCombo::CPGPCombo(const CString& strName, const COleVariant& varValue, LPCTSTR lpszDescr /*= NULL*/, DWORD_PTR dwData /*= 0*/) : 
+CPGPCombo::CPGPCombo(const CString& strName, const COleVariant& varValue, LPCTSTR lpszDescr /*= nullptr*/, DWORD_PTR dwData /*= 0*/) : 
     CMFCPropertyGridProperty(strName, varValue, lpszDescr, dwData) 
 {
     AllowEdit(FALSE);
@@ -149,7 +149,7 @@ INT_PTR CPGPCombo::GetItem() const
 void CPGPCombo::SetItem(INT_PTR value)
 {
     CString key;
-    void* val = NULL;
+    void* val = nullptr;
     for(POSITION pos = Items.GetStartPosition(); pos;)
     {
         Items.GetNextAssoc(pos, key, val);
@@ -163,7 +163,7 @@ void CPGPCombo::SetItem(INT_PTR value)
 /////////////////////////////////////////////////////////////////////////////
 //CPGPFont
 CPGPFont::CPGPFont(const CString& strName, LOGFONT& lf, DWORD dwFontDialogFlags /*= CF_EFFECTS | CF_SCREENFONTS*/, 
-		LPCTSTR lpszDescr /*= NULL*/, DWORD_PTR dwData /*= 0*/, COLORREF color /*= (COLORREF)-1*/) : 
+		LPCTSTR lpszDescr /*= nullptr*/, DWORD_PTR dwData /*= 0*/, COLORREF color /*= (COLORREF)-1*/) : 
         CMFCPropertyGridFontProperty(strName, lf, dwFontDialogFlags, lpszDescr, dwData, color)
 {
 }
@@ -246,7 +246,7 @@ void CSettingsPane::InitPropList()
 
     //main
     CMFCPropertyGridProperty* pgp_profile_root = new CMFCPropertyGridProperty(_T("Profile Settings"));
-    pgpBackgroundColor = new CMFCPropertyGridColorProperty(_T("Background Color"), RGB(0, 0, 0), NULL, SETTING_DESCR[IDP_BACKGROUND_COLOR], IDP_BACKGROUND_COLOR);
+    pgpBackgroundColor = new CMFCPropertyGridColorProperty(_T("Background Color"), RGB(0, 0, 0), nullptr, SETTING_DESCR[IDP_BACKGROUND_COLOR], IDP_BACKGROUND_COLOR);
     pgpBackgroundColor->EnableOtherButton(_T("Other..."));
     pgp_profile_root->AddSubItem(pgpBackgroundColor);
     
@@ -258,7 +258,7 @@ void CSettingsPane::InitPropList()
     pgpWriteHeader = new CMFCPropertyGridProperty(_T("Write Header"), (_variant_t)false, SETTING_DESCR[IDP_WRITE_HEADER], IDP_WRITE_HEADER);
     pgp_header->AddSubItem(pgpWriteHeader);
     pgpHeaderFont = new CPGPFont(_T("Font"), sample_logfont, CF_SCREENFONTS, SETTING_DESCR[IDP_HEADER_FONT], IDP_HEADER_FONT);
-    pgpHeaderFontColor = new CMFCPropertyGridColorProperty(_T("Font Color"), RGB(0, 0, 0), NULL, SETTING_DESCR[IDP_HEADER_FONT_COLOR], IDP_HEADER_FONT_COLOR);
+    pgpHeaderFontColor = new CMFCPropertyGridColorProperty(_T("Font Color"), RGB(0, 0, 0), nullptr, SETTING_DESCR[IDP_HEADER_FONT_COLOR], IDP_HEADER_FONT_COLOR);
     pgpHeaderFontColor->EnableOtherButton(_T("Other..."));
     pgp_header->AddSubItem(pgpHeaderFont);
     pgp_header->AddSubItem(pgpHeaderFontColor);
@@ -312,7 +312,7 @@ void CSettingsPane::InitPropList()
     pgpTimestampType->AddItem(_T("Bottom-Right"), TIMESTAMP_TYPE_BOTTOM_RIGHT);
     pgpTimestampType->AllowEdit(FALSE);
     pgpTimestampFont = new CPGPFont(_T("Font"), sample_logfont, CF_SCREENFONTS, SETTING_DESCR[IDP_TIMESTAMP_FONT], IDP_TIMESTAMP_FONT);
-    pgpTimestampFontColor = new CMFCPropertyGridColorProperty(_T("Font Color"), RGB(0, 0, 0), NULL, SETTING_DESCR[IDP_TIMESTAMP_FONT_COLOR], IDP_TIMESTAMP_FONT_COLOR);
+    pgpTimestampFontColor = new CMFCPropertyGridColorProperty(_T("Font Color"), RGB(0, 0, 0), nullptr, SETTING_DESCR[IDP_TIMESTAMP_FONT_COLOR], IDP_TIMESTAMP_FONT_COLOR);
     pgpTimestampFontColor->EnableOtherButton(_T("Other..."));
     pgp_timestamp->AddSubItem(pgpTimestampType);
     pgp_timestamp->AddSubItem(pgpTimestampFont);
@@ -425,8 +425,8 @@ void CSettingsPane::AdjustLayout()
 
     //toolbar and grid
 	const int cyTlb = ToolBar.CalcFixedLayout(FALSE, TRUE).cy;
-	ToolBar.SetWindowPos(NULL, rectClient.left, rectClient.top, rectClient.Width(), cyTlb, SWP_NOACTIVATE | SWP_NOZORDER);
-	PGProfile.SetWindowPos(NULL, rectClient.left, rectClient.top + cyTlb, rectClient.Width(), rectClient.Height() - cyTlb, SWP_NOACTIVATE | SWP_NOZORDER);
+	ToolBar.SetWindowPos(nullptr, rectClient.left, rectClient.top, rectClient.Width(), cyTlb, SWP_NOACTIVATE | SWP_NOZORDER);
+	PGProfile.SetWindowPos(nullptr, rectClient.left, rectClient.top + cyTlb, rectClient.Width(), rectClient.Height() - cyTlb, SWP_NOACTIVATE | SWP_NOZORDER);
 
     //profiles combo
     CRect cb_rect = CBProfiles->Rect();

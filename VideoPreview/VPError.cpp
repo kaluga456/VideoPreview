@@ -8,12 +8,12 @@ CString VPGetErrorStr(DWORD error_code)
     TCHAR buffer[buffer_size];
     DWORD error_string_size = ::FormatMessageW( FORMAT_MESSAGE_FROM_SYSTEM |
                                                 FORMAT_MESSAGE_IGNORE_INSERTS, 
-                                                NULL, 
+                                                nullptr, 
                                                 error_code, 
                                                 MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), //default language
                                                 buffer, 
                                                 buffer_size, 
-                                                NULL);
+        nullptr);
 
     if(error_string_size < 2) //treat as error
     {
@@ -58,7 +58,7 @@ CString CVPExcDirectShow::GetFullText() const noexcept
     return CString(buffer);
 }
 
-void VPExcMsgBox(const CVPExc* exc, LPCTSTR msg /*= NULL*/)
+void VPExcMsgBox(const CVPExc* exc, LPCTSTR msg /*= nullptr*/)
 {
     CString text(msg ? msg : _T(""));
     CString error_text(exc ? exc->GetErrorString() : CString{});

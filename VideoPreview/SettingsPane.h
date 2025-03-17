@@ -13,7 +13,7 @@ public:
 class CPGPNumberEdit : public CMFCPropertyGridProperty
 {
 public:
-    CPGPNumberEdit(const CString& strName, const COleVariant& varValue, LPCTSTR lpszDescr = NULL, DWORD_PTR dwData = 0);
+    CPGPNumberEdit(const CString& strName, const COleVariant& varValue, LPCTSTR lpszDescr = nullptr, DWORD_PTR dwData = 0);
     void SetInt(int value);
     int GetInt();
 };
@@ -21,7 +21,7 @@ public:
 class CPGPCombo : public CMFCPropertyGridProperty
 {
 public:
-    CPGPCombo(const CString& strName, const COleVariant& varValue, LPCTSTR lpszDescr = NULL, DWORD_PTR dwData = 0);
+    CPGPCombo(const CString& strName, const COleVariant& varValue, LPCTSTR lpszDescr = nullptr, DWORD_PTR dwData = 0);
 
     void AddItem(CString key, INT_PTR value);
     INT_PTR GetItem() const;
@@ -34,7 +34,7 @@ class CPGPFont : public CMFCPropertyGridFontProperty
 {
 public:
 	CPGPFont(const CString& strName, LOGFONT& lf, DWORD dwFontDialogFlags = CF_EFFECTS | CF_SCREENFONTS, 
-		LPCTSTR lpszDescr = NULL, DWORD_PTR dwData = 0, COLORREF color = (COLORREF)-1);
+		LPCTSTR lpszDescr = nullptr, DWORD_PTR dwData = 0, COLORREF color = (COLORREF)-1);
 
     void SetFont(const LOGFONT& logfont);
 };

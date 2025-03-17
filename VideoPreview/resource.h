@@ -54,6 +54,7 @@
 #define IDD_SETTINGS                    329
 #define ID_SETTINGS_PANE                330
 #define IDC_STATIC_VERSION              1000
+#define IDC_STATIC_APP_NAME             1000
 #define IDC_STATIC_APP_URL              1001
 #define ID_CMD_TEST                     32771
 #define ID_CMD_ADD_FILES                32774
@@ -118,7 +119,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        325
+#define _APS_NEXT_RESOURCE_VALUE        326
 #define _APS_NEXT_COMMAND_VALUE         32860
 #define _APS_NEXT_CONTROL_VALUE         1002
 #define _APS_NEXT_SYMED_VALUE           331

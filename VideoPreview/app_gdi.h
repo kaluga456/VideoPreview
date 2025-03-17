@@ -89,15 +89,10 @@ private:
 class gdi_encoders
 {
 public:
-    //ctor/dtor
-    gdi_encoders() {}
-    ~gdi_encoders() {::free(Data);}
-
-    //operation
     Gdiplus::Status initialize()
     {
         //free previous data
-        free();
+        clear();
 
         //get encoders count and required space for them
         Gdiplus::Status status = Gdiplus::GetImageEncodersSize(&Count, &DataSize);
@@ -105,19 +100,19 @@ public:
             return status;
 
         //allocate memory
-        Data = static_cast<Gdiplus::ImageCodecInfo*>(::malloc(DataSize));
+        Buffer.reserve(DataSize);
+        Data = reinterpret_cast<Gdiplus::ImageCodecInfo*>(Buffer.data());
         VP_VERIFY(Data != nullptr);
 
         //get encoders data
         status = Gdiplus::GetImageEncoders(Count, DataSize, Data);
         if(status != Gdiplus::Ok)
-            free();
+            clear();
         return status;
     }
-    void free()
+    void clear()
     {
         Count = 0;
-        ::free(Data);
         Data = nullptr;
     }
 
@@ -155,6 +150,7 @@ private:
     UINT  Count{0};        // number of image encoders
     UINT  DataSize{0};     // size, in bytes, of the image encoder array
     Gdiplus::ImageCodecInfo* Data{nullptr}; //encoders array
+    std::vector<BYTE> Buffer;
 };
 
 }

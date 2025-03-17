@@ -174,7 +174,7 @@ UINT GenerateScreenlist(LPCTSTR video_file_name, LPCTSTR output_dir, const COutp
 
         //init video file
         CVideoFile video_file;
-        VP_VERIFY(video_file.Open(video_file_name));
+        video_file.Open(video_file_name);
 
         //get video file attr
         const UINT duration = video_file.GetDuration();
@@ -217,13 +217,13 @@ UINT GenerateScreenlist(LPCTSTR video_file_name, LPCTSTR output_dir, const COutp
                     callback->SetProgress(static_cast<size_t>(frame_index * 100.f / output_size.FrameCount));
 
                 //get frame
-                PBitmap snapshot;
-                VP_VERIFY(true == video_file.GetFrameImage(current_position, snapshot, image_buffer));
+                PBitmap frame;
+                VP_VERIFY(true == video_file.GetFrameImage(current_position, frame, image_buffer));
 
                 //write frame
                 const INT frame_left = x * output_size.FrameWidth;
                 const INT frame_top = output_size.HeaderHeight + y * output_size.FrameHeight;
-                app::verify_gdi(graphics.DrawImage(snapshot.get(), frame_left, frame_top, output_size.FrameWidth, output_size.FrameHeight));
+                app::verify_gdi(graphics.DrawImage(frame.get(), frame_left, frame_top, output_size.FrameWidth, output_size.FrameHeight));
 
                 //timestamp
                 if (TIMESTAMP_TYPE_DISABLED != output_profile.TimestampType)
@@ -244,19 +244,6 @@ UINT GenerateScreenlist(LPCTSTR video_file_name, LPCTSTR output_dir, const COutp
         result_string = output_file_name;
         return SCREENLIST_RESULT_SUCCESS;
     }
-
-    //DEPRECATE:
-    //catch(app::exception& exc)
-    //{
-    //    LPCTSTR error_string = exc.string();
-    //    if(nullptr == error_string)
-    //    {
-    //        TCHAR buf[2*1024];
-    //        exc.string(buf, 2*1024);
-    //        result_string = buf;
-    //    }
-    //}
-
     catch(CVPExc& exc)
     {
         result_string = exc.GetFullText();
@@ -285,14 +272,14 @@ UINT GenerateScreenlistPreview(const COutputProfile& output_profile, CString& re
         const int video_height = SAMPLE_FRAME_HEIGHT;
         const float aspect_ratio = float(video_width) / float(video_height);
         
-        //get snapshots count
+        //get frames count
         const UINT frame_count = output_profile.FrameRows * output_profile.FrameColumns;
 
         //calculate sizes
         COutputImageSize output_size(output_profile, video_width, video_height);
 
         //use dummy frame for all frames in grid
-        PBitmap snapshot(new Gdiplus::Bitmap(::AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_SAMPLE_FRAME)));
+        PBitmap frame(new Gdiplus::Bitmap(::AfxGetInstanceHandle(), MAKEINTRESOURCE(IDB_SAMPLE_FRAME)));
 
         //init output image
         Gdiplus::Bitmap output_image(output_size.Width, output_size.Height, PixelFormat24bppRGB);
@@ -320,7 +307,7 @@ UINT GenerateScreenlistPreview(const COutputProfile& output_profile, CString& re
                 //frame image
                 const INT frame_left = x * output_size.FrameWidth;
                 const INT frame_top = output_size.HeaderHeight + y * output_size.FrameHeight;
-                app::verify_gdi(graphics.DrawImage(snapshot.get(), frame_left, frame_top, output_size.FrameWidth, output_size.FrameHeight));
+                app::verify_gdi(graphics.DrawImage(frame.get(), frame_left, frame_top, output_size.FrameWidth, output_size.FrameHeight));
 
                 //timestamp
                 if (TIMESTAMP_TYPE_DISABLED != output_profile.TimestampType)
@@ -350,18 +337,6 @@ UINT GenerateScreenlistPreview(const COutputProfile& output_profile, CString& re
         result_string = output_file_name;
         return SCREENLIST_RESULT_SUCCESS;
     }
-
-    //DEPRECATE:
-    //catch(app::exception& exc)
-    //{
-    //    LPCTSTR error_string = exc.string();
-    //    if(nullptr == error_string)
-    //    {
-    //        TCHAR buf[2*1024];
-    //        exc.string(buf, 2*1024);
-    //        result_string = buf;
-    //    }
-    //}
     catch (CVPExc& exc)
     {
         result_string = exc.GetFullText();

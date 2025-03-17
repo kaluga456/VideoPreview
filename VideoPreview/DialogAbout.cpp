@@ -38,7 +38,6 @@ BOOL CAboutDlg::OnInitDialog()
 void CAboutDlg::OnDestroy()
 {
     if(URLFont) ::DeleteObject(URLFont);
-    //if(URLCursor) ::DeleteObject(URLCursor);
     CDialogEx::OnDestroy();
 }
 void CAboutDlg::DoDataExchange(CDataExchange* pDX)
@@ -47,8 +46,8 @@ void CAboutDlg::DoDataExchange(CDataExchange* pDX)
 
     if(pDX->m_bSaveAndValidate) return;
 
-    CString build_str{ _T("Build: ") APP_BUILD };
+    CString app_name_str{ APP_FULL_NAME };
     CString url_str{ APP_URL };
-    DDX_Text(pDX, IDC_STATIC_VERSION, build_str);
-    DDX_Text(pDX, IDC_STATIC_VERSION, url_str);
+    DDX_Text(pDX, IDC_STATIC_APP_NAME, app_name_str);
+    DDX_Text(pDX, IDC_STATIC_APP_URL, url_str);
 }

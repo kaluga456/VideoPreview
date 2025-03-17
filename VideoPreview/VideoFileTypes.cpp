@@ -14,10 +14,10 @@ CVideoFileType::CVideoFileType(LPCTSTR extension)
 }
 LPCTSTR CVideoFileType::Init(LPCTSTR extension)
 {
-    if(NULL == extension)
+    if(nullptr == extension)
     {
         Extension[0] = 0;
-        return NULL;
+        return nullptr;
     }
 
     int size = 0;
@@ -33,7 +33,7 @@ LPCTSTR CVideoFileType::Init(LPCTSTR extension)
         {
             Extension[size] = 0;
             ::_tcslwr_s(Extension, size + 1);
-            return NULL;
+            return nullptr;
         }
         if(size == VIDEO_FILE_TYPE_MAX_SIZE - 1) //length limit
         {
@@ -49,16 +49,16 @@ LPCTSTR CVideoFileType::Init(LPCTSTR extension)
             return pos + 1;
         }
     }
-    return NULL;
+    return nullptr;
 }
 void CVideoFileTypes::SetString(LPCTSTR source_file_types_string)
 {
     VideoFileTypeList.clear();
-    if(NULL == source_file_types_string)
+    if(nullptr == source_file_types_string)
         return;
 
     CVideoFileType file_type;
-    for(LPCTSTR pos = source_file_types_string; pos != NULL; pos = file_type.Init(pos))
+    for(LPCTSTR pos = source_file_types_string; pos != nullptr; pos = file_type.Init(pos))
     {
         if(true == file_type.IsValid())
             VideoFileTypeList.insert(file_type);
@@ -127,7 +127,7 @@ CString CVideoFileTypes::GetFilterString() const
 }
 bool CVideoFileTypes::AddType(LPCTSTR extension)
 {
-    if(NULL == extension)
+    if(nullptr == extension)
         return false;
 
     CVideoFileType file_type(extension);
@@ -140,7 +140,7 @@ bool CVideoFileTypes::AddType(LPCTSTR extension)
 }
 bool CVideoFileTypes::RemoveType(LPCTSTR extension)
 {
-    if(NULL == extension)
+    if(nullptr == extension)
         return false;
 
     CVideoFileType file_type(extension);
@@ -163,10 +163,10 @@ bool CVideoFileTypes::HasType(LPCTSTR ext) const
 }
 bool CVideoFileTypes::IsVideoFileName(LPCTSTR file_name) const
 {
-    if(NULL == file_name) 
+    if(nullptr == file_name)
         return false;
     LPCTSTR dot_pos = _tcsrchr(file_name, _T('.'));
-    if(NULL == dot_pos) 
+    if(nullptr == dot_pos)
         return false;
     CString ext = dot_pos + 1;
     ext.MakeLower();

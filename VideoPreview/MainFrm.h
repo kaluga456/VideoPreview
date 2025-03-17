@@ -52,7 +52,7 @@ protected:
     CMFCStatusBar StatusBar;
 
     //output dir
-    CComboOutputDirs* CBOutputDir;
+    CComboOutputDirs* CBOutputDir{nullptr};
     CComboOutputDirs* GetOutputDirCombo();
 
     //overrides

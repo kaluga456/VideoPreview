@@ -202,10 +202,6 @@ BEGIN
         MENUITEM "GitHub...",                   ID_CMD_GITHUB
         MENUITEM "About...",                    ID_CMD_ABOUT
     END
-    POPUP "[Debug]"
-    BEGIN
-        MENUITEM "Test\tQ",                     ID_CMD_TEST
-    END
 END
 
 IDR_POPUP_MENU MENU
@@ -240,14 +236,14 @@ END
 // Dialog
 //
 
-IDD_ABOUTBOX DIALOGEX 0, 0, 231, 57
+IDD_ABOUTBOX DIALOGEX 0, 0, 231, 55
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "About VideoPreview"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
-    LTEXT           "Version 1.0 Build: ",IDC_STATIC_VERSION,7,7,114,8,SS_NOPREFIX
+    LTEXT           "Version 1.0 Build: ",IDC_STATIC_APP_NAME,7,7,217,8,SS_NOPREFIX
     LTEXT           "https://github.com/kaluga456/VideoPreview",IDC_STATIC_APP_URL,7,19,217,8
-    DEFPUSHBUTTON   "OK",IDOK,90,36,50,14,BS_CENTER | WS_GROUP
+    DEFPUSHBUTTON   "OK",IDOK,90,34,50,14,BS_CENTER | WS_GROUP
 END
 
 IDD_OUTPUT_PROFILE DIALOGEX 0, 0, 166, 90
@@ -331,7 +327,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 224
         TOPMARGIN, 7
-        BOTTOMMARGIN, 50
+        BOTTOMMARGIN, 48
     END
 
     IDD_OUTPUT_PROFILE, DIALOG
@@ -343,6 +339,17 @@ BEGIN
     END
 END
 #endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// AFX_DIALOG_LAYOUT
+//
+
+IDD_ABOUTBOX AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
 
 
 /////////////////////////////////////////////////////////////////////////////

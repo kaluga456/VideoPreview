@@ -16,7 +16,7 @@ public:
     ~CVideoFile() {Close();}
 
     //operations
-    bool Open(LPCTSTR file_name);
+    void Open(LPCTSTR file_name);
     void Close();
     bool GetFrameImage(size_t offset, PBitmap& bitmap, std::vector<BYTE>& image_buffer);
 

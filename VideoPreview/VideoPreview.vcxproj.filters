@@ -14,6 +14,9 @@
     <Filter Include="gui">
       <UniqueIdentifier>{601d6de1-ab2b-402b-be5a-7941044073a8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="engine">
+      <UniqueIdentifier>{5cc4a9df-9efa-48d8-8d39-246e07b14071}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="TODO.txt" />
@@ -58,17 +61,11 @@
     <ClInclude Include="About.h">
       <Filter>core</Filter>
     </ClInclude>
-    <ClInclude Include="ScreenshotGenerator.h">
-      <Filter>core</Filter>
-    </ClInclude>
     <ClInclude Include="app_com.h">
       <Filter>generic</Filter>
     </ClInclude>
     <ClInclude Include="app_gdi.h">
       <Filter>generic</Filter>
-    </ClInclude>
-    <ClInclude Include="VideoFile.h">
-      <Filter>core</Filter>
     </ClInclude>
     <ClInclude Include="DialogOutputProfile.h">
       <Filter>gui</Filter>
@@ -77,9 +74,6 @@
       <Filter>gui</Filter>
     </ClInclude>
     <ClInclude Include="Settings.h">
-      <Filter>core</Filter>
-    </ClInclude>
-    <ClInclude Include="VPError.h">
       <Filter>core</Filter>
     </ClInclude>
     <ClInclude Include="ClipboardFiles.h">
@@ -91,7 +85,16 @@
     <ClInclude Include="SettingsPane.h">
       <Filter>gui</Filter>
     </ClInclude>
+    <ClInclude Include="ScreenshotGenerator.h">
+      <Filter>engine</Filter>
+    </ClInclude>
+    <ClInclude Include="VideoFile.h">
+      <Filter>engine</Filter>
+    </ClInclude>
     <ClInclude Include="Draw.h">
+      <Filter>engine</Filter>
+    </ClInclude>
+    <ClInclude Include="VPError.h">
       <Filter>core</Filter>
     </ClInclude>
   </ItemGroup>
@@ -126,12 +129,6 @@
     <ClCompile Include="DialogAbout.cpp">
       <Filter>gui</Filter>
     </ClCompile>
-    <ClCompile Include="ScreenshotGenerator.cpp">
-      <Filter>core</Filter>
-    </ClCompile>
-    <ClCompile Include="VideoFile.cpp">
-      <Filter>core</Filter>
-    </ClCompile>
     <ClCompile Include="DialogOutputProfile.cpp">
       <Filter>gui</Filter>
     </ClCompile>
@@ -139,9 +136,6 @@
       <Filter>gui</Filter>
     </ClCompile>
     <ClCompile Include="Settings.cpp">
-      <Filter>core</Filter>
-    </ClCompile>
-    <ClCompile Include="VPError.cpp">
       <Filter>core</Filter>
     </ClCompile>
     <ClCompile Include="ClipboardFiles.cpp">
@@ -153,7 +147,16 @@
     <ClCompile Include="SettingsPane.cpp">
       <Filter>gui</Filter>
     </ClCompile>
+    <ClCompile Include="ScreenshotGenerator.cpp">
+      <Filter>engine</Filter>
+    </ClCompile>
+    <ClCompile Include="VideoFile.cpp">
+      <Filter>engine</Filter>
+    </ClCompile>
     <ClCompile Include="Draw.cpp">
+      <Filter>engine</Filter>
+    </ClCompile>
+    <ClCompile Include="VPError.cpp">
       <Filter>core</Filter>
     </ClCompile>
   </ItemGroup>

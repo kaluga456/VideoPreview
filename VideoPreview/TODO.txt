@@ -1,23 +1,21 @@
 TODO:
-~ enum video files extensions
 ? export/import settings/profiles commands (save/load settings file in user directory)
-? one program instance
-- output preview, save as temp file and show it to user
+- file list view last column auto resize
+- remove new profile action
 
 TODO GUI:
-- staus bar
-- explorer context menu (? cascaded explorer context menu)
+? staus bar required
 ? images on file list columns
 ? progress bar for state in file list view
 ? images for state in file list view (LVS_EX_SUBITEMIMAGES?)
 ? icons for source files in file list view
-
+- explorer context menu (? cascaded explorer context menu)
 
 MINOR:
 - CWnd::OnSettingChange()
 
 BUG:
-
+- ghost items in file list view
 
 NOTES:
 - AFX_GLOBAL_DATA

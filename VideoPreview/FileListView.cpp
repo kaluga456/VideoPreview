@@ -41,7 +41,7 @@ static CString GetItemStateText(const CProcessingItem* pi)
     if(PIS_MIN_PROCESSING <= item_state && item_state <= PIS_MAX_PROCESSING)
     {
         CString result;
-        result.Format(_T("%u%%"), item_state);
+        result.Format(_T("%u%%"), static_cast<int>(item_state));
         return result;
     }
     return _T("Unknown");
@@ -51,7 +51,7 @@ static CString GetItemStateText(const CProcessingItem* pi)
 static int CALLBACK FileListViewSortBySource(LPARAM param1, LPARAM param2, LPARAM ascending)
 {
     ASSERT(param1 && param2);
-    if(NULL == param1 || NULL == param2) return 0;
+    if(0 == param1 || 0 == param2) return 0;
 
     const CProcessingItem* left = reinterpret_cast<const CProcessingItem*>(param1);
     const CProcessingItem* right = reinterpret_cast<const CProcessingItem*>(param2);
@@ -61,7 +61,7 @@ static int CALLBACK FileListViewSortBySource(LPARAM param1, LPARAM param2, LPARA
 static int CALLBACK FileListViewSortByState(LPARAM param1, LPARAM param2, LPARAM ascending)
 {
     ASSERT(param1 && param2);
-    if(NULL == param1 || NULL == param2) return 0;
+    if(0 == param1 || 0 == param2) return 0;
 
     const CProcessingItem* left = reinterpret_cast<const CProcessingItem*>(param1);
     const CProcessingItem* right = reinterpret_cast<const CProcessingItem*>(param2);
@@ -185,7 +185,7 @@ BOOL CFileListView::PreTranslateMessage(MSG* msg)
     //Delete
     if(VK_DELETE == msg->wParam)
     {
-        ::SendMessage(GetParent()->m_hWnd, WM_COMMAND, ID_CMD_REMOVE_SELECTED, NULL);
+        ::SendMessage(GetParent()->m_hWnd, WM_COMMAND, ID_CMD_REMOVE_SELECTED, 0);
         return TRUE;
     }
 
@@ -416,7 +416,7 @@ int CFileListView::FindItem(const CProcessingItem* item)
 {
     ASSERT(item);
     const LPARAM data = reinterpret_cast<LPARAM>(item);
-    if(NULL == data)
+    if(0 == data)
         return -1;
 
     LVFINDINFO lvfi;

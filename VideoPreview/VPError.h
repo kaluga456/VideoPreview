@@ -72,7 +72,7 @@ protected:
 void VPExcMsgBox(const CVPExc* exc, LPCTSTR msg = nullptr);
 
 //heplers
-#define VP_VERIFY(expression) {if(NULL == (expression)) throw CVPExcStr(_T("VP_VERIFY(") _T(#expression) _T(")"));}
+#define VP_VERIFY(expression) {if(false == static_cast<bool>(expression)) throw CVPExcStr(_T("VP_VERIFY(") _T(#expression) _T(")"));}
 #define VP_VERIFY_WINAPI(error_code) {if(error_code != ERROR_SUCCESS) throw CVPExcWinApi(DWORD(error_code));}
 #define VP_VERIFY_WINAPI_BOOL(bool_result) {if(FALSE == (bool_result)) throw CVPExcWinApi(::GetLastError());}
 

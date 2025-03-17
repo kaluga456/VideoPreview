@@ -26,8 +26,7 @@ class CVideoFileTypesLess
 public:
     bool operator()(const CVideoFileType& left, const CVideoFileType& right) const
     {
-        const int result = ::_tcscmp(left.Get(), right.Get());
-        return result < 0;
+        return ::_tcscmp(left.Get(), right.Get()) < 0;
     }
 };
 

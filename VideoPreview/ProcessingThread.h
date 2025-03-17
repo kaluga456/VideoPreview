@@ -51,7 +51,7 @@ enum
 {
     PTM_PROGRESS,   //LPARAM - progress (0..100)
     PTM_DONE,       //LPARAM - result text, including output file name (LPTSTR)
-    PTM_STOP,       //LPARAM - NULL
+    PTM_STOP,       //LPARAM - 0
     PTM_FAILED,     //LPARAM - error description (LPTSTR)
     PTM_CRIT_FAIL   //TODO: LPARAM - error description (LPTSTR)
 };

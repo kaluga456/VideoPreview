@@ -33,7 +33,7 @@ class CProcessingItemListSerial : public CObject
 
 private:
     CProcessingItemList* Items;
-    CProcessingItemListSerial() : Items(NULL) {}
+    CProcessingItemListSerial() : Items{ nullptr } {}
 
 public:  
     explicit CProcessingItemListSerial(CProcessingItemList* item_list) : Items(item_list) {}
@@ -47,7 +47,7 @@ void CProcessingItemListSerial::Serialize(CArchive& archive)
     CObject::Serialize(archive);
 
     ASSERT(Items);
-    if(NULL == Items) return;
+    if(nullptr == Items) return;
 
     if(archive.IsStoring())
     {

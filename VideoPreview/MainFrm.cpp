@@ -125,7 +125,8 @@ void CMainToolbar::AdjustLayout()
     if(combo_button_index < 0) combo_button_index = CommandToIndex(ID_COMBO_OUTPUT_DIR);
     CMFCToolBarComboBoxButton* cbb = static_cast<CMFCToolBarComboBoxButton*>(GetButton(combo_button_index));
     ASSERT(cbb);
-    if(nullptr == cbb) return;
+    if(nullptr == cbb)
+        return;
 
     //WORKAROUND: this call restores default width of CMFCToolBarComboBoxButton
     //CMFCToolBar::AdjustLayout();
@@ -418,7 +419,7 @@ void CMainFrame::OnUpdateFrameTitle(BOOL bAddToTitle)
 {
     //NOTE: in default method frame title is first name from IDR_MAINFRAME
     //CFrameWndEx::OnUpdateFrameTitle(bAddToTitle);
-    ::AfxSetWindowText(m_hWnd, APP_NAME _T(" (build: ") APP_BUILD _T(")"));
+    ::AfxSetWindowText(m_hWnd, APP_FULL_NAME);
 }
 BOOL CMainFrame::OnNotify(WPARAM wParam, LPARAM lParam, LRESULT* pResult)
 {

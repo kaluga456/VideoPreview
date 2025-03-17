@@ -1,7 +1,5 @@
 #pragma once
 
-const int MAX_OUTPUT_PROFILE_HEADER_SIZE = 2048; //TODO: required?
-
 enum
 {
     SERIALIZE_SCHEMA_VERSION = 1,
@@ -9,7 +7,7 @@ enum
 };
 
 //output file format
-enum : UINT
+enum : int
 {
     OUTPUT_FILE_FORMAT_BMP,
     OUTPUT_FILE_FORMAT_JPG,
