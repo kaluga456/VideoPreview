@@ -6,7 +6,7 @@ static const int VIDEO_FILE_TYPE_MAX_SIZE = 6;
 LPCTSTR const DEFAULT_VIDEO_FILE_TYPES = 
     _T("avi;mkv;mp4;m4v;mp4v;mpv4;hdmov;mov;3gp;3gpp;3g2;3gp2;flv;f4v;")
     _T("ogm;ogv;rm;ram;rpm;rmm;rt;rp;smi;smil;wmv;wmp;wm;asf;")
-    _T("smk;bik;fli;flc;flic;dsm;dsv;dsa;dss;ivf;divx;rmvb;amv"); 
+    _T("smk;bik;fli;flc;flic;dsm;dsv;dsa;dss;ivf;divx;rmvb;amv");
 
 class CVideoFileType
 {
