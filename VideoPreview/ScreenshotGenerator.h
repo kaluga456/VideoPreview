@@ -1,6 +1,6 @@
 #pragma once
 
-enum : UINT
+enum
 {
     SCREENLIST_RESULT_SUCCESS = 0,
     SCREENLIST_RESULT_FAIL,
@@ -16,5 +16,5 @@ public:
 };
 
 //screenlist generators
-UINT GenerateScreenlistPreview(const COutputProfile& output_profile, CString& result_string);
-UINT GenerateScreenlist(LPCTSTR video_file_name, LPCTSTR output_dir, const COutputProfile& output_profile, CString& result_string, IScreenshotsCallback* callback = nullptr);
+int GenerateScreenlist(const COutputProfile& output_profile, CString& result_string,
+    CString video_file_name = CString(), CString output_dir = CString(), IScreenshotsCallback* callback = nullptr);

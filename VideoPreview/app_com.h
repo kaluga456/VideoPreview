@@ -10,8 +10,13 @@ namespace app
 class com
 {
 public:
-    //ctor/dtor
-    explicit com(DWORD options = COINIT_MULTITHREADED) {VP_VERIFY_COM(::CoInitializeEx(nullptr, options));}
+    explicit com(DWORD options = COINIT_MULTITHREADED)
+    {
+        const HRESULT result = ::CoInitializeEx(nullptr, options);
+        if (S_OK == result || S_FALSE == result) //S_FALSE - The COM library is already initialized on this thread
+            return;
+        throw CVPExcWinApi(static_cast<DWORD>(result));
+    }
     ~com() noexcept {::CoUninitialize();}
 };
 
@@ -19,7 +24,6 @@ public:
 template<typename T> class com_iface
 {
 public:
-    //ctor/dtor
     explicit com_iface(T* iface = nullptr) noexcept : Interface(iface) {}
     com_iface(REFCLSID clsid, REFIID iid)
     {

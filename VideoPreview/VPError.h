@@ -72,13 +72,23 @@ protected:
 void VPExcMsgBox(const CVPExc* exc, LPCTSTR msg = nullptr);
 
 //heplers
-#define VP_VERIFY(expression) {if(false == static_cast<bool>(expression)) throw CVPExcStr(_T("VP_VERIFY(") _T(#expression) _T(")"));}
-#define VP_VERIFY_WINAPI(error_code) {if(error_code != ERROR_SUCCESS) throw CVPExcWinApi(DWORD(error_code));}
-#define VP_VERIFY_WINAPI_BOOL(bool_result) {if(FALSE == (bool_result)) throw CVPExcWinApi(::GetLastError());}
+#define VP_VERIFY(expression) { const bool r = static_cast<bool>(expression);\
+                                if(false == r) \
+                                    throw CVPExcStr(_T("VP_VERIFY(") _T(#expression) _T(")"));}
+#define VP_VERIFY_WINAPI(expression) {  const DWORD r = static_cast<DWORD>(expression); \
+                                        if(r != ERROR_SUCCESS) \
+                                            throw CVPExcWinApi(r);}
+#define VP_VERIFY_WINAPI_BOOL(expression) { const BOOL r = static_cast<BOOL>(expression); \
+                                            if(FALSE == r) \
+                                                throw CVPExcWinApi(::GetLastError());}
 
 //TODO: get correct messages
-#define VP_VERIFY_DIRECT_SHOW(error_code) {if(error_code != S_OK) throw CVPExcDirectShow(error_code);}
-#define VP_VERIFY_COM(error_code) {if(error_code != ERROR_SUCCESS) throw CVPExcWinApi(DWORD(error_code));}
+#define VP_VERIFY_DIRECT_SHOW(expression) { const HRESULT r = static_cast<HRESULT>(expression);\
+                                            if(r != S_OK) \
+                                                throw CVPExcDirectShow(r);}
+#define VP_VERIFY_COM(expression) { const HRESULT r = static_cast<HRESULT>(expression);\
+                                            if(r != ERROR_SUCCESS) \
+                                                throw CVPExcDirectShow(r);}
 
 #define VP_THROW(msg) {throw CVPExcStr(msg);}
 #define VP_THROW_WINAPI_LAST() {throw CVPExcWinApiLast();}

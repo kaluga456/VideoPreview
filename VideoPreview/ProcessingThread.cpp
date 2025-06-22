@@ -86,10 +86,12 @@ DWORD CProcessingThread::Run()
 
     //processing procedure
     CString result_string;
-    LPCTSTR output_dir = nullptr;
+    CString output_dir = nullptr;
     if(false == OutputDir.IsEmpty())
         output_dir = OutputDir;
-    const int result = GenerateScreenlist(SourceFileName, output_dir, OutputProfile, result_string, this);
+    const int result = GenerateScreenlist(OutputProfile, result_string, SourceFileName, output_dir, this);
+
+    //notify result
     if(SCREENLIST_RESULT_SUCCESS == result)
         NotifyResult(PTM_DONE, result_string);
     else if(SCREENLIST_RESULT_TERMINATED == result)

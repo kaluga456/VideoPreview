@@ -30,6 +30,7 @@ public:
 private:
     CMapStringToPtr Items;
 };
+
 class CPGPFont : public CMFCPropertyGridFontProperty
 {
 public:
@@ -41,7 +42,7 @@ public:
 class CSettingsPane : public CDockablePane
 {
 public:
-    CMFCToolBarComboBoxButton* CBProfiles;
+    CMFCToolBarComboBoxButton* CBProfiles{nullptr};
     CProfileToolBar ToolBar;
     CMFCPropertyGridCtrl PGProfile;
 

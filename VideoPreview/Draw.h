@@ -5,11 +5,6 @@ using Gdiplus::REAL;
 //background
 void DrawBackgorund(Gdiplus::Graphics& graphics, const COutputProfile& output_profile, INT output_width, INT output_height);
 
-//sample values for profile preview
-constexpr int SAMPLE_FRAME_DURATION = 0; //sec
-constexpr int SAMPLE_FRAME_WIDTH = 320;
-constexpr int SAMPLE_FRAME_HEIGHT = 200;
-
 //header painter
 constexpr size_t HEADER_VERTICAL_PADDING = 5; //vertical padding, px
 constexpr size_t HEADER_LINES_COUNT = 4;
@@ -19,8 +14,7 @@ public:
     CHeaderDraw(Gdiplus::Graphics& graphics, const COutputProfile& output_profile) : Graphics(graphics), Profile(output_profile) {}
     ~CHeaderDraw() {}
 
-    void DrawPreview();
-    void Draw(LPCTSTR video_file_name, const CVideoFile& video_file);
+    void Draw(const CVideoFile& video_file);
     static int CalculateHeight(const COutputProfile& output_profile);
 
 private:

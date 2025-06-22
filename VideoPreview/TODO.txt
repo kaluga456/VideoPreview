@@ -1,7 +1,7 @@
 TODO:
 ? export/import settings/profiles commands (save/load settings file in user directory)
 - file list view last column auto resize
-- remove new profile action
+- delete "add profile" action, use "save as"
 
 TODO GUI:
 ? staus bar required

@@ -900,14 +900,14 @@ void CMainFrame::OnCmdProfilePreview()
 {
     CString result_string;
     SettingsPane.GetOutputProfile(&TempProfile);
-    if (SCREENLIST_RESULT_SUCCESS == GenerateScreenlistPreview(TempProfile, result_string))
+    if (SCREENLIST_RESULT_SUCCESS == GenerateScreenlist(TempProfile, result_string))
     {
         ::ShellOpenFile(result_string, m_hWnd);
         return;
     }
 
     //error
-    CString msg(_T("GenerateScreenlistPreview() failed\n"));
+    CString msg(_T("Profile preview failed\n"));
     msg += result_string;
     ::AfxMessageBox(msg, MB_OK | MB_ICONSTOP);
     return;

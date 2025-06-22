@@ -31,72 +31,40 @@ int CHeaderDraw::CalculateHeight(const COutputProfile& output_profile)
     Gdiplus::Font header_font(hdc, &lf);
     temp_graphics.ReleaseHDC(hdc);
 
-    const int header_font_height = static_cast<size_t>(header_font.GetHeight(&temp_graphics));
+    const int header_font_height = static_cast<int>(header_font.GetHeight(&temp_graphics));
     return HEADER_VERTICAL_PADDING + header_font_height * HEADER_LINES_COUNT + HEADER_VERTICAL_PADDING;
 }
-void CHeaderDraw::DrawPreview()
+void CHeaderDraw::Draw(const CVideoFile& video_file)
 {
-    //sample values
-    const int duration = SAMPLE_FRAME_DURATION;
-    const int video_width = SAMPLE_FRAME_WIDTH;
-    const int video_height = SAMPLE_FRAME_HEIGHT;
-
-    LARGE_INTEGER li{};
-    li.QuadPart = 230456; //sample value
-    LPCTSTR file_name = _T("sample_frame.bmp"); //sample value
-    CString file_size_str = GetFileSizeString(li);
-    CString duration_str = GetDurationString(duration);
-
-    CString header_text;
-    header_text.Format(HEADER_FORMAT_STRING, file_name, file_size_str, video_width, video_height, duration_str);
-
-    LOGFONT lf{};
-    Profile.HeaderFont.Get(lf);
-    VP_VERIFY(lf.lfHeight);
-
-    HDC hdc = Graphics.GetHDC();
-    Gdiplus::Font header_font(hdc, &lf);
-    Graphics.ReleaseHDC(hdc);
-
-    Gdiplus::Color header_font_color;
-    header_font_color.SetFromCOLORREF(Profile.HeaderFont.Color);
-    Gdiplus::SolidBrush header_brush(header_font_color);
-    Gdiplus::PointF pt(0, static_cast<Gdiplus::REAL>(HEADER_VERTICAL_PADDING));
-
-    app::verify_gdi(Graphics.DrawString(header_text, static_cast<INT>(::wcslen(header_text)), &header_font, pt, &header_brush));
-}
-void CHeaderDraw::Draw(LPCTSTR video_file_name, const CVideoFile& video_file)
-{
-    const UINT duration = video_file.GetDuration();
+    //video file attr
     const int video_width = video_file.GetVideoWidth();
     const int video_height = video_file.GetVideoHeight();
-    VP_VERIFY(duration > 0);
-    VP_VERIFY(video_width > 0);
-    VP_VERIFY(video_height > 0);
-
-    CString header_text;
-
-    LARGE_INTEGER li{};
-    video_file.GetSize(li);
-    CString file_size_str = GetFileSizeString(li);
+    const int duration = video_file.GetDuration();
+    const __int64 file_size{ video_file.GetFileSize() };
     CString duration_str = GetDurationString(duration);
-    LPCTSTR file_name = GetRelativeFileName(video_file_name);
+    CString file_size_str = GetFileSizeString(file_size);
+    LPCTSTR file_name = GetRelativeFileName(video_file.GetName());
+
+    //header text
+    CString header_text;
     header_text.Format(HEADER_FORMAT_STRING, file_name, file_size_str, video_width, video_height, duration_str);
 
+    //set font
     LOGFONT lf{};
     Profile.HeaderFont.Get(lf);
     VP_VERIFY(lf.lfHeight);
-
     HDC hdc = Graphics.GetHDC();
     Gdiplus::Font header_font(hdc, &lf);
     Graphics.ReleaseHDC(hdc);
 
+    //set colors
     Gdiplus::Color header_font_color;
     header_font_color.SetFromCOLORREF(Profile.HeaderFont.Color);
     Gdiplus::SolidBrush header_brush(header_font_color);
     Gdiplus::PointF pt(0, static_cast<Gdiplus::REAL>(HEADER_VERTICAL_PADDING));
 
-    app::verify_gdi(Graphics.DrawString(header_text, static_cast<INT>(::wcslen(header_text)), &header_font, pt, &header_brush));
+    //draw
+    app::verify_gdi(Graphics.DrawString(header_text, header_text.GetLength(), &header_font, pt, &header_brush));
 }
 
 CTimeStampDraw::CTimeStampDraw(Gdiplus::Graphics& graphics, const COutputProfile& output_profile) : Graphics(graphics), Profile(output_profile), Font(nullptr), Brush(nullptr), ShadowBrush(nullptr)

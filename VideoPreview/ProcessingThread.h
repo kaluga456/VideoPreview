@@ -84,12 +84,11 @@ private:
     CString OutputDir;
     COutputProfile OutputProfile;
 
-    volatile bool TerminateSignal;
+    std::atomic_bool TerminateSignal;
 
     void NotifyMessageTarget(WPARAM message_type, LPARAM message_data = 0);
     void NotifyResult(WPARAM message_type, LPCTSTR error_description);
     DWORD Run(); //thread procedure
-    void ProcessItem();
 
 #ifdef SHALLOW_PROCESSING
     void ShallowProcedure();

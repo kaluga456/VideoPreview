@@ -103,8 +103,8 @@ class COutputProfile : public CObject
 {
 public:
     //background and header
-    int BackgroundColor; //COLORREF
-    int WriteHeader; //bool
+    int BackgroundColor{}; //COLORREF
+    int WriteHeader{}; //bool
     CString HeaderText; //format string
     CFontData HeaderFont;
 

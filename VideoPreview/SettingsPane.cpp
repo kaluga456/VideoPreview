@@ -14,8 +14,7 @@
 #endif
 
 //profile properties
-//NOTE: keep enum and SETTING_DESCR indexes synced
-//profile property ids
+//NOTE: keep enum and SETTING_DESCR indexes synced to profile property ids
 enum
 {
     IDP_BACKGROUND_COLOR,
@@ -63,7 +62,7 @@ enum
 LPCTSTR SETTING_DESCR[] =
 {
     _T("Output image background color"), //IDP_BACKGROUND_COLOR,
-    _T("Write summury information about video file.\nSuch as file name, resolution and duration."), //IDP_WRITE_HEADER,
+    _T("Write information about video file"), //IDP_WRITE_HEADER,
 
     //TODO:
     //_T("TODO"), //IDP_HEADER_TEXT,
